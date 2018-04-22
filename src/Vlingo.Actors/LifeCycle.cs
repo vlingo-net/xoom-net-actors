@@ -1,4 +1,6 @@
-﻿namespace Vlingo.Actors
+﻿using System;
+
+namespace Vlingo.Actors
 {
     public class LifeCycle
     {
@@ -13,6 +15,21 @@
         }
 
         public void Secure()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void AfterStop(Actor actor)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void BeforeStart(Actor actor)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Supervisor LookUpProxy(Type type)
         {
             throw new System.NotImplementedException();
         }

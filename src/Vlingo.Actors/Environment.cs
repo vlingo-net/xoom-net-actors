@@ -7,5 +7,6 @@
         public bool IsSecured { get; set; }
         public Actor Parent { get; set; }
         public Mailbox Mailbox { get; set; }
+        public Stowage Stowage { get; set; }
     }
 }
