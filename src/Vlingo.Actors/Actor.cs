@@ -3,13 +3,13 @@ using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors
 {
-    public abstract class Actor : IStartable, IStoppable
+    public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
         public LifeCycle LifeCycle { get; }
 
         public Address Address => LifeCycle.Address;
 
-        public DeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        public IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
         public virtual void Start()
         {
@@ -77,7 +77,7 @@ namespace Vlingo.Actors
 
         protected Definition Definition => LifeCycle.Definition;
 
-        protected Logger Logger => LifeCycle.Environment.Logger;
+        internal ILogger Logger => LifeCycle.Environment.Logger;
 
         protected Actor Parent
         {
@@ -111,7 +111,7 @@ namespace Vlingo.Actors
             return new OutcomeInterestActorProxy<TOutcome, TRef>(outcomeAware, reference);
         }
 
-        protected Stage Stage
+        internal Stage Stage
         {
             get
             {
@@ -130,7 +130,7 @@ namespace Vlingo.Actors
         }
 
 
-        protected bool IsDispersing =>
+        internal bool IsDispersing =>
             LifeCycle.Environment.Stowage.IsDispersing;
 
 
@@ -139,7 +139,7 @@ namespace Vlingo.Actors
             LifeCycle.Environment.Stowage.DispersingMode();
         }
 
-        protected bool IsStowing =>
+        internal bool IsStowing =>
             LifeCycle.Environment.Stowage.IsStowing;
 
 

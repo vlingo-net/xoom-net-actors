@@ -8,6 +8,8 @@ namespace Vlingo.Actors
         public Environment Environment { get; set; }
         public bool IsStopped { get; set; }
         public Definition Definition { get; set; }
+        public bool IsSuspended { get; }
+        public bool IsResuming { get; internal set; }
 
         public LifeCycle(Environment environment)
         {
@@ -40,6 +42,11 @@ namespace Vlingo.Actors
         }
 
         internal void SendStart(Actor actor)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void NextResuming()
         {
             throw new NotImplementedException();
         }

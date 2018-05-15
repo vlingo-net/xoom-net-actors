@@ -16,14 +16,14 @@ namespace Vlingo.Actors
         private Definition Definition { get; }
         private FailureMark FailureMark { get; }
         
-        internal Logger Logger { get; }
+        internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
         private ISupervisor MaybeSupervisor { get; }
         internal Actor Parent { get; }
         private IDictionary<Type, object> ProxyCache { get; }
         internal Stage Stage { get; }
         internal Stowage Stowage { get; }
-        private Stowage Suspended { get; }
+        internal Stowage Suspended { get; }
 
         internal Environment(
             Stage stage,
@@ -32,7 +32,7 @@ namespace Vlingo.Actors
             Actor parent,
             IMailbox mailbox,
             ISupervisor maybeSupervisor,
-            Logger logger)
+            ILogger logger)
         {
             Stage = stage ?? throw new ArgumentNullException(nameof(stage));
             Address = address ?? throw new ArgumentNullException(nameof(address));

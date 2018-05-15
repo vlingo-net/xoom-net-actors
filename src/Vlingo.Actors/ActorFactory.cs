@@ -14,7 +14,7 @@ namespace Vlingo.Actors
           Address address,
           IMailbox mailbox,
           ISupervisor supervisor,
-          Logger logger)
+          ILogger logger)
         {
             var environment = new Environment(
                 stage,
@@ -49,7 +49,7 @@ namespace Vlingo.Actors
                     }
                     catch(Exception ex)
                     {
-                        Logger.Log($"vlingo-dotnet/actors: ActorFactory: failed because: {ex.Message}", ex);
+                        logger.Log($"vlingo-dotnet/actors: ActorFactory: failed because: {ex.Message}", ex);
                         Console.WriteLine(ex.StackTrace);
                     }
                     break;

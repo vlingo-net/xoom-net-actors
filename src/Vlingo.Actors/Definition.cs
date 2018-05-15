@@ -12,7 +12,7 @@ namespace Vlingo.Actors
         public static Definition Has<T>(List<object> parameters) where T : Actor 
             => new Definition(typeof(T), parameters);
 
-        public static Definition Has<T>(List<object> parameters, Logger logger) where T : Actor
+        public static Definition Has<T>(List<object> parameters, ILogger logger) where T : Actor
             => new Definition(typeof(T), parameters, logger);
 
         public static Definition Has<T>(List<object> parameters, string actorName) where T : Actor
@@ -21,7 +21,7 @@ namespace Vlingo.Actors
         public static Definition Has<T>(
             List<object> parameters,
             string actorName,
-            Logger logger)
+            ILogger logger)
             where T : Actor
             => new Definition(typeof(T), parameters, actorName, logger);
 
@@ -52,7 +52,7 @@ namespace Vlingo.Actors
             Actor parent,
             string mailboxName,
             string actorName,
-            Logger logger)
+            ILogger logger)
             where T : Actor
             => new Definition(typeof(T), parameters, parent, mailboxName, actorName, logger);
 
@@ -68,7 +68,7 @@ namespace Vlingo.Actors
         public string MailboxName { get; }
         public string ActorName { get; }
         public ISupervisor Supervisor { get; }
-        private Logger Logger { get; }
+        private ILogger Logger { get; }
 
         private Definition(
             Type type,
@@ -76,7 +76,7 @@ namespace Vlingo.Actors
             Actor parent,
             string mailboxName,
             string actorName,
-            Logger logger)
+            ILogger logger)
         {
             Type = type;
             this.parameters = parameters;
@@ -119,7 +119,7 @@ namespace Vlingo.Actors
             List<object> parameters,
             Actor parent,
             string actorName,
-            Logger logger) :
+            ILogger logger) :
         this(type, parameters, parent, null, actorName, logger)
         {
         }
@@ -128,7 +128,7 @@ namespace Vlingo.Actors
             Type type,
             List<object> parameters,
             string actorName,
-            Logger logger) :
+            ILogger logger) :
         this(type, parameters, null, null, actorName, logger)
         {
         }
@@ -136,7 +136,7 @@ namespace Vlingo.Actors
         private Definition(
             Type type,
             List<object> parameters,
-            Logger logger) :
+            ILogger logger) :
         this(type, parameters, null, null, null, logger)
         {
         }
@@ -146,7 +146,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public Logger LoggerOr(Logger defaultLogger)
+        public ILogger LoggerOr(ILogger defaultLogger)
         {
             return Logger ?? defaultLogger;
         }

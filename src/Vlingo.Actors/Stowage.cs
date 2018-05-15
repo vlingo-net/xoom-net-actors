@@ -21,5 +21,15 @@ namespace Vlingo.Actors
         {
             throw new NotImplementedException();
         }
+
+        internal void Stow(IMessage message)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal IMessage SwapWith(IMessage message)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

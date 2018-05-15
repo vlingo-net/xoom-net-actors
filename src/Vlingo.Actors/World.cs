@@ -11,7 +11,7 @@ namespace Vlingo.Actors
 
         private ISupervisor defaultSupervisor;
 
-        public DeadLetters DeadLetters { get; set; }
+        public IDeadLetters DeadLetters { get; set; }
 
         public Stage Stage => StageNamed(DEFAULT_STAGE);
 
