@@ -66,10 +66,10 @@ namespace Vlingo.Actors
             else
             {
                 //obj.GetType().IsAssignableFrom(otherObj.GetType());
-                if (this.GetType().IsAssignableFrom(typeof(Supervisor)))
+                if (this.GetType().IsAssignableFrom(typeof(ISupervisor)))
                 {
                     return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this,
-                        LifeCycle.LookUpProxy(typeof(Supervisor)), Logger);
+                        LifeCycle.LookUpProxy(typeof(ISupervisor)), Logger);
                 }
                 else
                 {

@@ -1,4 +1,6 @@
-﻿namespace Vlingo.Actors
+﻿using System;
+
+namespace Vlingo.Actors
 {
     public class Stowage
     {
@@ -13,6 +15,11 @@
         public void StowingMode()
         {
             throw new System.NotImplementedException();
+        }
+
+        public void Reset()
+        {
+            throw new NotImplementedException();
         }
     }
 }

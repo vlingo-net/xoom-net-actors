@@ -29,9 +29,14 @@ namespace Vlingo.Actors
             throw new System.NotImplementedException();
         }
 
-        public Supervisor LookUpProxy(Type type)
+        public ISupervisor LookUpProxy(Type type)
         {
             throw new System.NotImplementedException();
+        }
+
+        internal void SendStart(Actor actor)
+        {
+            throw new NotImplementedException();
         }
     }
 }

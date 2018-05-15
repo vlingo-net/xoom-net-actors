@@ -1,4 +1,6 @@
-﻿namespace Vlingo.Actors
+﻿using System;
+
+namespace Vlingo.Actors
 {
     public class World
     {
@@ -10,6 +12,16 @@
         public Stage StageNamed(string name)
         {
             throw new System.NotImplementedException();
+        }
+
+        internal Mailbox MailboxNameFrom(string mailboxName)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Mailbox AssignMailbox(object mailboxName, int v)
+        {
+            throw new NotImplementedException();
         }
     }
 }

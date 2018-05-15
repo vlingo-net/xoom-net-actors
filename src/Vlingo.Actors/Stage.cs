@@ -11,7 +11,12 @@ namespace Vlingo.Actors
             throw new System.NotImplementedException();
         }
 
-        public T ActorFor<T>(Definition definition, Type protocol, Actor actor, Supervisor supervisor, Logger logger)
+        public T ActorFor<T>(Definition definition, Type protocol, Actor actor, ISupervisor supervisor, Logger logger)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal T ActorAs<T>(Actor parent)
         {
             throw new NotImplementedException();
         }
