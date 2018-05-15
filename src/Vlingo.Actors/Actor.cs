@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors
 {
@@ -29,6 +28,7 @@ namespace Vlingo.Actors
             }
         }
 
+        public virtual TestState ViewTestState() => new TestState();
 
         public override bool Equals(object other)
         {
@@ -40,40 +40,37 @@ namespace Vlingo.Actors
             return Address.Equals(((Actor) other).LifeCycle.Address);
         }
 
-        public override int GetHashCode()
-        {
-            return LifeCycle.GetHashCode();
-        }
+        public override int GetHashCode() => LifeCycle.GetHashCode();
 
         public override string ToString() => $"Actor[type={GetType().Name} address={Address}]";
 
         protected Actor()
         {
-            // Not sure what is that :)
-            //final Environment maybeEnvironment = ActorFactory.threadLocalEnvironment.get();
-            //this.lifeCycle = new LifeCycle(maybeEnvironment != null ? maybeEnvironment : new TestEnvironment());
-            //ActorFactory.threadLocalEnvironment.set(null);
-            //this.lifeCycle.sendStart(this);
+            var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
+            LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
+            ActorFactory.ThreadLocalEnvironment.Value = null;
         }
 
-        protected T ChildActorFor<T>(Definition definition, Type protocol)
+        protected T ChildActorFor<T>(Definition definition)
         {
             if (definition.Supervisor != null)
             {
-                return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this, definition.Supervisor,
+                return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, definition.Supervisor,
                     Logger);
             }
             else
             {
-                //obj.GetType().IsAssignableFrom(otherObj.GetType());
-                if (this.GetType().IsAssignableFrom(typeof(ISupervisor)))
+                if (this is ISupervisor)
                 {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this,
-                        LifeCycle.LookUpProxy(typeof(ISupervisor)), Logger);
+                    return LifeCycle.Environment.Stage.ActorFor<T>(
+                        definition, 
+                        this,
+                        LifeCycle.LookUpProxy(typeof(ISupervisor)),
+                        Logger);
                 }
                 else
                 {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this, null, Logger);
+                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
                 }
             }
         }
@@ -95,24 +92,24 @@ namespace Vlingo.Actors
             }
         }
 
-        // Suggest make this SetAsSecure
         protected void Secure()
         {
             LifeCycle.Secure();
         }
 
-        protected T SelfAs<T>(T protocol)
+        internal T SelfAs<T>()
         {
-            return LifeCycle.Environment.Stage.ActorProxyFor(protocol, this, LifeCycle.Environment.Mailbox);
+            return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
         }
 
-        // Need to discuss this
-//        protected IOutcomeInterest SelfAsOutcomeInterest(object reference) {
-//            var outcomeAware = LifeCycle.Environment.Stage.ActorProxyFor<IOutcomeAware<>>
-//                (typeof(IOutcomeAware<>), this, LifeCycle.Environment.Mailbox);
-//            
-//            return new OutcomeInterestActorProxy(outcomeAware, reference);
-//        }
+        protected IOutcomeInterest<TOutcome> SelfAsOutcomeInterest<TOutcome, TRef>(TRef reference)
+        {
+            var outcomeAware = LifeCycle.Environment.Stage.ActorProxyFor<IOutcomeAware<TOutcome, TRef>>(
+                this,
+                LifeCycle.Environment.Mailbox);
+
+            return new OutcomeInterestActorProxy<TOutcome, TRef>(outcomeAware, reference);
+        }
 
         protected Stage Stage
         {
@@ -155,29 +152,29 @@ namespace Vlingo.Actors
         // life cycle overrides
         //=======================================
 
-        protected void BeforeStart()
+        protected virtual void BeforeStart()
         {
             // override
         }
 
-        protected void AfterStop()
+        protected virtual void AfterStop()
         {
             // override
         }
 
-        protected void BeforeRestart(Exception reason)
+        protected virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);
         }
 
-        protected void AfterRestart(Exception reason)
+        protected virtual void AfterRestart(Exception reason)
         {
             // override
             LifeCycle.BeforeStart(this);
         }
 
-        protected void BeforeResume(Exception reason)
+        protected virtual void BeforeResume(Exception reason)
         {
             // override
         }

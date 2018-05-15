@@ -17,7 +17,7 @@ namespace Vlingo.Actors
         private FailureMark FailureMark { get; }
         
         internal Logger Logger { get; }
-        internal Mailbox Mailbox { get; }
+        internal IMailbox Mailbox { get; }
         private ISupervisor MaybeSupervisor { get; }
         internal Actor Parent { get; }
         private IDictionary<Type, object> ProxyCache { get; }
@@ -30,7 +30,7 @@ namespace Vlingo.Actors
             Address address,
             Definition definition,
             Actor parent,
-            Mailbox mailbox,
+            IMailbox mailbox,
             ISupervisor maybeSupervisor,
             Logger logger)
         {

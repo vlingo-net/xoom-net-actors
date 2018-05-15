@@ -6,12 +6,12 @@ namespace Vlingo.Actors
     {
         public World World { get; set; }
 
-        public T ActorProxyFor<T>(T protocol, Actor actor, Mailbox mailbox)
+        public T ActorProxyFor<T>(Actor actor, IMailbox mailbox)
         {
             throw new System.NotImplementedException();
         }
 
-        public T ActorFor<T>(Definition definition, Type protocol, Actor actor, ISupervisor supervisor, Logger logger)
+        public T ActorFor<T>(Definition definition, Actor actor, ISupervisor supervisor, Logger logger)
         {
             throw new NotImplementedException();
         }

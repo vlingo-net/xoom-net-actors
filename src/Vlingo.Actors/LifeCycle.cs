@@ -2,12 +2,17 @@
 
 namespace Vlingo.Actors
 {
-    public class LifeCycle
+    public sealed class LifeCycle
     {
         public Address Address { get; set; }
         public Environment Environment { get; set; }
         public bool IsStopped { get; set; }
         public Definition Definition { get; set; }
+
+        public LifeCycle(Environment environment)
+        {
+            Environment = environment;
+        }
 
         public void Stop(Actor actor)
         {

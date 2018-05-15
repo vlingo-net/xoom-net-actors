@@ -1,8 +1,8 @@
 ﻿namespace Vlingo.Actors
 {
-    public interface IOutcomeAware<TO, TR>
+    public interface IOutcomeAware<TOutcome, TRef>
     {
-        void FailureOutcome(Outcome<TO> outcome, TR reference);
-        void SuccessfulOutcome(Outcome<TO> outcome, TR reference);
+        void FailureOutcome(Outcome<TOutcome> outcome, TRef reference);
+        void SuccessfulOutcome(Outcome<TOutcome> outcome, TRef reference);
     }
 }

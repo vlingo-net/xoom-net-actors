@@ -5,14 +5,14 @@ namespace Vlingo.Actors
 {
     public class ActorFactory
     {
-        protected static readonly ThreadLocal<Environment> ThreadLocalEnvironment = new ThreadLocal<Environment>(false);
+        internal static readonly ThreadLocal<Environment> ThreadLocalEnvironment = new ThreadLocal<Environment>(false);
 
         internal static Actor ActorFor(
           Stage stage,
           Actor parent,
           Definition definition,
           Address address,
-          Mailbox mailbox,
+          IMailbox mailbox,
           ISupervisor supervisor,
           Logger logger)
         {
@@ -69,7 +69,7 @@ namespace Vlingo.Actors
             return actor;
         }
 
-        internal static Mailbox ActorMailbox(
+        internal static IMailbox ActorMailbox(
             Stage stage,
             Address address,
             Definition definition)
