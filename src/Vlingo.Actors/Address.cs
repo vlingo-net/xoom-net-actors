@@ -4,7 +4,7 @@ namespace Vlingo.Actors
 {
     public sealed class Address : IComparable<Address>
     {
-        private static readonly Address None = new Address(0, "None");
+        internal static readonly Address None = new Address(0, "None");
         private static AtomicInteger NextId = new AtomicInteger(1);
 
         public int Id { get; }
