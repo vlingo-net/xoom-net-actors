@@ -5,7 +5,6 @@
         Actor Actor { get; }
         void Deliver();
         string Representation { get; }
-
         bool IsStowed { get; }
     }
 }
