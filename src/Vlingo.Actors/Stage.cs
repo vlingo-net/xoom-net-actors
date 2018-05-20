@@ -16,6 +16,17 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public ActorProtocolActor<object>[] ActorFor<T>(
+          Definition definition,
+          Actor parent,
+          Address maybeAddress,
+          IMailbox maybeMailbox,
+          ISupervisor maybeSupervisor,
+          ILogger logger)
+        {
+            throw new NotImplementedException();
+        }
+
         internal T ActorAs<T>(Actor parent)
         {
             throw new NotImplementedException();
@@ -30,5 +41,7 @@ namespace Vlingo.Actors
         {
             throw new NotImplementedException();
         }
+
+        public class ActorProtocolActor<T> { }
     }
 }

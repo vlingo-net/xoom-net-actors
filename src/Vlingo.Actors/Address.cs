@@ -21,7 +21,7 @@ namespace Vlingo.Actors
 
         internal static int TestNextIdValue() => NextId.Get();
 
-        private Address(int reservedId, string name)
+        internal Address(int reservedId, string name)
         {
             Id = reservedId;
             Name = name;
