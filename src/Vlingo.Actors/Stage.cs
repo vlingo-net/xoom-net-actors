@@ -21,7 +21,12 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
-        internal void HandleFailureOf<T>(Actor actor, Exception ex)
+        internal void HandleFailureOf<T>(ISupervised supervised)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal ISupervisor CommonSupervisorOr(ISupervisor defaultSupervisor)
         {
             throw new NotImplementedException();
         }

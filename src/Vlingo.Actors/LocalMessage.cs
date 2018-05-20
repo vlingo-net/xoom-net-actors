@@ -89,7 +89,7 @@ namespace Vlingo.Actors
                 catch(Exception ex)
                 {
                     Actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {Actor} sending: {Representation}", ex);
-                    Actor.Stage.HandleFailureOf<T>(Actor, ex);
+                    Actor.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(Actor, ex));
                 }
             }
         }

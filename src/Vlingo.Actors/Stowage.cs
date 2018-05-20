@@ -7,6 +7,8 @@ namespace Vlingo.Actors
         public bool IsDispersing { get; }
         public bool IsStowing { get; set; }
 
+        internal IMessage Head { get; set; }
+
         public void DispersingMode()
         {
             throw new System.NotImplementedException();

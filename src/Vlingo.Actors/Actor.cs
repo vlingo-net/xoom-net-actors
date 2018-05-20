@@ -65,7 +65,7 @@ namespace Vlingo.Actors
                     return LifeCycle.Environment.Stage.ActorFor<T>(
                         definition, 
                         this,
-                        LifeCycle.LookUpProxy(typeof(ISupervisor)),
+                        LifeCycle.LookUpProxy<ISupervisor>(),
                         Logger);
                 }
                 else
@@ -152,12 +152,12 @@ namespace Vlingo.Actors
         // life cycle overrides
         //=======================================
 
-        protected virtual void BeforeStart()
+        internal virtual void BeforeStart()
         {
             // override
         }
 
-        protected virtual void AfterStop()
+        internal virtual void AfterStop()
         {
             // override
         }
@@ -168,13 +168,13 @@ namespace Vlingo.Actors
             LifeCycle.AfterStop(this);
         }
 
-        protected virtual void AfterRestart(Exception reason)
+        internal virtual void AfterRestart(Exception reason)
         {
             // override
             LifeCycle.BeforeStart(this);
         }
 
-        protected virtual void BeforeResume(Exception reason)
+        internal virtual void BeforeResume(Exception reason)
         {
             // override
         }

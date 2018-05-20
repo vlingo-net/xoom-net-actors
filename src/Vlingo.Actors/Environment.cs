@@ -13,12 +13,12 @@ namespace Vlingo.Actors
 
         internal Address Address { get; }
         private List<Actor> Children { get; }
-        private Definition Definition { get; }
+        internal Definition Definition { get; }
         private FailureMark FailureMark { get; }
         
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
-        private ISupervisor MaybeSupervisor { get; }
+        internal ISupervisor MaybeSupervisor { get; }
         internal Actor Parent { get; }
         private IDictionary<Type, object> ProxyCache { get; }
         internal Stage Stage { get; }
@@ -67,7 +67,7 @@ namespace Vlingo.Actors
             ProxyCache.Add(proxy.GetType(), proxy);
         }
 
-        private T LookUpProxy<T>() => (T)ProxyCache[typeof(T)];
+        internal T LookUpProxy<T>() => (T)ProxyCache[typeof(T)];
 
         internal bool IsSecured => (_flags & FLAG_SECURED) == FLAG_SECURED;
 
