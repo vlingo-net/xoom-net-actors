@@ -2,12 +2,12 @@
 
 namespace Vlingo.Actors
 {
-    public class DeadLettersProxy : IDeadLetters
+    public class DeadLetters__Proxy : IDeadLetters
     {
         private readonly Actor actor;
         private readonly IMailbox mailbox;
 
-        public DeadLettersProxy(Actor actor, IMailbox mailbox)
+        public DeadLetters__Proxy(Actor actor, IMailbox mailbox)
         {
             this.actor = actor;
             this.mailbox = mailbox;

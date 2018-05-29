@@ -2,7 +2,7 @@
 
 namespace Vlingo.Actors
 {
-    public class OutcomeInterestProxy<TOutcome> : IOutcomeInterest<TOutcome>
+    public class OutcomeInterest__Proxy<TOutcome> : IOutcomeInterest<TOutcome>
     {
         private const string FailureOutcomeRepesentation1 = "failureOutcome(Outcome<O>)";
         private const string SuccessfulOutcomeRepesentation2 = "successfulOutcome(Outcome<O>)";
@@ -10,7 +10,7 @@ namespace Vlingo.Actors
         private readonly Actor actor;
         private readonly IMailbox mailbox;
 
-        public OutcomeInterestProxy(Actor actor, IMailbox mailbox)
+        public OutcomeInterest__Proxy(Actor actor, IMailbox mailbox)
         {
             this.actor = actor;
             this.mailbox = mailbox;

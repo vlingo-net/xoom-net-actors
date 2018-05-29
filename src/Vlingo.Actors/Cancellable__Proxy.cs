@@ -2,12 +2,12 @@
 
 namespace Vlingo.Actors
 {
-    public class CancellableProxy : ICancellable
+    public class Cancellable__Proxy : ICancellable
     {
         private readonly Actor actor;
         private readonly IMailbox mailbox;
 
-        public CancellableProxy(Actor actor, IMailbox mailbox)
+        public Cancellable__Proxy(Actor actor, IMailbox mailbox)
         {
             this.actor = actor;
             this.mailbox = mailbox;
