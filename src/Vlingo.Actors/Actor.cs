@@ -5,13 +5,13 @@ namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        public LifeCycle LifeCycle { get; }
+        internal LifeCycle LifeCycle { get; }
 
-        public Address Address => LifeCycle.Address;
+        internal Address Address => LifeCycle.Address;
 
-        public IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        internal IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
-        public virtual void Start()
+        public void Start()
         {
         }
 
@@ -28,7 +28,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual TestState ViewTestState() => new TestState();
+        public TestState ViewTestState() => new TestState();
 
         public override bool Equals(object other)
         {
