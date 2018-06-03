@@ -1,11 +1,11 @@
 ﻿namespace Vlingo.Actors
 {
-    public abstract class Outcome<TO>
+    public abstract class Outcome<TOutcome>
     {
-        protected Outcome(TO value) {
-            this.Value = value;
+        protected Outcome(TOutcome value) {
+            Value = value;
         }
 
-        public TO Value { get; }
+        public TOutcome Value { get; }
     }
 }

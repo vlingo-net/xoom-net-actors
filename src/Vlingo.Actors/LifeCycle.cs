@@ -2,36 +2,185 @@
 
 namespace Vlingo.Actors
 {
-    public class LifeCycle
+    public sealed class LifeCycle
     {
-        public Address Address { get; set; }
+
         public Environment Environment { get; set; }
-        public bool IsStopped { get; set; }
-        public Definition Definition { get; set; }
-
-        public void Stop(Actor actor)
+        
+        internal LifeCycle(Environment environment)
         {
-            throw new System.NotImplementedException();
+            Environment = environment;
         }
 
-        public void Secure()
+        public override int GetHashCode() => Address.GetHashCode();
+
+        internal Address Address => Environment.Address;
+
+        internal Definition Definition
         {
-            throw new System.NotImplementedException();
+            get
+            {
+                if (Environment.IsSecured)
+                {
+                    throw new InvalidOperationException("A secured actor cannot provide its definition.");
+                }
+
+                return Environment.Definition;
+            }
         }
 
-        public void AfterStop(Actor actor)
+        internal T LookUpProxy<T>() => Environment.LookUpProxy<T>();
+
+        internal bool IsSecured => Environment.IsSecured;
+
+        internal void Secure()
         {
-            throw new System.NotImplementedException();
+            Environment.SetSecured();
         }
 
-        public void BeforeStart(Actor actor)
+        internal bool IsStopped => Environment.IsStopped;
+
+        internal void Stop(Actor actor)
         {
-            throw new System.NotImplementedException();
+            Environment.Stop();
+            AfterStop(actor);
         }
 
-        public Supervisor LookUpProxy(Type type)
+        #region Standard Lifecycle
+        internal void AfterStop(Actor actor)
         {
-            throw new System.NotImplementedException();
+            try
+            {
+                actor.AfterStop();
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log($"vlingo-dotnet/actors: Actor AfterStop() failed: {ex.Message}", ex);
+                Environment.Stage.HandleFailureOf<IStoppable>(new StageSupervisedActor<IStoppable>(actor, ex));
+            }
         }
+
+        internal void BeforeStart(Actor actor)
+        {
+            try
+            {
+                actor.BeforeStart();
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log($"vlingo-dotnet/actors: Actor BeforeStart() failed: {ex.Message}");
+                Environment.Stage.HandleFailureOf<IStartable>(new StageSupervisedActor<IStartable>(actor, ex));
+            }
+        }
+
+        internal void AfterRestart(Actor actor, Exception reason)
+        {
+            try
+            {
+                actor.AfterRestart(reason);
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log($"vlingo-dotnet/actors: Actor AfterRestart() failed: {ex.Message}");
+                Environment.Stage.HandleFailureOf<IStartable>(new StageSupervisedActor<IStartable>(actor, ex));
+            }
+        }
+
+        void BeforeResume<T>(Actor actor, Exception reason)
+        {
+            try
+            {
+                actor.BeforeResume(reason);
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log($"vlingo-dotnet/actors: Actor BeforeResume() failed: {ex.Message}");
+                Environment.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(actor, ex));
+            }
+        }
+
+        internal void SendStart(Actor targetActor)
+        {
+            try
+            {
+                Action<IStartable> consumer = actor => actor.Start();
+                var message = new LocalMessage<IStartable>(targetActor, consumer, "Start()");
+                Environment.Mailbox.Send(message);
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log("vlingo-dotnet/actors: Actor Start() failed: {ex.Message}");
+                Environment.Stage.HandleFailureOf<IStartable>(new StageSupervisedActor<IStartable>(targetActor, ex));
+            }
+        }
+
+        #endregion
+
+        #region Stowing/Dispersing
+
+        internal bool IsDispersing => Environment.Stowage.IsDispersing;
+
+        internal void DisperseStowedMessages()
+        {
+            Environment.Stowage.DispersingMode();
+            SendFirstIn(Environment.Stowage);
+        }
+
+        private void SendFirstIn(Stowage stowage)
+        {
+            var maybeMessage = stowage.Head;
+            if (maybeMessage != null)
+            {
+                Environment.Mailbox.Send(maybeMessage);
+            }
+        }
+
+        internal bool IsStowing => Environment.Stowage.IsStowing;
+
+        internal void StowMessages()
+        {
+            Environment.Stowage.StowingMode();
+        }
+
+        #endregion
+
+        #region supervisor/suspending/resuming
+
+        internal bool IsResuming => Environment.Suspended.IsDispersing;
+
+        internal void NextResuming()
+        {
+            if (IsResuming)
+            {
+                SendFirstIn(Environment.Suspended);
+            }
+        }
+
+        internal void Resume()
+        {
+            Environment.Suspended.DispersingMode();
+            SendFirstIn(Environment.Suspended);
+        }
+
+        internal bool IsSuspended => Environment.Suspended.IsStowing;
+
+        internal void Suspend()
+        {
+            Environment.Suspended.StowingMode();
+        }
+
+        ISupervisor Supervisor<T>()
+        {
+            var supervisor = Environment.MaybeSupervisor;
+
+            if (supervisor == null)
+            {
+                supervisor = Environment.Stage.CommonSupervisorOr(Environment.Stage.World.DefaultSupervisor);
+            }
+
+            return supervisor;
+        }
+
+        #endregion
     }
 }

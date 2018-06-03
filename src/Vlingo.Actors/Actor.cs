@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors
 {
-    public abstract class Actor : IStartable, IStoppable
+    public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        public LifeCycle LifeCycle { get; }
+        internal LifeCycle LifeCycle { get; }
 
-        public Address Address => LifeCycle.Address;
+        internal Address Address => LifeCycle.Address;
 
-        public DeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        internal IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
-        public virtual void Start()
+        public void Start()
         {
         }
 
@@ -29,6 +28,7 @@ namespace Vlingo.Actors
             }
         }
 
+        public TestState ViewTestState() => new TestState();
 
         public override bool Equals(object other)
         {
@@ -40,47 +40,44 @@ namespace Vlingo.Actors
             return Address.Equals(((Actor) other).LifeCycle.Address);
         }
 
-        public override int GetHashCode()
-        {
-            return LifeCycle.GetHashCode();
-        }
+        public override int GetHashCode() => LifeCycle.GetHashCode();
 
         public override string ToString() => $"Actor[type={GetType().Name} address={Address}]";
 
         protected Actor()
         {
-            // Not sure what is that :)
-            //final Environment maybeEnvironment = ActorFactory.threadLocalEnvironment.get();
-            //this.lifeCycle = new LifeCycle(maybeEnvironment != null ? maybeEnvironment : new TestEnvironment());
-            //ActorFactory.threadLocalEnvironment.set(null);
-            //this.lifeCycle.sendStart(this);
+            var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
+            LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
+            ActorFactory.ThreadLocalEnvironment.Value = null;
         }
 
-        protected T ChildActorFor<T>(Definition definition, Type protocol)
+        protected T ChildActorFor<T>(Definition definition)
         {
             if (definition.Supervisor != null)
             {
-                return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this, definition.Supervisor,
+                return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, definition.Supervisor,
                     Logger);
             }
             else
             {
-                //obj.GetType().IsAssignableFrom(otherObj.GetType());
-                if (this.GetType().IsAssignableFrom(typeof(Supervisor)))
+                if (this is ISupervisor)
                 {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this,
-                        LifeCycle.LookUpProxy(typeof(Supervisor)), Logger);
+                    return LifeCycle.Environment.Stage.ActorFor<T>(
+                        definition, 
+                        this,
+                        LifeCycle.LookUpProxy<ISupervisor>(),
+                        Logger);
                 }
                 else
                 {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, protocol, this, null, Logger);
+                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
                 }
             }
         }
 
         protected Definition Definition => LifeCycle.Definition;
 
-        protected Logger Logger => LifeCycle.Environment.Logger;
+        internal ILogger Logger => LifeCycle.Environment.Logger;
 
         protected Actor Parent
         {
@@ -95,26 +92,26 @@ namespace Vlingo.Actors
             }
         }
 
-        // Suggest make this SetAsSecure
         protected void Secure()
         {
             LifeCycle.Secure();
         }
 
-        protected T SelfAs<T>(T protocol)
+        internal T SelfAs<T>()
         {
-            return LifeCycle.Environment.Stage.ActorProxyFor(protocol, this, LifeCycle.Environment.Mailbox);
+            return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
         }
 
-        // Need to discuss this
-//        protected IOutcomeInterest SelfAsOutcomeInterest(object reference) {
-//            var outcomeAware = LifeCycle.Environment.Stage.ActorProxyFor<IOutcomeAware<>>
-//                (typeof(IOutcomeAware<>), this, LifeCycle.Environment.Mailbox);
-//            
-//            return new OutcomeInterestActorProxy(outcomeAware, reference);
-//        }
+        protected IOutcomeInterest<TOutcome> SelfAsOutcomeInterest<TOutcome, TRef>(TRef reference)
+        {
+            var outcomeAware = LifeCycle.Environment.Stage.ActorProxyFor<IOutcomeAware<TOutcome, TRef>>(
+                this,
+                LifeCycle.Environment.Mailbox);
 
-        protected Stage Stage
+            return new OutcomeInterestActorProxy<TOutcome, TRef>(outcomeAware, reference);
+        }
+
+        internal Stage Stage
         {
             get
             {
@@ -133,7 +130,7 @@ namespace Vlingo.Actors
         }
 
 
-        protected bool IsDispersing =>
+        internal bool IsDispersing =>
             LifeCycle.Environment.Stowage.IsDispersing;
 
 
@@ -142,7 +139,7 @@ namespace Vlingo.Actors
             LifeCycle.Environment.Stowage.DispersingMode();
         }
 
-        protected bool IsStowing =>
+        internal bool IsStowing =>
             LifeCycle.Environment.Stowage.IsStowing;
 
 
@@ -155,29 +152,29 @@ namespace Vlingo.Actors
         // life cycle overrides
         //=======================================
 
-        protected void BeforeStart()
+        internal virtual void BeforeStart()
         {
             // override
         }
 
-        protected void AfterStop()
+        internal virtual void AfterStop()
         {
             // override
         }
 
-        protected void BeforeRestart(Exception reason)
+        protected virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);
         }
 
-        protected void AfterRestart(Exception reason)
+        internal virtual void AfterRestart(Exception reason)
         {
             // override
             LifeCycle.BeforeStart(this);
         }
 
-        protected void BeforeResume(Exception reason)
+        internal virtual void BeforeResume(Exception reason)
         {
             // override
         }
