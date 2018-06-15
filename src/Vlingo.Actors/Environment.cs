@@ -62,7 +62,7 @@ namespace Vlingo.Actors
             Children.Add(child);
         }
 
-        private void CacheProxy<T>(T proxy)
+        internal void CacheProxy<T>(T proxy)
         {
             ProxyCache.Add(proxy.GetType(), proxy);
         }
