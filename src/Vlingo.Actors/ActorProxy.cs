@@ -70,7 +70,7 @@ namespace Vlingo.Actors
             var protocol = typeof(T);
             try
             {
-                var result = generator.GenerateFor(protocol.Name);
+                var result = generator.GenerateFor(protocol);
                 var input = new Input(
                     protocol,
                     targetClassName,
