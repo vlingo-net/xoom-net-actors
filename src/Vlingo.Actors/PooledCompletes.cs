@@ -1,8 +1,14 @@
 ﻿namespace Vlingo.Actors
 {
-    public class CompletesHolder : ICompletes<object>
+    public class PooledCompletes : ICompletesEventually
     {
-        public CompletesHolder(
+        public long Id { get; }
+
+        public ICompletes<object> ClientCompletes { get; }
+
+        public ICompletesEventually CompletesEventually { get; }
+
+        public PooledCompletes(
             long id,
             ICompletes<object> clientCompletes,
             ICompletesEventually completesEventually)
@@ -12,15 +18,17 @@
             CompletesEventually = completesEventually;
         }
 
-        public long Id { get; }
-        public ICompletes<object> ClientCompletes { get; }
-        public ICompletesEventually CompletesEventually { get; }
         public object Outcome { get; private set; }
 
         public void With(object outcome)
         {
             Outcome = outcome;
-            CompletesEventually.With(this);
+        }
+
+        public bool IsStopped => CompletesEventually.IsStopped;
+
+        public void Stop()
+        {
         }
     }
 }

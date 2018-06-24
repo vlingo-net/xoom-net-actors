@@ -194,7 +194,7 @@ namespace Vlingo.Actors
 
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
-            var completes = false;
+            var completes = DoesImplementICompletes(method.ReturnType);
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {p.Name}"));
             var methodSignature = string.Format("  public {0} {1}({2})",

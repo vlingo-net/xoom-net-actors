@@ -5,12 +5,6 @@ namespace Vlingo.Actors
 {
     public class Environment
     {
-        private const byte FLAG_RESET = 0x00;
-        private const byte FLAG_STOPPED = 0x01;
-        private const byte FLAG_SECURED = 0x02;
-
-        private byte _flags;
-
         internal Address Address { get; }
         private List<Actor> Children { get; }
         internal Definition Definition { get; }
@@ -24,6 +18,9 @@ namespace Vlingo.Actors
         internal Stage Stage { get; }
         internal Stowage Stowage { get; }
         internal Stowage Suspended { get; }
+
+        private readonly AtomicBoolean secured;
+        private readonly AtomicBoolean stopped;
 
         internal Environment(
             Stage stage,
@@ -54,7 +51,8 @@ namespace Vlingo.Actors
             Stowage = new Stowage();
             Suspended = new Stowage();
 
-            _flags = FLAG_RESET;
+            secured = new AtomicBoolean(false);
+            stopped = new AtomicBoolean(false);
         }
 
         internal void AddChild(Actor child)
@@ -69,29 +67,26 @@ namespace Vlingo.Actors
 
         internal T LookUpProxy<T>() => (T)ProxyCache[typeof(T)];
 
-        internal bool IsSecured => (_flags & FLAG_SECURED) == FLAG_SECURED;
+        internal bool IsSecured => secured.Get();
 
         internal void SetSecured()
         {
-            _flags |= FLAG_SECURED;
+            secured.Set(true);
         }
 
-        internal bool IsStopped => (_flags & FLAG_STOPPED) == FLAG_STOPPED;
+        internal bool IsStopped => stopped.Get();
 
         internal void Stop()
         {
-            StopChildren();
-            Suspended.Reset();
-            Stowage.Reset();
-            Mailbox.Close();
-            SetStopped();
+            if(stopped.CompareAndSet(false, true))
+            {
+                StopChildren();
+                Suspended.Reset();
+                Stowage.Reset();
+                Mailbox.Close();
+            }
         }
-
-        private void SetStopped()
-        {
-            _flags |= FLAG_STOPPED;
-        }
-
+        
         private void StopChildren()
         {
             Children.ForEach(c => c.Stop());

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 
 namespace Vlingo.Actors
 {
@@ -26,6 +25,5 @@ namespace Vlingo.Actors
         {
             return Interlocked.Increment(ref value) - 1;
         }
-
     }
 }
