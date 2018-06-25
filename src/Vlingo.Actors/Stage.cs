@@ -16,6 +16,8 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public Scheduler Scheduler { get; }
+
         public ActorProtocolActor<object>[] ActorFor<T>(
           Definition definition,
           Actor parent,

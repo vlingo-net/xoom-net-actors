@@ -18,6 +18,11 @@ namespace Vlingo.Actors
 
         public IDeadLetters DeadLetters { get; set; }
 
+        public CompletesEventually CompletesFor<T>(ICompletes<T> clientCompletes)
+        {
+            throw new NotImplementedException();
+        }
+
         public Stage Stage => StageNamed(DEFAULT_STAGE);
 
         internal Actor DefaultParent { get; }

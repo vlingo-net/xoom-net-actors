@@ -2,7 +2,8 @@
 {
     public abstract class Outcome<TOutcome>
     {
-        protected Outcome(TOutcome value) {
+        protected Outcome(TOutcome value)
+        {
             Value = value;
         }
 

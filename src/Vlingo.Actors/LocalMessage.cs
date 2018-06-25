@@ -4,29 +4,29 @@ namespace Vlingo.Actors
 {
     public class LocalMessage<T> : IMessage
     {
-        public LocalMessage(Actor actor, Action<T> consumer, string representation)
+        private readonly ICompletes<object> completes;
+
+        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<T> completes, string representation)
         {
             Actor = actor;
             Consumer = consumer;
             Representation = representation;
+            this.completes = (ICompletes<object>)completes;
+        }
+
+        public LocalMessage(Actor actor, Action<T> consumer, string representation)
+            : this(actor, consumer, null, representation)
+        {
         }
 
         public LocalMessage(LocalMessage<T> message)
+            : this(message.Actor, message.Consumer, null, message.Representation)
         {
-            Actor = message.Actor;
-            Consumer = message.Consumer;
-            Representation = message.Representation;
         }
 
         public Actor Actor { get; }
 
-        public string Representation { get; }
-
         private Action<T> Consumer { get; }
-
-        public bool IsStowed => false;
-
-        public override string ToString() => $"LocalMessage[{Representation}]";
 
         public void Deliver()
         {
@@ -51,6 +51,12 @@ namespace Vlingo.Actors
                 InternalDeliver(this);
             }
         }
+
+        public string Representation { get; }
+
+        public bool IsStowed => false;
+
+        public override string ToString() => $"LocalMessage[{Representation}]";
 
         private void DeadLetter()
         {
@@ -84,7 +90,12 @@ namespace Vlingo.Actors
             {
                 try
                 {
+                    Actor.completes.ClearOutcome();
                     Consumer.Invoke((T)(object)Actor);
+                    if (Actor.completes.HasOutcome)
+                    {
+                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(Actor.completes.Outcome);
+                    }
                 }
                 catch(Exception ex)
                 {

@@ -5,19 +5,22 @@ namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
+        internal readonly BasicCompletes<object> completes;
         internal LifeCycle LifeCycle { get; }
 
-        internal Address Address => LifeCycle.Address;
+        public Address Address => LifeCycle.Address;
 
-        internal IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        public IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
-        public void Start()
+        public Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
+
+        public virtual void Start()
         {
         }
 
-        public bool IsStopped => LifeCycle.IsStopped;
+        public virtual bool IsStopped => LifeCycle.IsStopped;
 
-        public void Stop()
+        public virtual void Stop()
         {
             if (!IsStopped)
             {
@@ -49,6 +52,7 @@ namespace Vlingo.Actors
             var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
             LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
             ActorFactory.ThreadLocalEnvironment.Value = null;
+            completes = new BasicCompletes<object>();
         }
 
         protected T ChildActorFor<T>(Definition definition)
@@ -73,6 +77,16 @@ namespace Vlingo.Actors
                     return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
                 }
             }
+        }
+
+        internal ICompletes<T> Completes<T>()
+        {
+            if(completes == null)
+            {
+                throw new InvalidOperationException("Completes is not available for this protocol behavior");
+            }
+
+            return (ICompletes<T>)completes;
         }
 
         protected Definition Definition => LifeCycle.Definition;

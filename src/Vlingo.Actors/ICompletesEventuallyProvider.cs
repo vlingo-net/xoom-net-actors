@@ -9,6 +9,6 @@ namespace Vlingo.Actors
         void Close();
         ICompletesEventually CompletesEventually { get; }
         void InitializeUsing(Stage stage);
-        ICompletes<T> ProvideCompletesFor<T>(ICompletes<T> clientCompletes);
+        ICompletesEventually ProvideCompletesFor<T>(ICompletes<T> clientCompletes);
     }
 }
