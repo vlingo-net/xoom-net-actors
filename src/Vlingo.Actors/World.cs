@@ -9,6 +9,21 @@ namespace Vlingo.Actors
         public static int DeadlettersId = PublicRootId - 1;
         private const string DEFAULT_STAGE = "__defaultStage";
 
+        public static World Start(string name)
+        {
+            return Start(name, false);
+        }
+
+        public static World Start(string name, bool forceDefaultConfiguration)
+        {
+            if (name == null)
+            {
+                throw new ArgumentException("The world name must not be null.");
+            }
+
+            return new World(name, forceDefaultConfiguration);
+        }
+
         internal void SetPrivateRoot(IStoppable privateRoot)
         {
             throw new NotImplementedException();
@@ -31,9 +46,17 @@ namespace Vlingo.Actors
 
         World IRegistrar.World => throw new NotImplementedException();
 
+        public string Name { get; internal set; }
+        public bool IsTerminated { get; }
+        public ILogger DefaultLogger { get; internal set; }
+
         public const string PUBLIC_ROOT_NAME = "#public";
         public const int PUBLIC_ROOT_ID = PRIVATE_ROOT_ID - 1;
         public const int PRIVATE_ROOT_ID = int.MaxValue;
+
+        public World(string name, bool forceDefaultConfiguration)
+        {
+        }
 
         public Stage StageNamed(string name)
         {
@@ -45,7 +68,17 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        internal ILogger Logger(string name)
+        {
+            throw new NotImplementedException();
+        }
+
         internal IMailbox AssignMailbox(object mailboxName, int v)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal void Terminate()
         {
             throw new NotImplementedException();
         }

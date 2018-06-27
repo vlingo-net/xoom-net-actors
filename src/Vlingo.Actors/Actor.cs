@@ -8,11 +8,11 @@ namespace Vlingo.Actors
         internal readonly BasicCompletes<object> completes;
         internal LifeCycle LifeCycle { get; }
 
-        public Address Address => LifeCycle.Address;
+        public virtual Address Address => LifeCycle.Address;
 
-        public IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        public virtual IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
-        public Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
+        public virtual Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
 
         public virtual void Start()
         {
@@ -31,7 +31,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public TestState ViewTestState() => new TestState();
+        public virtual TestState ViewTestState() => new TestState();
 
         public override bool Equals(object other)
         {

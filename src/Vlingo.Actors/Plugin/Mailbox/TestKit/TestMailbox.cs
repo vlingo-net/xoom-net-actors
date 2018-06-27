@@ -1,31 +1,53 @@
 ﻿using System;
+using System.Collections.Generic;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 {
     public class TestMailbox : IMailbox
     {
-        public bool IsClosed => throw new NotImplementedException();
+        public const string Name = "testerMailbox";
 
-        public bool IsDelivering => throw new NotImplementedException();
+        private readonly IList<string> lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
+
+        public TestMailbox()
+        {
+        }
+
+        public void Run()
+            => throw new NotSupportedException("TestMailbox does not support this operation.");
 
         public void Close()
         {
-            throw new NotImplementedException();
+            IsClosed = true;
         }
 
-        public bool Delivering(bool flag)
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsClosed { get; private set; }
 
-        public IMessage Receive()
-        {
-            throw new NotImplementedException();
-        }
+        public bool IsDelivering => throw new NotSupportedException("TestMailbox does not support this operation.");
+
+        public bool Delivering(bool flag) => throw new NotSupportedException("TestMailbox does not support this operation.");
 
         public void Send(IMessage message)
         {
-            throw new NotImplementedException();
+            if (!message.Actor.IsStopped)
+            {
+                if (!IsLifecycleMessage(message))
+                {
+                    TestWorld.Track(message);
+                }
+            }
+
+            message.Deliver();
+        }
+
+        public IMessage Receive() => throw new NotSupportedException("TestMailbox does not support this operation.");
+
+        private bool IsLifecycleMessage(IMessage message)
+        {
+            var representation = message.Representation;
+            var openParenIndex = representation.IndexOf('(');
+            return lifecycleMessages.Contains(representation.Substring(0, openParenIndex));
         }
     }
 }
