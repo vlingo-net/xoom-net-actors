@@ -119,9 +119,6 @@ namespace Vlingo.Actors.Plugin
             properties.SetProperty("plugin.consoleLogger.classname", "Vlingo.Actors.Plugin.Logging.Console.ConsoleLoggerPlugin");
             properties.SetProperty("plugin.consoleLogger.name", "vlingo-net/actors");
             properties.SetProperty("plugin.consoleLogger.defaultLogger", "false");
-            properties.SetProperty("plugin.consoleLogger.handler.classname", "Vlingo.Actors.Plugin.Logging.Console.DefaultHandler");
-            properties.SetProperty("plugin.consoleLogger.handler.name", "vlingo-net");
-            properties.SetProperty("plugin.consoleLogger.handler.level", "ALL");
         }
     }
 }

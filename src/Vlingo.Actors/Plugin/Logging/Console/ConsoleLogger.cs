@@ -4,33 +4,36 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 {
     public class ConsoleLogger : ILogger
     {
-        public ConsoleLogger(string name, PluginProperties properties)
+        internal ConsoleLogger(string name, PluginProperties properties)
         {
-
+            Name = name;
         }
 
-        public bool IsEnabled => throw new NotImplementedException();
+        public bool IsEnabled => true;
 
-        public string Name => throw new NotImplementedException();
+        public string Name { get; }
 
         public static ILogger TestInstance()
         {
-            throw new NotImplementedException();
+            var properties = new Properties();
+            var name = "vlingo-net-test";
+            return new ConsoleLogger(name, new PluginProperties(name, properties));
         }
 
         public void Close()
         {
-            throw new NotImplementedException();
         }
 
         public void Log(string message)
         {
-            throw new NotImplementedException();
+            System.Console.WriteLine($"{Name}: {message}");
         }
 
         public void Log(string message, Exception ex)
         {
-            throw new NotImplementedException();
+            System.Console.WriteLine($"{Name}: {message}");
+            System.Console.WriteLine($"{Name} [Exception]: {ex.Message}");
+            System.Console.WriteLine($"{Name} [StackTrace]: {ex.StackTrace}");
         }
     }
 }
