@@ -4,7 +4,7 @@
     {
         public TestMailboxPlugin(IRegistrar registrar)
         {
-            this.Start(registrar, TestMailbox.Name, null);
+            Start(registrar, TestMailbox.Name, null);
         }
 
         public string Name { get; private set; }
