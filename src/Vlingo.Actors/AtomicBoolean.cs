@@ -13,7 +13,7 @@ namespace Vlingo.Actors
 
         public bool Get()
         {
-            return Volatile.Read(ref value) == 1;
+            return Interlocked.CompareExchange(ref value, 0, 0) == 1;
         }
 
         public void Set(bool update)

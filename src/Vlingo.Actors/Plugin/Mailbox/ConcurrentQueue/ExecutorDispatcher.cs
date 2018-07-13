@@ -74,7 +74,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         private bool TryIncrementRunningThreadCount()
         {
-            int currentCountLocal = Volatile.Read(ref _currentThreadCount);
+            int currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
             while (currentCountLocal < maxAllowedConcurrentThreads)
             {
                 var valueAtTheTimeOfIncrement = Interlocked.CompareExchange(ref _currentThreadCount, currentCountLocal + 1, currentCountLocal);
@@ -83,7 +83,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                     return true;
                 }
 
-                currentCountLocal = Volatile.Read(ref _currentThreadCount);
+                currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
             }
 
             return false;

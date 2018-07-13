@@ -5,10 +5,12 @@ namespace Vlingo.Actors
     public class AtomicReference<T> where T : class
     {
         private T value;
+        private readonly T defaultValue;
 
         public AtomicReference(T initialValue)
         {
             value = initialValue;
+            defaultValue = default(T);
         }
 
         public AtomicReference()
@@ -16,8 +18,8 @@ namespace Vlingo.Actors
         {
         }
 
-        public T Get() => Volatile.Read<T>(ref value);
+        public T Get() => Interlocked.CompareExchange<T>(ref value, defaultValue, defaultValue);
 
-        public void Set(T newValue) => Volatile.Write<T>(ref value, newValue);
+        public void Set(T newValue) => Interlocked.Exchange<T>(ref value, newValue);
     }
 }
