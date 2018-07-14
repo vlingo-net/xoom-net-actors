@@ -6,6 +6,8 @@ namespace Vlingo.Actors
     {
         public ISupervisionStrategy SupervisionStrategy { get; }
 
+        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+
         public PrivateRootActor()
         {
             SupervisionStrategy = new PrivateRootActorSupervisionStrategy();

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Vlingo.Actors.Plugin.Logging.Console
+﻿namespace Vlingo.Actors.Plugin.Logging.Console
 {
     public class ConsoleLoggerPlugin : IPlugin, ILoggerProvider
     {
@@ -8,13 +6,10 @@ namespace Vlingo.Actors.Plugin.Logging.Console
         public static ILoggerProvider RegisterStandardLogger(string name, IRegistrar registrar)
         {
             var properties = new Properties();
-            properties.SetProperty("plugin.jdkLogger.defaulLogger", "true");
-            properties.SetProperty("plugin.jdkLogger.handler.classname", "io.vlingo.actors.plugin.logging.jdk.DefaultHandler");
-            properties.SetProperty("plugin.jdkLogger.handler.name", name);
-            properties.SetProperty("plugin.jdkLogger.handler.level", "ALL");
+            properties.SetProperty("plugin.consoleLogger.defaulLogger", "true");
 
             var plugin = new ConsoleLoggerPlugin();
-            plugin.Start(registrar, name, new PluginProperties("ConsoleLogger", properties));
+            plugin.Start(registrar, name, new PluginProperties("consoleLogger", properties));
 
             return plugin;
         }

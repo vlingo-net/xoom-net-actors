@@ -1,16 +1,16 @@
 ﻿namespace Vlingo.Actors
 {
-    public class PooledCompletes : ICompletesEventually
+    public class PooledCompletes<T> : ICompletesEventually
     {
         public long Id { get; }
 
-        public ICompletes<object> ClientCompletes { get; }
+        public ICompletes<T> ClientCompletes { get; }
 
         public ICompletesEventually CompletesEventually { get; }
 
         public PooledCompletes(
             long id,
-            ICompletes<object> clientCompletes,
+            ICompletes<T> clientCompletes,
             ICompletesEventually completesEventually)
         {
             Id = id;

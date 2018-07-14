@@ -1,4 +1,5 @@
 ﻿using System;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors
 {
@@ -12,6 +13,11 @@ namespace Vlingo.Actors
         }
 
         public T ActorFor<T>(Definition definition, Actor actor, ISupervisor supervisor, ILogger logger)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T ActorFor<T>(Definition definition)
         {
             throw new NotImplementedException();
         }
@@ -45,5 +51,15 @@ namespace Vlingo.Actors
         }
 
         public class ActorProtocolActor<T> { }
+
+        internal TestActor<T> TestActorFor<T>(Definition definition)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal Protocols TestActorFor(Definition definition, Type[] protocols)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

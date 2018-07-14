@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Vlingo.Actors.Plugin
 {
@@ -47,6 +49,10 @@ namespace Vlingo.Actors.Plugin
             dictionary = new Dictionary<string, string>();
         }
 
+        public ICollection<string> Keys => dictionary.Keys;
+
+        public string GetProperty(string key) => GetProperty(key, null);
+
         public string GetProperty(string key, string defaultValue)
         {
             if(dictionary.TryGetValue(key, out string value))
@@ -60,6 +66,17 @@ namespace Vlingo.Actors.Plugin
         public void SetProperty(string key, string value)
         {
             dictionary[key] = value;
+        }
+
+        public void Load(FileInfo configFile)
+        {
+            foreach(var line in File.ReadAllLines(configFile.FullName))
+            {
+                var items = line.Split('=');
+                var key = items[0];
+                var val = string.Join('=', items.Skip(1));
+                SetProperty(key, val);
+            }
         }
     }
 }

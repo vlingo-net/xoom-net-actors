@@ -7,12 +7,12 @@ namespace Vlingo.Actors.TestKit
     {
         public TestEnvironment() :
             base(
-                TestWorld.Current.World.Stage,
+                TestWorld.testWorld.World.Stage,
                 Address.From("test"),
                 Definition.Has<Actor>(Definition.NoParameters),
-                TestWorld.Current.World.DefaultParent,
+                TestWorld.testWorld.World.DefaultParent,
                 new TestMailbox(),
-                TestWorld.Current.World.DefaultSupervisor,
+                TestWorld.testWorld.World.DefaultSupervisor,
                 ConsoleLogger.TestInstance())
         {
                 

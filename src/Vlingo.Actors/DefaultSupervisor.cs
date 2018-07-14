@@ -10,6 +10,8 @@ namespace Vlingo.Actors
 
         public ISupervisionStrategy SupervisionStrategy => DefaultSupervisionStrategy;
 
+        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.RestartWithin(

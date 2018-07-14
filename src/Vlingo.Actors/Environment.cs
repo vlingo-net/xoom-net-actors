@@ -6,7 +6,7 @@ namespace Vlingo.Actors
     public class Environment
     {
         internal Address Address { get; }
-        private List<Actor> Children { get; }
+        internal List<Actor> Children { get; }
         internal Definition Definition { get; }
         private FailureMark FailureMark { get; }
         

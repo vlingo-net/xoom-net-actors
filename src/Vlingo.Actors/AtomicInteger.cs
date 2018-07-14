@@ -18,7 +18,7 @@ namespace Vlingo.Actors
 
         public int Get()
         {
-            return Volatile.Read(ref value);
+            return Interlocked.CompareExchange(ref value, 0, 0);
         }
 
         public int GetAndIncrement()
