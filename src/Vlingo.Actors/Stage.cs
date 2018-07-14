@@ -17,6 +17,11 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public T ActorFor<T>(Definition definition)
+        {
+            throw new NotImplementedException();
+        }
+
         public Scheduler Scheduler { get; }
 
         public ActorProtocolActor<object>[] ActorFor<T>(
