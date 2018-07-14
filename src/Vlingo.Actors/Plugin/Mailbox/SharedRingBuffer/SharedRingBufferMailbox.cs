@@ -152,7 +152,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             {
                 lock (_threadMutex)
                 {
-                    if(_internalThread == null)
+                    if(_internalThread != null)
                     {
                         return;
                     }
@@ -187,7 +187,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
             internal void Execute()
             {
-                _internalThread.Interrupt();
+                if (_internalThread != null)
+                {
+                    _internalThread.Interrupt();
+                }
             }
         }
     }
