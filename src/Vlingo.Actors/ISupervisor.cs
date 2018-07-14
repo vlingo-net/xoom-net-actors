@@ -6,11 +6,14 @@ namespace Vlingo.Actors
     {
         void Inform(Exception error, ISupervised supervised);
         ISupervisionStrategy SupervisionStrategy { get; }
+        ISupervisor Supervisor { get; }
     }
 
     internal sealed class DefaultSupervisorImpl : ISupervisor
     {
         public ISupervisionStrategy SupervisionStrategy => DefaultSupervisor.DefaultSupervisionStrategy;
+
+        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
 
         public void Inform(Exception error, ISupervised supervised)
         {
