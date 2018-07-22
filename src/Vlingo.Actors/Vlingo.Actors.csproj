@@ -3,8 +3,6 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Vlingo.Common">
-      <HintPath>..\..\..\vlingo-net-common\src\Vlingo.Common\bin\Debug\netcoreapp2.0\Vlingo.Common.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Vlingo.Common" Version="0.1.0-alpha" />
   </ItemGroup>
 </Project>
