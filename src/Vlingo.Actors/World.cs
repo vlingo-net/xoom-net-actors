@@ -6,22 +6,58 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Generic;
+using Vlingo.Actors.Plugin;
 
 namespace Vlingo.Actors
 {
     public class World : IRegistrar
     {
         public static int PrivateRootId = int.MaxValue;
+        static string PRIVATE_ROOT_NAME = "#private";
         public static int PublicRootId = PrivateRootId - 1;
         public static int DeadlettersId = PublicRootId - 1;
         private const string DEFAULT_STAGE = "__defaultStage";
-
-        public static World Start(string name)
+        private CompletesEventuallyProviderKeeper _completesProviderKeeper;
+        private LoggerProviderKeeper _loggerProviderKeeper;
+        private MailboxProviderKeeper _mailboxProviderKeeper;
+        private HashSet<Stage> _stages;
+        
+        
+        private World(String name,bool forceDefaultConfiguration)
         {
-            return Start(name, false);
+            Name = name;
+            _completesProviderKeeper = new CompletesEventuallyProviderKeeper();
+            _loggerProviderKeeper = new LoggerProviderKeeper();
+            _mailboxProviderKeeper = new MailboxProviderKeeper();
+            _stages = new HashSet<Stage>();
+            
+            Address.Initialize();
+
+            var defaultStage = StageNamed(DEFAULT_STAGE);
+
+            var pluginLoader = new PluginLoader();
+
+            pluginLoader.LoadEnabledPlugins(this, 1, forceDefaultConfiguration);
+
+            StartRootFor(defaultStage, DefaultLogger);
+            
+            pluginLoader.LoadEnabledPlugins(this,2,forceDefaultConfiguration);
         }
 
-        public static World Start(string name, bool forceDefaultConfiguration)
+        private void StartRootFor(Stage defaultStage, ILogger defaultLogger)
+        {
+            Stage.ActorFor(
+                Definition.Has(typeof(PrivateRootActor), Definition.NoParameters, PRIVATE_ROOT_NAME),
+            Stoppable.class,
+            null,
+            Address.from(PRIVATE_ROOT_ID, PRIVATE_ROOT_NAME),
+            null,
+            null,
+            logger);
+        }
+
+        public static World Start(string name, bool forceDefaultConfiguration = false)
         {
             if (name == null)
             {
@@ -30,6 +66,30 @@ namespace Vlingo.Actors
 
             return new World(name, forceDefaultConfiguration);
         }
+
+        public T ActorFor<T>(Definition definition)
+        {
+            if (IsTerminated)
+            {
+                throw new InvalidOperationException("vlingo/actors: Stopped.");
+            }
+
+            return Stage.ActorFor<T>(definition);
+        }
+
+        public Protocols ActorFor(Definition definition)
+        {
+            if (IsTerminated)
+            {
+                throw new InvalidOperationException("vlingo/actors: Stopped.");
+            }
+
+            // TODO
+            throw new NotImplementedException();
+        }
+
+
+
 
         internal void SetPrivateRoot(IStoppable privateRoot)
         {
@@ -42,6 +102,7 @@ namespace Vlingo.Actors
 
         public CompletesEventually CompletesFor<T>(ICompletes<T> clientCompletes)
         {
+            
             throw new NotImplementedException();
         }
 
@@ -61,10 +122,7 @@ namespace Vlingo.Actors
         public const int PUBLIC_ROOT_ID = PRIVATE_ROOT_ID - 1;
         public const int PRIVATE_ROOT_ID = int.MaxValue;
 
-        public World(string name, bool forceDefaultConfiguration)
-        {
-        }
-
+        
         public Stage StageNamed(string name)
         {
             throw new System.NotImplementedException();
