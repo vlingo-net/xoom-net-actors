@@ -2,16 +2,16 @@
 {
     public class Protocols
     {
-        private readonly object[] protocolActors;
+        private readonly object[] _protocolActors;
 
         public T Get<T>(int index)
         {
-            return (T)protocolActors[index];
+            return (T)_protocolActors[index];
         }
 
         protected Protocols(object[] protocolActors)
         {
-            this.protocolActors = protocolActors;
+            this._protocolActors = protocolActors;
         }
 
         public static Two<A, B> Two<A, B>(Protocols protocols)

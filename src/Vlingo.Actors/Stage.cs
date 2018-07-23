@@ -24,7 +24,7 @@ namespace Vlingo.Actors
 
         public Scheduler Scheduler { get; }
 
-        public ActorProtocolActor<object>[] ActorFor<T>(
+        public ActorProtocolActor<object>[] ActorProtocolFor<T>(
           Definition definition,
           Actor parent,
           Address maybeAddress,
@@ -34,6 +34,27 @@ namespace Vlingo.Actors
         {
             throw new NotImplementedException();
         }
+        
+        ActorProtocolActor<T> actorProtocolFor<T>(
+            Definition definition,
+            Actor parent,
+            Address maybeAddress,
+            IMailbox maybeMailbox,
+            ISupervisor maybeSupervisor,
+            ILogger logger) 
+        {
+
+            try {
+                Actor actor = CreateRawActor(definition, parent, maybeAddress, maybeMailbox, maybeSupervisor, logger);
+                T protocolActor = ActorProxyFor<T>(actor, actor.LifeCycle.Environment.Mailbox);
+                return new ActorProtocolActor<T>(actor, protocolActor);
+            } catch (Exception e) {
+                e.printStackTrace();
+                world.defaultLogger().log("vlingo/actors: FAILED: " + e.getMessage(), e);
+                return null;
+            }
+        }
+        
 
         internal T ActorAs<T>(Actor parent)
         {
