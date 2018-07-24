@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         {
             if (!IsStopped)
             {
-                if (LifeCycle.Address.Id != World.DeadlettersId)
+                if (LifeCycle.Address.Id != World.DeadLettersId)
                 {
                     LifeCycle.Stop(this);
                 }

@@ -41,7 +41,7 @@ namespace Vlingo.Actors
             return completesEventuallyProviderInfo.CompletesEventuallyProvider;
         }
 
-        internal void keep(string name, ICompletesEventuallyProvider completesEventuallyProvider)
+        internal void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider)
         {
             completesEventuallyProviderInfo = new CompletesEventuallyProviderInfo(name, completesEventuallyProvider, true);
         }

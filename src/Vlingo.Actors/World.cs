@@ -8,64 +8,71 @@
 using System;
 using System.Collections.Generic;
 using Vlingo.Actors.Plugin;
+using Vlingo.Common.Compiler;
 
 namespace Vlingo.Actors
 {
     public class World : IRegistrar
     {
-        public static int PrivateRootId = int.MaxValue;
-        static string PRIVATE_ROOT_NAME = "#private";
-        public static int PublicRootId = PrivateRootId - 1;
-        public static int DeadlettersId = PublicRootId - 1;
-        private const string DEFAULT_STAGE = "__defaultStage";
-        private CompletesEventuallyProviderKeeper _completesProviderKeeper;
-        private LoggerProviderKeeper _loggerProviderKeeper;
-        private MailboxProviderKeeper _mailboxProviderKeeper;
-        private HashSet<Stage> _stages;
-        
-        
-        private World(String name,bool forceDefaultConfiguration)
+        internal const int PrivateRootId = int.MaxValue;
+        internal const string PrivateRootName = "#private";
+        internal const int PublicRootId = PrivateRootId - 1;
+        internal const string PublicRootName = "#public";
+        internal const int DeadLettersId = PublicRootId - 1;
+        internal const string DeadLettersName = "#deadLetters";
+        internal const string DefaultStage = "__defaultStage";
+
+        private CompletesEventuallyProviderKeeper completesProviderKeeper;
+        private LoggerProviderKeeper loggerProviderKeeper;
+        private MailboxProviderKeeper mailboxProviderKeeper;
+        private IDictionary<string, Stage> stages;
+        private ILogger defaultLogger;
+        private ISupervisor defaultSupervisor;
+        private DynaClassLoader classLoader;
+
+
+        private World(string name, bool forceDefaultConfiguration)
         {
             Name = name;
-            _completesProviderKeeper = new CompletesEventuallyProviderKeeper();
-            _loggerProviderKeeper = new LoggerProviderKeeper();
-            _mailboxProviderKeeper = new MailboxProviderKeeper();
-            _stages = new HashSet<Stage>();
-            
+            classLoader = new DynaClassLoader(GetType().GetAssemblyLoadContext());
+            completesProviderKeeper = new CompletesEventuallyProviderKeeper();
+            loggerProviderKeeper = new LoggerProviderKeeper();
+            mailboxProviderKeeper = new MailboxProviderKeeper();
+            stages = new Dictionary<string, Stage>();
+
             Address.Initialize();
 
-            var defaultStage = StageNamed(DEFAULT_STAGE);
+            var defaultStage = StageNamed(DefaultStage);
 
             var pluginLoader = new PluginLoader();
 
             pluginLoader.LoadEnabledPlugins(this, 1, forceDefaultConfiguration);
 
             StartRootFor(defaultStage, DefaultLogger);
-            
-            pluginLoader.LoadEnabledPlugins(this,2,forceDefaultConfiguration);
+
+            pluginLoader.LoadEnabledPlugins(this, 2, forceDefaultConfiguration);
         }
 
-        private void StartRootFor(Stage defaultStage, ILogger defaultLogger)
+        public static World Start(string name)
         {
-            Stage.ActorFor(
-                Definition.Has(typeof(PrivateRootActor), Definition.NoParameters, PRIVATE_ROOT_NAME),
-            Stoppable.class,
-            null,
-            Address.from(PRIVATE_ROOT_ID, PRIVATE_ROOT_NAME),
-            null,
-            null,
-            logger);
+            return Start(name, false);
         }
 
+        private static readonly object startMutex = new object();
         public static World Start(string name, bool forceDefaultConfiguration = false)
         {
-            if (name == null)
+            lock (startMutex)
             {
-                throw new ArgumentException("The world name must not be null.");
-            }
+                if (name == null)
+                {
+                    throw new ArgumentException("The world name must not be null.");
+                }
 
-            return new World(name, forceDefaultConfiguration);
+                return new World(name, forceDefaultConfiguration);
+            }
         }
+
+        
 
         public T ActorFor<T>(Definition definition)
         {
@@ -77,100 +84,238 @@ namespace Vlingo.Actors
             return Stage.ActorFor<T>(definition);
         }
 
-        public Protocols ActorFor(Definition definition)
+        public Protocols ActorFor(Definition definition, Type[] protocols)
         {
             if (IsTerminated)
             {
                 throw new InvalidOperationException("vlingo/actors: Stopped.");
             }
 
-            // TODO
-            throw new NotImplementedException();
+            return Stage.ActorFor(definition, protocols);
         }
 
+        public IDeadLetters DeadLetters { get; internal set; }
 
+        public ICompletesEventually CompletesFor<T>(ICompletes<T> clientCompletes)
+            => completesProviderKeeper.FindDefault().ProvideCompletesFor<T>(clientCompletes);
 
-
-        internal void SetPrivateRoot(IStoppable privateRoot)
+        public ILogger DefaultLogger
         {
-            throw new NotImplementedException();
+            get
+            {
+                if (defaultLogger != null)
+                {
+                    return defaultLogger;
+                }
+                defaultLogger = loggerProviderKeeper.FindDefault().Logger;
+
+                if(defaultLogger == null)
+                {
+                    defaultLogger = LoggerProvider.StandardLoggerProvider(this, "vlingo").Logger;
+                }
+
+                return defaultLogger;
+            }
         }
 
-        private ISupervisor defaultSupervisor;
+        public Actor DefaultParent { get; private set; }
 
-        public IDeadLetters DeadLetters { get; set; }
-
-        public CompletesEventually CompletesFor<T>(ICompletes<T> clientCompletes)
+        public ISupervisor DefaultSupervisor
         {
-            
-            throw new NotImplementedException();
+            get
+            {
+                if(defaultSupervisor == null)
+                {
+                    defaultSupervisor = DefaultParent.SelfAs<ISupervisor>();
+                }
+
+                return defaultSupervisor;
+            }
         }
 
-        public Stage Stage => StageNamed(DEFAULT_STAGE);
+        public ILogger Logger(string name) => loggerProviderKeeper.FindNamed(name).Logger;
 
-        internal Actor DefaultParent { get; }
+        public string Name { get; }
 
-        internal ISupervisor DefaultSupervisor => defaultSupervisor ?? DefaultParent.SelfAs<ISupervisor>();
+        public virtual void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider)
+        {
+            completesEventuallyProvider.InitializeUsing(Stage);
+            completesProviderKeeper.Keep(name, completesEventuallyProvider);
+        }
 
-        World IRegistrar.World => throw new NotImplementedException();
+        public virtual void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
+        {
+            loggerProviderKeeper.Keep(name, isDefault, loggerProvider);
+            defaultLogger = loggerProviderKeeper.FindDefault().Logger;
+        }
 
-        public string Name { get; internal set; }
-        public bool IsTerminated { get; }
-        public ILogger DefaultLogger { get; internal set; }
+        public virtual void Register(string name, bool isDefault, IMailboxProvider mailboxProvider)
+            => mailboxProviderKeeper.Keep(name, isDefault, mailboxProvider);
 
-        public const string PUBLIC_ROOT_NAME = "#public";
-        public const int PUBLIC_ROOT_ID = PRIVATE_ROOT_ID - 1;
-        public const int PRIVATE_ROOT_ID = int.MaxValue;
+        public virtual void RegisterCommonSupervisor(string stageName, string name, string fullyQualifiedProtocol, string fullyQualifiedSupervisor)
+        {
+            try
+            {
+                var actualStageName = stageName.Equals("default") ? DefaultStage : stageName;
+                var stage = StageNamed(actualStageName);
+                var supervisorClass = classLoader.LoadClass(fullyQualifiedSupervisor);
+                var common = stage.ActorFor<ISupervisor>(Definition.Has(supervisorClass, Definition.NoParameters, name));
+                stage.RegisterCommonSupervisor(fullyQualifiedProtocol, common);
+            }
+            catch (Exception e)
+            {
+                DefaultLogger.Log($"vlingo-net/actors: World cannot register common supervisor: {fullyQualifiedSupervisor}", e);
+            }
+        }
 
-        
+        public virtual void RegisterDefaultSupervisor(string stageName, string name, string fullyQualifiedSupervisor)
+        {
+            try
+            {
+                var actualStageName = stageName.Equals("default") ? DefaultStage : stageName;
+                var stage = StageNamed(actualStageName);
+                var supervisorClass = classLoader.LoadClass(fullyQualifiedSupervisor);
+                defaultSupervisor = stage.ActorFor<ISupervisor>(Definition.Has(supervisorClass, Definition.NoParameters, name));
+            }
+            catch (Exception e)
+            {
+                DefaultLogger.Log("vlingo-net/actors: World cannot register default supervisor override: {fullyQualifiedSupervisor}", e);
+                Console.WriteLine(e.Message);
+                Console.WriteLine(e.StackTrace);
+            }
+        }
+
+        public Stage Stage => StageNamed(DefaultStage);
+
+        private readonly object stageNamedMutex = new object();
         public Stage StageNamed(string name)
         {
-            throw new System.NotImplementedException();
+            lock (stageNamedMutex)
+            {
+                var stage = stages[name];
+                if(stage == null)
+                {
+                    stage = new Stage(this, name);
+                    stages[name] = stage;
+                }
+
+                return stage;
+            }
         }
 
-        internal IMailbox MailboxNameFrom(string mailboxName)
+        public virtual bool IsTerminated => Stage.IsStopped;
+
+        public virtual void Terminate()
         {
-            throw new NotImplementedException();
+            if (!IsTerminated)
+            {
+                foreach (var stage in stages.Values)
+                {
+                    stage.Stop();
+                }
+
+                loggerProviderKeeper.Close();
+                mailboxProviderKeeper.Close();
+                completesProviderKeeper.Close();
+            }
         }
 
-        internal ILogger Logger(string name)
+        World IRegistrar.World => this;
+
+        internal IMailbox AssignMailbox(string mailboxName, int hashCode)
+            => mailboxProviderKeeper.AssignMailbox(mailboxName, hashCode);
+
+        internal string MailboxNameFrom(string candidateMailboxName)
         {
-            throw new NotImplementedException();
+            if (candidateMailboxName == null)
+            {
+                return FindDefaultMailboxName();
+            }
+            else if (mailboxProviderKeeper.IsValidMailboxName(candidateMailboxName))
+            {
+                return candidateMailboxName;
+            }
+            else
+            {
+                return FindDefaultMailboxName();
+            }
         }
 
-        internal IMailbox AssignMailbox(object mailboxName, int v)
+        internal String FindDefaultMailboxName()
         {
-            throw new NotImplementedException();
+            return mailboxProviderKeeper.FindDefault();
         }
 
-        internal void Terminate()
+        private readonly object defaultParentMutex = new object();
+        internal void SetDefaultParent(Actor defaultParent)
         {
-            throw new NotImplementedException();
+            lock (defaultParentMutex)
+            {
+                if(defaultParent != null && DefaultParent != null)
+                {
+                    throw new InvalidOperationException("Default parent already exists.");
+                }
+
+                DefaultParent = defaultParent;
+            }
         }
 
-        public void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider)
+        private readonly object deadLettersMutex = new object();
+        internal void SetDeadLetters(IDeadLetters deadLetters)
         {
-            throw new NotImplementedException();
+            lock (deadLettersMutex)
+            {
+                if(deadLetters != null && DeadLetters != null)
+                {
+                    deadLetters.Stop();
+                    throw new InvalidOperationException("Dead letters already exists.");
+                }
+
+                DeadLetters = deadLetters;
+            }
         }
 
-        public void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
+        internal IStoppable PrivateRoot { get; private set; }
+
+        private readonly object privateRootMutex = new object();
+        internal void SetPrivateRoot(IStoppable privateRoot)
         {
-            throw new NotImplementedException();
+            lock (privateRootMutex)
+            {
+                if (privateRoot != null && PrivateRoot != null)
+                {
+                    privateRoot.Stop();
+                    throw new InvalidOperationException("Private root already exists.");
+                }
+
+                PrivateRoot = privateRoot; 
+            }
         }
 
-        public void Register(string name, bool isDefault, IMailboxProvider mailboxProvider)
+        internal IStoppable PublicRoot { get; private set; }
+
+        public readonly object publicRootMutex = new object();
+        internal void SetPublicRoot(IStoppable publicRoot)
         {
-            throw new NotImplementedException();
+            lock (publicRootMutex)
+            {
+                if (publicRoot != null && PublicRoot != null)
+                {
+                    throw new InvalidOperationException("The public root already exists.");
+                }
+
+                PublicRoot = publicRoot;
+            }
         }
 
-        public void RegisterCommonSupervisor(string stageName, string name, string fullyQualifiedProtocol, string fullyQualifiedSupervisor)
-        {
-            throw new NotImplementedException();
-        }
+        private void StartRootFor(Stage stage, ILogger logger)
+            => stage.ActorFor<IStoppable>(
+                Definition.Has<PrivateRootActor>(Definition.NoParameters, PrivateRootName),
+                null,
+                Address.From(PrivateRootId, PrivateRootName),
+                null,
+                null,
+                logger);
 
-        public void RegisterDefaultSupervisor(string stageName, string name, string fullyQualifiedSupervisor)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
