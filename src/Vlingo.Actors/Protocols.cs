@@ -16,7 +16,7 @@ namespace Vlingo.Actors
             return (T)_protocolActors[index];
         }
 
-        protected Protocols(object[] protocolActors)
+        internal Protocols(object[] protocolActors)
         {
             this._protocolActors = protocolActors;
         }

@@ -38,7 +38,7 @@ namespace Vlingo.Actors
             tasks = new ConcurrentBag<SchedulerTask>();
         }
 
-        protected void Close()
+        internal void Close()
         {
             foreach(var task in tasks)
             {

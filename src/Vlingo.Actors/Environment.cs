@@ -73,7 +73,14 @@ namespace Vlingo.Actors
             ProxyCache.Add(proxy.GetType(), proxy);
         }
 
+        internal void CacheProxy(Type proxyType, object proxy)
+        {
+            ProxyCache.Add(proxyType, proxy);
+        }
+
         internal T LookUpProxy<T>() => (T)ProxyCache[typeof(T)];
+
+        internal object LookUpProxy(Type type) => ProxyCache[type];
 
         internal bool IsSecured => secured.Get();
 

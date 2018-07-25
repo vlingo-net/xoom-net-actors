@@ -182,7 +182,7 @@ namespace Vlingo.Actors
 
             if (supervisor == null)
             {
-                supervisor = Environment.Stage.CommonSupervisorOr(Environment.Stage.World.DefaultSupervisor);
+                supervisor = Environment.Stage.CommonSupervisorOr<T>(Environment.Stage.World.DefaultSupervisor);
             }
 
             return supervisor;
