@@ -17,7 +17,8 @@ namespace Vlingo.Actors.TestKit
 
         private static readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
 
-        public static IList<IMessage> AllMessagesFor(Address address) => actorMessages[address.Id] ?? new List<IMessage>();
+        public static IList<IMessage> AllMessagesFor(Address address)
+            => actorMessages.ContainsKey(address.Id) ? actorMessages[address.Id] : new List<IMessage>();
 
         public static TestWorld Start(string name)
         {

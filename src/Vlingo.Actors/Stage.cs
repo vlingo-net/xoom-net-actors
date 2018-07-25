@@ -213,7 +213,14 @@ namespace Vlingo.Actors
         }
 
         internal ISupervisor CommonSupervisorOr<T>(ISupervisor defaultSupervisor)
-            => commonSupervisors[typeof(T).FullName] ?? defaultSupervisor;
+        {
+            if(commonSupervisors.TryGetValue(typeof(T).FullName, out ISupervisor value))
+            {
+                return value;
+            }
+
+            return defaultSupervisor;
+        }
 
         internal void HandleFailureOf<T>(ISupervised supervised)
         {

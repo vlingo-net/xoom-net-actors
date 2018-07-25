@@ -20,9 +20,15 @@ namespace Vlingo.Actors
             mailboxProviderInfos = new Dictionary<string, MailboxProviderInfo>();
         }
 
-        internal IMailbox AssignMailbox(string name, int hashCode) =>
-            mailboxProviderInfos[name]?.MailboxProvider?.ProvideMailboxFor(hashCode) ??
+        internal IMailbox AssignMailbox(string name, int hashCode)
+        {
+            if (!mailboxProviderInfos.ContainsKey(name))
+            {
                 throw new KeyNotFoundException($"No registered MailboxProvider named: {name}");
+            }
+
+            return mailboxProviderInfos[name]?.MailboxProvider?.ProvideMailboxFor(hashCode);
+        }
 
         internal void Close()
         {

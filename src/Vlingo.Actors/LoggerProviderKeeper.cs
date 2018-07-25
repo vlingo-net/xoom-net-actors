@@ -33,8 +33,15 @@ namespace Vlingo.Actors
             .Select(x => x.Value.LoggerProvider)
             .FirstOrDefault();
 
-        internal ILoggerProvider FindNamed(string name) =>
-            loggerProviderInfos[name]?.LoggerProvider ?? throw new KeyNotFoundException($"No registered LoggerProvider named: {name}");
+        internal ILoggerProvider FindNamed(string name)
+        {
+            if (!loggerProviderInfos.ContainsKey(name))
+            {
+                throw new KeyNotFoundException($"No registered LoggerProvider named: {name}");
+            }
+
+            return loggerProviderInfos[name]?.LoggerProvider;
+        }
 
         internal void Keep(string name, bool isDefault, ILoggerProvider loggerProvider)
         {

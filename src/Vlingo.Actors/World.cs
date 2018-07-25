@@ -192,8 +192,7 @@ namespace Vlingo.Actors
         {
             lock (stageNamedMutex)
             {
-                var stage = stages[name];
-                if(stage == null)
+                if(!stages.TryGetValue(name, out Stage stage))
                 {
                     stage = new Stage(this, name);
                     stages[name] = stage;
