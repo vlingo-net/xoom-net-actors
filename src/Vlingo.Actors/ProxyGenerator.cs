@@ -79,7 +79,6 @@ namespace Vlingo.Actors
             rootOfGenerated = type == DynaType.Main ? GeneratedSources : GeneratedTestSources;
             this.persist = persist;
             targetClassPath = new FileInfo(rootOfClasses);
-            // this.urlClassLoader = initializeClassLoader(targetClassesPath);
         }
 
         private string ClassStatement(Type protocolInterface)
@@ -199,6 +198,28 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
+        private string GetPropertyDefinition(PropertyInfo property)
+        {
+            var declaration = $"  public {GetSimpleTypeName(property.PropertyType)} {property.Name}";
+            if(property.CanRead && property.CanWrite)
+            {
+                return $"{declaration} {{ get; set; }}\n";
+            }
+
+            return $"{declaration} => {DefaultReturnValueString(property.PropertyType)};\n";
+        }
+
+        private string PropertyDefinitions(IEnumerable<PropertyInfo> properties)
+        {
+            var builder = new StringBuilder();
+            foreach(var prop in properties)
+            {
+                builder.Append(GetPropertyDefinition(prop));
+            }
+
+            return builder.ToString();
+        }
+
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
             var completes = DoesImplementICompletes(method.ReturnType);
@@ -277,7 +298,8 @@ namespace Vlingo.Actors
         private string ProxyClassSource(Type protocolInterface)
         {
             var hasNamespace = !string.IsNullOrWhiteSpace(protocolInterface.Namespace);
-            var methods = protocolInterface.GetMethods();
+            var methods = protocolInterface.GetMethods().Where(m => !m.IsSpecialName).ToList();
+            var properties = protocolInterface.GetProperties().Where(m => !m.IsSpecialName).ToList();
             var builder = new StringBuilder();
             builder
                 .Append(ImportStatements(protocolInterface)).Append("\n")
@@ -286,6 +308,7 @@ namespace Vlingo.Actors
                 .Append(RepresentationStatements(methods)).Append("\n")
                 .Append(InstanceVariables()).Append("\n")
                 .Append(Constructor(protocolInterface)).Append("\n")
+                .Append(PropertyDefinitions(properties)).Append("\n")
                 .Append(MethodDefinitions(protocolInterface, methods)).Append("\n")
                 .Append("}\n");
             if (hasNamespace)
@@ -306,6 +329,11 @@ namespace Vlingo.Actors
             if(!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
             {
                 return "null";
+            }
+
+            if(type == typeof(bool))
+            {
+                return "false";
             }
 
             if (type.IsEnum)

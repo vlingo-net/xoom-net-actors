@@ -20,7 +20,7 @@ namespace Vlingo.Actors
     {
         public ISupervisionStrategy SupervisionStrategy => DefaultSupervisor.DefaultSupervisionStrategy;
 
-        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+        public ISupervisor Supervisor => new DefaultSupervisorImpl();
 
         public void Inform(Exception error, ISupervised supervised)
         {
