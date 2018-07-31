@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         {
             if (!IsStopped)
             {
-                if (LifeCycle.Address.Id != World.DeadlettersId)
+                if (LifeCycle.Address.Id != World.DeadLettersId)
                 {
                     LifeCycle.Stop(this);
                 }
@@ -183,7 +183,7 @@ namespace Vlingo.Actors
             // override
         }
 
-        protected virtual void BeforeRestart(Exception reason)
+        internal virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);

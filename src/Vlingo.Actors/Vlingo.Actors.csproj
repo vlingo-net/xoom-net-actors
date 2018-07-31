@@ -1,8 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+
+    <!-- NuGet Metadata -->
+    <IsPackable>true</IsPackable>
+    <PackageVersion>0.0.1-alpha</PackageVersion>
+    <PackageId>Vlingo.Actors</PackageId>
+    <Authors>Vlingo</Authors>
+    <Description>
+      Type safe Actor Model toolkit for reactive concurrency and resiliency using C# and other .NET languages.
+    </Description>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://mozilla.org/MPL/2.0/</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/vlingo-net/vlingo-net-actors</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/vlingo-net/vlingo-net-common/master/vlingo-64x64.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.1.0-alpha" />
+    <PackageReference Include="Vlingo.Common" Version="1.0.0-beta" />
   </ItemGroup>
 </Project>

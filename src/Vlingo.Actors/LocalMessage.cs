@@ -61,7 +61,7 @@ namespace Vlingo.Actors
 
         public string Representation { get; }
 
-        public bool IsStowed => false;
+        public virtual bool IsStowed => false;
 
         public override string ToString() => $"LocalMessage[{Representation}]";
 

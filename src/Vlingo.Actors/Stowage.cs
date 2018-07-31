@@ -6,39 +6,92 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Generic;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public class Stowage
     {
-        public bool IsDispersing { get; }
-        public bool IsStowing { get; set; }
+        private Queue<IMessage> stowedMessages;
+        private AtomicBoolean dispersing;
+        private AtomicBoolean stowing;
 
-        internal IMessage Head { get; set; }
-
-        public void DispersingMode()
+        public Stowage()
         {
-            throw new System.NotImplementedException();
+            dispersing = new AtomicBoolean(false);
+            stowing = new AtomicBoolean(false);
+            Reset();
         }
+
+        protected internal int Count => stowedMessages.Count;
+
+        protected internal void Dump(ILogger logger)
+        {
+            foreach (var message in stowedMessages)
+            {
+                logger.Log($"STOWED: {message}");
+            }
+        }
+
+        protected internal bool HasMessages => stowedMessages.Count > 0;
+
+        internal IMessage Head
+        {
+            get
+            {
+                if (!HasMessages)
+                {
+                    Reset();
+                    return null;
+                }
+
+                return stowedMessages.Dequeue();
+            }
+        }
+
+        protected internal void Reset()
+        {
+            stowedMessages = new Queue<IMessage>();
+            stowing.Set(false);
+            dispersing.Set(false);
+        }
+
+        protected internal bool IsStowing => stowing.Get();
 
         public void StowingMode()
         {
-            throw new System.NotImplementedException();
+            stowing.Set(true);
+            dispersing.Set(false);
         }
 
-        public void Reset()
+        protected internal bool IsDispersing => dispersing.Get();
+
+        protected internal void DispersingMode()
         {
-            throw new NotImplementedException();
+            stowing.Set(false);
+            dispersing.Set(true);
         }
 
-        internal void Stow(IMessage message)
+        protected internal void Stow(IMessage message)
         {
-            throw new NotImplementedException();
+            if (IsStowing)
+            {
+                stowedMessages.Enqueue(new StowedLocalMessage<IMessage>((LocalMessage<IMessage>)message));
+            }
         }
 
-        internal IMessage SwapWith(IMessage message)
+        protected internal IMessage SwapWith(IMessage newerMessage)
         {
-            throw new NotImplementedException();
+            if (!HasMessages)
+            {
+                Reset();
+                return newerMessage;
+            }
+
+            var olderMessage = stowedMessages.Dequeue();
+            stowedMessages.Enqueue(new StowedLocalMessage<IMessage>((LocalMessage<IMessage>)newerMessage));
+            return olderMessage;
         }
     }
 }

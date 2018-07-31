@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Collections.Concurrent;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {

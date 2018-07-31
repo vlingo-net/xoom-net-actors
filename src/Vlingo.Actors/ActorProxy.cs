@@ -17,64 +17,66 @@ namespace Vlingo.Actors
         private static readonly DynaCompiler proxyCompiler = new DynaCompiler();
 
         public static T CreateFor<T>(Actor actor, IMailbox mailbox)
-        {
-            var proxyClassName = FullyQualifiedClassNameFor<T>("__Proxy");
+            => (T)CreateFor(typeof(T), actor, mailbox);
 
-            var maybeProxy = actor.LifeCycle.Environment.LookUpProxy<T>();
+        public static object CreateFor(Type protocol, Actor actor, IMailbox mailbox)
+        {
+            var proxyClassName = FullyQualifiedClassNameFor(protocol, "__Proxy");
+
+            var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
 
             if(maybeProxy != null)
             {
                 return maybeProxy;
             }
 
-            T newProxy;
+            object newProxy;
             try
             {
-                newProxy = TryCreate<T>(actor, mailbox, proxyClassName);
+                newProxy = TryCreate(actor, mailbox, proxyClassName);
             }
             catch (Exception)
             {
-                newProxy = TryGenerateCreate<T>(actor, mailbox, proxyClassName);
+                newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassName);
             }
 
-            actor.LifeCycle.Environment.CacheProxy<T>(newProxy);
+            actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
 
             return newProxy;
         }
 
-        private static T TryCreate<T>(Actor actor, IMailbox mailbox, string targetClassName)
+        private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassName)
         {
             var proxyClass = classLoader.LoadClass(targetClassName);
-            return TryCreateWithProxyClass<T>(proxyClass, actor, mailbox);
+            return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
-        private static T TryCreateWithProxyClass<T>(Type proxyClass, Actor actor, IMailbox mailbox)
-            => (T)Activator.CreateInstance(proxyClass, actor, mailbox);
+        private static object TryCreateWithProxyClass(Type proxyClass, Actor actor, IMailbox mailbox)
+            => Activator.CreateInstance(proxyClass, actor, mailbox);
 
-        private static T TryGenerateCreate<T>(Actor actor, IMailbox mailbox, string targetClassName)
+        private static object TryGenerateCreate(Type protocol, Actor actor, IMailbox mailbox, string targetClassName)
         {
             try
             {
                 var generator = ProxyGenerator.ForMain(true);
-                return TryGenerateCreate<T>(actor, mailbox, generator, targetClassName);
+                return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
             }
             catch(Exception)
             {
                 try
                 {
                     var generator = ProxyGenerator.ForTest(true);
-                    return TryGenerateCreate<T>(actor, mailbox, generator, targetClassName);
+                    return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
                 }
                 catch(Exception etest)
                 {
-                    throw new ArgumentException($"Actor proxy {typeof(T).Name} not created for main or test: {etest.Message}", etest);
+                    throw new ArgumentException($"Actor proxy {protocol.Name} not created for main or test: {etest.Message}", etest);
                 }
             }
         }
 
-        private static T TryGenerateCreate<T>(Actor actor, IMailbox mailbox, ProxyGenerator generator, string targetClassName)
+        private static object TryGenerateCreate(Type protocol, Actor actor, IMailbox mailbox, ProxyGenerator generator, string targetClassName)
         {
-            var protocol = typeof(T);
             try
             {
                 var result = generator.GenerateFor(protocol);
@@ -88,7 +90,7 @@ namespace Vlingo.Actors
                     true);
 
                 var proxyClass = proxyCompiler.Compile(input);
-                return TryCreateWithProxyClass<T>(proxyClass, actor, mailbox);
+                return TryCreateWithProxyClass(proxyClass, actor, mailbox);
             }
             catch (Exception e)
             {

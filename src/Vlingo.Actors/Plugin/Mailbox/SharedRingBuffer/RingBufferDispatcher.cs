@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Threading;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
@@ -64,6 +65,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)
         {
+            closed = new AtomicBoolean(false);
             backoff = fixedBackoff == 0L ? new Backoff() : new Backoff(fixedBackoff);
             RequiresExecutionNotification = fixedBackoff == 0L;
             Mailbox = new SharedRingBufferMailbox(this, mailboxSize);

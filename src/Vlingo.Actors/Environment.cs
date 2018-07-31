@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
@@ -15,7 +16,7 @@ namespace Vlingo.Actors
         internal Address Address { get; }
         internal List<Actor> Children { get; }
         internal Definition Definition { get; }
-        private FailureMark FailureMark { get; }
+        internal FailureMark FailureMark { get; }
         
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
@@ -72,7 +73,15 @@ namespace Vlingo.Actors
             ProxyCache.Add(proxy.GetType(), proxy);
         }
 
-        internal T LookUpProxy<T>() => (T)ProxyCache[typeof(T)];
+        internal void CacheProxy(Type proxyType, object proxy)
+        {
+            ProxyCache.Add(proxyType, proxy);
+        }
+
+        internal T LookUpProxy<T>() => (T)LookUpProxy(typeof(T));
+
+        internal object LookUpProxy(Type type)
+            => ProxyCache.ContainsKey(type) ? ProxyCache[type] : null;
 
         internal bool IsSecured => secured.Get();
 

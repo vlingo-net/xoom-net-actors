@@ -7,46 +7,89 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using static Vlingo.Actors.SupervisionStrategyConstants;
 
 namespace Vlingo.Actors
 {
     public class StageSupervisedActor<T> : ISupervised
     {
-        public StageSupervisedActor(Actor actor, Exception ex)
-        {
+        private readonly Actor actor;
 
+        protected internal StageSupervisedActor(Actor actor, Exception error)
+        {
+            this.actor = actor;
+            Error = error;
         }
 
-        public Address Address => throw new NotImplementedException();
+        public Address Address => actor.Address;
 
-        public ISupervisor Supervisor => throw new NotImplementedException();
+        public void Escalate() => Supervisor.Supervisor.Inform(Error, this);
 
-        public Exception Error => throw new NotImplementedException();
-
-        public void Escalate()
+        public void RestartWithin(long period, int intensity, Scope scope)
         {
-            throw new NotImplementedException();
-        }
-
-        public void RestartWithin(long period, int intensity, SupervisionStrategyConstants.Scope scope)
-        {
-            throw new NotImplementedException();
+            if (FailureThresholdReached(period, intensity))
+            {
+                Stop(scope);
+            }
+            else
+            {
+                if (scope == Scope.One)
+                {
+                    RestartWithin(actor, period, intensity);
+                }
+                else
+                {
+                    foreach (var actor in SelfWithSiblings())
+                    {
+                        RestartWithin(actor, period, intensity);
+                    }
+                }
+            }
         }
 
         public void Resume()
         {
-            throw new NotImplementedException();
+            actor.LifeCycle.BeforeResume<T>(actor, Error);
+            actor.LifeCycle.Resume();
         }
 
-        public void Stop(SupervisionStrategyConstants.Scope scope)
+        public void Stop(Scope scope)
         {
-            throw new NotImplementedException();
+            if(scope == Scope.One)
+            {
+                actor.Stop();
+            }
+            else
+            {
+                foreach(var actor in SelfWithSiblings())
+                {
+                    actor.Stop();
+                }
+            }
         }
 
-        public void Suspend()
+        public void Suspend() => actor.LifeCycle.Suspend();
+
+        public ISupervisor Supervisor => actor.LifeCycle.Supervisor<T>();
+
+        public Exception Error { get; }
+
+        private IEnumerable<Actor> SelfWithSiblings()
+            => EnvironmentOf(EnvironmentOf(actor).Parent).Children;
+
+        private static Environment EnvironmentOf(Actor actor) => actor.LifeCycle.Environment;
+
+        private bool FailureThresholdReached(long period, int intensity)
+            => EnvironmentOf(actor).FailureMark.FailedWithExcessiveFailures(period, intensity);
+
+        private void RestartWithin(Actor actor, long period, int intensity)
         {
-            throw new NotImplementedException();
+            actor.LifeCycle.BeforeRestart<T>(actor, Error);
+            // TODO: Actually restart actor here? I am not
+            // yet convinced that it is necessary or practical.
+            // Please convince me.
+            actor.LifeCycle.AfterRestart(actor, Error);
+            Resume();
         }
     }
 }

@@ -26,7 +26,8 @@ namespace Vlingo.Actors.TestKit
 
         public T ValueOf<T>(string name)
         {
-            return (T)state[name];
+            state.TryGetValue(name, out object value);
+            return (T)value;
         }
     }
 }
