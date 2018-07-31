@@ -22,7 +22,7 @@ namespace Vlingo.Actors
             Stage.World.SetPrivateRoot(SelfAs<IStoppable>());
 
             Stage.ActorFor<INoProtocol>(
-              Definition.Has<PrivateRootActor>(Definition.NoParameters, World.PublicRootName),
+              Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
               this,
               new Address(World.PublicRootId, World.PublicRootName),
               null,

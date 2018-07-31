@@ -72,77 +72,77 @@ namespace Vlingo.Actors.Tests
             Assert.True(env.IsStopped);
             Assert.True(env.Mailbox.IsClosed);
         }
+    }
 
-        public interface IEnvironmentProvider { }
+    public interface IEnvironmentProvider { }
 
-        public class EnvironmentProviderActor : Actor, IEnvironmentProvider
+    public class EnvironmentProviderActor : Actor, IEnvironmentProvider
+    {
+
+        public EnvironmentProviderActor() { }
+
+        public override TestState ViewTestState()
         {
+            return new TestState()
+                    .PutValue("address", Address)
+                    .PutValue("definition", Definition)
+                    .PutValue("parent", Parent)
+                    .PutValue("stage", Stage);
+        }
+    }
 
-            public EnvironmentProviderActor() { }
+    public class CannotProvideEnvironmentActor : Actor, IEnvironmentProvider
+    {
+        public CannotProvideEnvironmentActor()
+        {
+            Secure();
+        }
 
-            public override TestState ViewTestState()
+        public override TestState ViewTestState()
+        {
+            var state = new TestState();
+
+            try
             {
-                return new TestState()
-                        .PutValue("address", Address)
-                        .PutValue("definition", Definition)
-                        .PutValue("parent", Parent)
-                        .PutValue("stage", Stage);
+                state.PutValue("address", base.Address);
+            }
+            catch { }
+
+            try
+            {
+                state.PutValue("definition", base.Definition);
+            }
+            catch { }
+
+            try
+            {
+                state.PutValue("parent", base.Parent);
+            }
+            catch { }
+
+            try
+            {
+                state.PutValue("stage", base.Stage);
+            }
+            catch { }
+
+            return state;
+        }
+    }
+
+    public interface IStopTester : IStoppable { }
+
+    public class StopTesterActor : Actor, IStopTester
+    {
+        public StopTesterActor(int count)
+        {
+            if (count == 0)
+            {
+                ChildActorFor<IStopTester>(Definition.Has<StopTesterActor>(Definition.Parameters(1), "test-stop-1"));
             }
         }
 
-        public class CannotProvideEnvironmentActor : Actor, IEnvironmentProvider
-        {
-            public CannotProvideEnvironmentActor()
-            {
-                Secure();
-            }
-
-            public override TestState ViewTestState()
-            {
-                var state = new TestState();
-
-                try
-                {
-                    state.PutValue("address", base.Address);
-                }
-                catch { }
-
-                try
-                {
-                    state.PutValue("definition", base.Definition);
-                }
-                catch { }
-
-                try
-                {
-                    state.PutValue("parent", base.Parent);
-                }
-                catch { }
-
-                try
-                {
-                    state.PutValue("stage", base.Stage);
-                }
-                catch { }
-
-                return state;
-            }
-        }
-
-        public interface IStopTester : IStoppable { }
-
-        public class StopTesterActor : Actor, IStopTester
-        {
-            public StopTesterActor(int count)
-            {
-                if (count == 0)
-                {
-                    ChildActorFor<IStopTester>(Definition.Has<StopTesterActor>(Definition.Parameters(1), "test-stop-1"));
-                }
-            }
-
-            public override TestState ViewTestState()
-                => new TestState().PutValue("env", LifeCycle.Environment);
-        }
+        public override TestState ViewTestState()
+            => new TestState().PutValue("env", LifeCycle.Environment);
     }
 }

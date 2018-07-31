@@ -102,17 +102,19 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private string ImportStatements(Type protocolInterface)
+        private string ImportStatements(
+            Type protocolInterface,
+            IEnumerable<MethodInfo> methods,
+            IEnumerable<PropertyInfo> properties)
         {
             var namespaces = new HashSet<string>();
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
-            namespaces.Add("System.Linq");
             namespaces.Add(typeof(Actor).Namespace);
 
             namespaces.Add(protocolInterface.Namespace);
 
-            GetAllUsedTypesIn(protocolInterface)
+            GetAllUsedTypesIn(protocolInterface, methods, properties)
                 .ToList()
                 .ForEach(t => namespaces.Add(t.Namespace));
 
@@ -130,17 +132,20 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private IEnumerable<Type> GetAllUsedTypesIn(Type type)
+        private IEnumerable<Type> GetAllUsedTypesIn(
+            Type type,
+            IEnumerable<MethodInfo> methods,
+            IEnumerable<PropertyInfo> properties)
         {
-            var methodReturnTypes = GetAllReturnTypes(type);
+            var allReturnTypes = methods
+                .Select(m => m.ReturnType)
+                .Concat(properties.Select(p => p.PropertyType));
 
             return GetInnerAndOuterTypes(type)
-                .Concat(methodReturnTypes)
-                .Concat(methodReturnTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
+                .Concat(allReturnTypes)
+                .Concat(allReturnTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
                 .Distinct();
         }
-
-        private IEnumerable<Type> GetAllReturnTypes(Type type) => type.GetMethods().Select(m => m.ReturnType);
 
         private IEnumerable<Type> GetInnerAndOuterTypes(Type type) => GetOuterTypes(type).Concat(GetInnerTypes(type));
 
@@ -201,6 +206,7 @@ namespace Vlingo.Actors
         private string GetPropertyDefinition(PropertyInfo property)
         {
             var declaration = $"  public {GetSimpleTypeName(property.PropertyType)} {property.Name}";
+
             if(property.CanRead && property.CanWrite)
             {
                 return $"{declaration} {{ get; set; }}\n";
@@ -237,7 +243,7 @@ namespace Vlingo.Actors
                 string.Join(", ", method.GetParameters().Select(p => p.Name)));
             var completesStatement = completes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType)) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
-            var mailboxSendStatement = string.Format("      mailbox.Send(new LocalMessage<{0}>(actor, consumer, {1}{2});",
+            var mailboxSendStatement = string.Format("      mailbox.Send(new LocalMessage<{0}>(actor, consumer, {1}{2}));",
                 GetSimpleTypeName(protocolInterface),
                 completes ? "completes, " : "",
                 representationName);
@@ -295,14 +301,46 @@ namespace Vlingo.Actors
             return PersistDynaClassSource(pathToSource, proxyClassSource);
         }
 
+        private IEnumerable<MethodInfo> GetAbstractMethodsFor(Type type)
+        {
+            foreach (var m in type.GetMethods().Where(m => !m.IsSpecialName && m.IsAbstract))
+            {
+                yield return m;
+            }
+
+            foreach(var t in type.GetInterfaces())
+            {
+                foreach(var m in GetAbstractMethodsFor(t))
+                {
+                    yield return m;
+                }
+            }
+        }
+
+        private IEnumerable<PropertyInfo> GetPropertiesFor(Type type)
+        {
+            foreach (var p in type.GetProperties().Where(m => !m.IsSpecialName))
+            {
+                yield return p;
+            }
+
+            foreach (var t in type.GetInterfaces())
+            {
+                foreach (var p in GetPropertiesFor(t))
+                {
+                    yield return p;
+                }
+            }
+        }
+
         private string ProxyClassSource(Type protocolInterface)
         {
             var hasNamespace = !string.IsNullOrWhiteSpace(protocolInterface.Namespace);
-            var methods = protocolInterface.GetMethods().Where(m => !m.IsSpecialName).ToList();
-            var properties = protocolInterface.GetProperties().Where(m => !m.IsSpecialName).ToList();
+            var methods = GetAbstractMethodsFor(protocolInterface).ToList();
+            var properties = GetPropertiesFor(protocolInterface).ToList();
             var builder = new StringBuilder();
             builder
-                .Append(ImportStatements(protocolInterface)).Append("\n")
+                .Append(ImportStatements(protocolInterface, methods, properties)).Append("\n")
                 .Append(NamespaceStatement(protocolInterface, hasNamespace)).Append("\n")
                 .Append(ClassStatement(protocolInterface)).Append("\n")
                 .Append(RepresentationStatements(methods)).Append("\n")
