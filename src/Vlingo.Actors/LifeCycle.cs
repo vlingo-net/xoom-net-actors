@@ -93,7 +93,20 @@ namespace Vlingo.Actors
             }
         }
 
-        void BeforeResume<T>(Actor actor, Exception reason)
+        internal void BeforeRestart<T>(Actor actor, Exception reason)
+        {
+            try
+            {
+                actor.BeforeRestart(reason);
+            }
+            catch (Exception ex)
+            {
+                Environment.Logger.Log($"vlingo-net/actors: Actor BeforeRestart() failed: {ex.Message}");
+                Environment.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(actor, ex));
+            }
+        }
+
+        internal void BeforeResume<T>(Actor actor, Exception reason)
         {
             try
             {
@@ -176,7 +189,7 @@ namespace Vlingo.Actors
             Environment.Suspended.StowingMode();
         }
 
-        ISupervisor Supervisor<T>()
+        internal ISupervisor Supervisor<T>()
         {
             var supervisor = Environment.MaybeSupervisor;
 

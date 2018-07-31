@@ -183,7 +183,7 @@ namespace Vlingo.Actors
             // override
         }
 
-        protected virtual void BeforeRestart(Exception reason)
+        internal virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);

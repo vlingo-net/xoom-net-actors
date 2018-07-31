@@ -16,7 +16,7 @@ namespace Vlingo.Actors
         internal Address Address { get; }
         internal List<Actor> Children { get; }
         internal Definition Definition { get; }
-        private FailureMark FailureMark { get; }
+        internal FailureMark FailureMark { get; }
         
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
