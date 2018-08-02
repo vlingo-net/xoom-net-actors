@@ -13,7 +13,6 @@ namespace Vlingo.Actors
 {
     public class Scheduler
     {
-        private readonly Timer timer;
         private readonly ConcurrentBag<SchedulerTask> tasks;
 
         public ICancellable Schedule(IScheduled scheduled, object data, long delayBefore, long interval)
