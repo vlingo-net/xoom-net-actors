@@ -1,3 +1,10 @@
+// Copyright (c) 2012-2018 Vaughn Vernon. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+
 using System;
 using System.Threading;
 
@@ -26,7 +33,7 @@ namespace Vlingo.Actors.TestKit
                 {
                     Thread.Sleep(10);
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     // Ignore !
                 }
@@ -37,7 +44,7 @@ namespace Vlingo.Actors.TestKit
                 {
                     countDown.Wait();
                 }
-                catch (System.Exception)
+                catch (Exception)
                 {
                     // Ignore !
                 }
@@ -54,7 +61,7 @@ namespace Vlingo.Actors.TestKit
             return this;
         }
 
-        public int Remaining() => countDown.CurrentCount;
+        public int Remaining => countDown.CurrentCount;
 
         public override string ToString() => $"TestUntil[count={countDown.CurrentCount} , zero={zero}]";
         
