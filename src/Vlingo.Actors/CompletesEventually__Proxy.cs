@@ -9,15 +9,15 @@ using System;
 
 namespace Vlingo.Actors
 {
-    public class CompletesEventuallyProxy : ICompletesEventually
+    public class CompletesEventually__Proxy : ICompletesEventually
     {
-        private const string RepresentationStop1 = "stop()";
-        private const string RepresentationWith2 = "with(Object)";
+        private const string RepresentationStop1 = "Stop()";
+        private const string RepresentationWith2 = "With(object)";
 
         private readonly Actor actor;
         private readonly IMailbox mailbox;
 
-        public CompletesEventuallyProxy(Actor actor, IMailbox mailbox)
+        public CompletesEventually__Proxy(Actor actor, IMailbox mailbox)
         {
             this.actor = actor;
             this.mailbox = mailbox;

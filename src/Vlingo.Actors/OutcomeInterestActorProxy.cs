@@ -7,7 +7,7 @@
 
 namespace Vlingo.Actors
 {
-    class OutcomeInterestActorProxy<TOutcome, TRef> : IOutcomeInterest<TOutcome>
+    public class OutcomeInterestActorProxy<TOutcome, TRef> : IOutcomeInterest<TOutcome>
     {
         private readonly IOutcomeAware<TOutcome, TRef> outcomeAware;
         private readonly TRef reference;
