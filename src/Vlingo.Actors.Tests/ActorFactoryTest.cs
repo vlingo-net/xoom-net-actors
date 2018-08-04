@@ -57,7 +57,7 @@ namespace Vlingo.Actors.Tests
     [Fact]
     public void TestActorForWithParameters()
     {
-        world.ActorFor<ParentInterface>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
+        world.ActorFor<IParentInterface>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
     
         var actorName = "test-child";
 
@@ -97,9 +97,9 @@ namespace Vlingo.Actors.Tests
     }
 }
 
-  public interface ParentInterface { }
+  public interface IParentInterface { }
   
-  public sealed class ParentInterfaceActor: Actor, ParentInterface 
+  public sealed class ParentInterfaceActor: Actor, IParentInterface 
   {
     public static ThreadLocal<ParentInterfaceActor> Instance { get; } = new ThreadLocal<ParentInterfaceActor>();
     
@@ -109,12 +109,12 @@ namespace Vlingo.Actors.Tests
     }
   }
   
-  public interface TestInterface { }
+  public interface ITestInterface { }
   
-  public sealed class TestInterfaceActor : Actor, TestInterface { }
+  internal sealed class TestInterfaceActor : Actor, ITestInterface { }
   
-  public sealed class TestInterfaceWithParamsActor: Actor, TestInterface 
+  internal sealed class TestInterfaceWithParamsActor: Actor, ITestInterface 
   {
-    public TestInterfaceWithParamsActor(String text, int val) {}
+    public TestInterfaceWithParamsActor(string text, int val) {}
   }
 }

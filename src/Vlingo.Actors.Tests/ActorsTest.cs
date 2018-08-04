@@ -27,6 +27,6 @@ namespace Vlingo.Actors.Tests
 
         public void Dispose() => testWorld.Terminate();
 
-        protected bool IsSuspended(Actor actor) => actor.LifeCycle.IsSuspended;
+        protected internal bool IsSuspended(Actor actor) => actor.LifeCycle.IsSuspended;
   }
 }
