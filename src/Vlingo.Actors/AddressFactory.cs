@@ -1,0 +1,29 @@
+﻿// Copyright (c) 2012-2018 Vaughn Vernon. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+
+using Vlingo.Common;
+
+namespace Vlingo.Actors
+{
+    public class AddressFactory
+    {
+        private readonly AtomicInteger nextId;
+
+        internal AddressFactory()
+        {
+            nextId = new AtomicInteger(1);
+        }
+
+        public Address AddressFrom(string name) => new Address(nextId.GetAndIncrement(), name);
+
+        public Address AddressFrom(int reservedId, string name) => new Address(reservedId, name);
+
+        internal int TestNextIdValue() => nextId.Get();
+
+
+    }
+}

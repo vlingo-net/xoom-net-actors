@@ -15,7 +15,7 @@ namespace Vlingo.Actors.TestKit
         public TestEnvironment() :
             base(
                 TestWorld.testWorld.World.Stage,
-                Address.From("test"),
+                TestWorld.testWorld.World.AddressFactory.AddressFrom("test"),
                 Definition.Has<Actor>(Definition.NoParameters),
                 TestWorld.testWorld.World.DefaultParent,
                 new TestMailbox(),

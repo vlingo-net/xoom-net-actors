@@ -30,7 +30,6 @@ namespace Vlingo.Actors
         private ISupervisor defaultSupervisor;
         private DynaClassLoader classLoader;
 
-
         private World(string name, bool forceDefaultConfiguration)
         {
             Name = name;
@@ -40,7 +39,7 @@ namespace Vlingo.Actors
             mailboxProviderKeeper = new MailboxProviderKeeper();
             stages = new Dictionary<string, Stage>();
 
-            Address.Initialize();
+            AddressFactory = new AddressFactory();
 
             var defaultStage = StageNamed(DefaultStage);
 
@@ -52,6 +51,8 @@ namespace Vlingo.Actors
 
             pluginLoader.LoadEnabledPlugins(this, 2, forceDefaultConfiguration);
         }
+
+        public AddressFactory AddressFactory { get; }
 
         public static World Start(string name)
         {
@@ -311,7 +312,7 @@ namespace Vlingo.Actors
             => stage.ActorFor<IStoppable>(
                 Definition.Has<PrivateRootActor>(Definition.NoParameters, PrivateRootName),
                 null,
-                Address.From(PrivateRootId, PrivateRootName),
+                AddressFactory.AddressFrom(PrivateRootId, PrivateRootName),
                 null,
                 null,
                 logger);

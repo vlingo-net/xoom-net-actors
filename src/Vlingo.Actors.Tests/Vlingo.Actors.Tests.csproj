@@ -14,10 +14,4 @@
     <ProjectReference Include="..\Vlingo.Actors\Vlingo.Actors.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
