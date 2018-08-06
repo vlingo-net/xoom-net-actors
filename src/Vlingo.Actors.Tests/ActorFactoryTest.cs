@@ -26,7 +26,7 @@ namespace Vlingo.Actors.Tests
         {
             var definition = Definition.Has<TestInterfaceActor>(Definition.NoParameters);
 
-            var address = Address.From("test-actor");
+            var address = world.AddressFactory.AddressFrom("test-actor");
 
             var mailbox = new TestMailbox();
 
@@ -68,7 +68,7 @@ namespace Vlingo.Actors.Tests
                         actorName);
 
 
-            var address = Address.From(actorName);
+            var address = world.AddressFactory.AddressFrom(actorName);
 
             var mailbox = new TestMailbox();
 

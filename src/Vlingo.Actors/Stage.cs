@@ -251,7 +251,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Actor stage has been stopped.");
             }
 
-            var address = maybeAddress ?? Address.From(definition.ActorName);
+            var address = maybeAddress ?? World.AddressFactory.AddressFrom(definition.ActorName);
             if (directory.IsRegistered(address))
             {
                 throw new InvalidOperationException("Address already exists: " + address);
