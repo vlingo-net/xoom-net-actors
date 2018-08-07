@@ -12,7 +12,7 @@ namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal readonly BasicCompletes<object> completes;
+        internal readonly ICompletes<object> completes;
         internal LifeCycle LifeCycle { get; }
 
         public virtual Address Address => LifeCycle.Address;
@@ -53,6 +53,19 @@ namespace Vlingo.Actors
         public override int GetHashCode() => LifeCycle.GetHashCode();
 
         public override string ToString() => $"Actor[type={GetType().Name} address={Address}]";
+
+        internal Actor Parent
+        {
+            get
+            {
+                if (LifeCycle.Environment.IsSecured)
+                {
+                    throw new InvalidOperationException("A secured actor cannot provide its parent.");
+                }
+
+                return LifeCycle.Environment.Parent;
+            }
+        }
 
         protected Actor()
         {
@@ -100,17 +113,15 @@ namespace Vlingo.Actors
 
         internal ILogger Logger => LifeCycle.Environment.Logger;
 
-        protected Actor Parent
+        protected T ParentAs<T>()
         {
-            get
+            if (LifeCycle.Environment.IsSecured)
             {
-                if (LifeCycle.Environment.IsSecured)
-                {
-                    throw new InvalidOperationException("A secured actor cannot provide its parent.");
-                }
-
-                return LifeCycle.Environment.Parent;
+                throw new InvalidOperationException("A secured actor cannot provide its parent.");
             }
+
+            var parent = LifeCycle.Environment.Parent;
+            return LifeCycle.Environment.Stage.ActorProxyFor<T>(parent, parent.LifeCycle.Environment.Mailbox);
         }
 
         protected void Secure()

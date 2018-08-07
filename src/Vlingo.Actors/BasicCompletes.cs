@@ -6,6 +6,8 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
@@ -32,25 +34,15 @@ namespace Vlingo.Actors
 
         public ICompletes<T> After(Func<T> supplier, long timeout, T timedOutValue)
         {
-            state.supplier = supplier;
             state.timedOutValue = timedOutValue;
+            state.actions.Enqueue(supplier);
             if (state.IsCompleted && outcome.Get() != null)
             {
-                outcome.Set(new OutcomeData(state.supplier.Invoke()));
+                ExecuteActions();
             }
             else
             {
                 StartTimer(timeout);
-            }
-            return this;
-        }
-
-        public ICompletes<T> AndThen(Action<T> consumer)
-        {
-            state.andThen = consumer;
-            if (state.IsCompleted && outcome.Get() != null)
-            {
-                state.andThen.Invoke(outcome.Get().data);
             }
             return this;
         }
@@ -61,15 +53,46 @@ namespace Vlingo.Actors
 
         public ICompletes<T> After(Action<T> consumer, long timeout, T timedOutValue)
         {
-            state.consumer = consumer;
             state.timedOutValue = timedOutValue;
+            state.actions.Enqueue(consumer);
             if (state.IsCompleted && outcome.Get() != null)
             {
-                state.consumer.Invoke(outcome.Get().data);
+                ExecuteActions();
             }
             else
             {
                 StartTimer(timeout);
+            }
+            return this;
+        }
+
+        public ICompletes<T> AndThen(Action<T> consumer)
+        {
+            state.actions.Enqueue(consumer);
+            if (state.IsCompleted && outcome.Get() != null)
+            {
+                ExecuteActions();
+            }
+            return this;
+        }
+
+        public ICompletes<T> AtLast(Func<T> supplier)
+        {
+            state.actions.Enqueue(supplier);
+            if(state.IsCompleted && outcome.Get() != null)
+            {
+                ExecuteActions();
+                outcome.Set(new OutcomeData(supplier.Invoke()));
+            }
+            return this;
+        }
+
+        public ICompletes<T> AtLast(Action<T> consumer)
+        {
+            state.actions.Enqueue(consumer);
+            if(state.IsCompleted && outcome.Get() != null)
+            {
+                consumer.Invoke(outcome.Get().data);
             }
             return this;
         }
@@ -121,21 +144,29 @@ namespace Vlingo.Actors
                     this.outcome.Set(new OutcomeData(state.timedOutValue));
                 }
 
-                if (state.supplier != null)
-                {
-                    this.outcome.Set(new OutcomeData(state.supplier.Invoke()));
-                }
+                ExecuteActions();
+            }
+        }
 
-                if (state.consumer != null)
-                {
-                    state.consumer.Invoke(this.outcome.Get().data);
-                }
+        private void ExecuteActions()
+        {
+            while (!state.executingActions.CompareAndSet(false, true)) ;
 
-                if (state.andThen != null)
+            while (!state.actions.IsEmpty)
+            {
+                if(state.actions.TryDequeue(out object action))
                 {
-                    state.andThen.Invoke(this.outcome.Get().data);
+                    if(action is Func<T>)
+                    {
+                        outcome.Set(new OutcomeData((action as Func<T>).Invoke()));
+                    }
+                    else if(action is Action<T>)
+                    {
+                        (action as Action<T>).Invoke(outcome.Get().data);
+                    }
                 }
             }
+            state.executingActions.Set(false);
         }
 
         private void StartTimer(long timeout)
@@ -159,20 +190,18 @@ namespace Vlingo.Actors
 
         private class State
         {
-            internal Action<T> andThen;
+            internal ConcurrentQueue<object> actions;
             internal ICancellable cancellable;
             internal AtomicBoolean completed;
-            internal Action<T> consumer;
             internal Scheduler scheduler;
-            internal Func<T> supplier;
             internal T timedOutValue;
+            internal AtomicBoolean executingActions;
             internal State(Scheduler scheduler)
             {
                 this.scheduler = scheduler;
-                this.andThen = null;
-                this.consumer = null;
+                this.actions = new ConcurrentQueue<object>();
                 this.completed = new AtomicBoolean(false);
-                this.supplier = null;
+                this.executingActions = new AtomicBoolean(false);
             }
 
             internal void CancelTimer()

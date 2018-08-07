@@ -14,10 +14,12 @@ namespace Vlingo.Actors
         ICompletes<T> After(Func<T> supplier);
         ICompletes<T> After(Func<T> supplier, long timeout);
         ICompletes<T> After(Func<T> supplier, long timeout, T timedOutValue);
-        ICompletes<T> AndThen(Action<T> consumer);
         ICompletes<T> After(Action<T> consumer);
         ICompletes<T> After(Action<T> consumer, long timeout);
         ICompletes<T> After(Action<T> consumer, long timeout, T timedOutValue);
+        ICompletes<T> AndThen(Action<T> consumer);
+        ICompletes<T> AtLast(Action<T> consumer);
+        ICompletes<T> AtLast(Func<T> supplier);
         bool HasOutcome { get; }
         T Outcome { get; }
         ICompletes<TOutcome> With<TOutcome>(TOutcome outcome);

@@ -17,10 +17,24 @@ namespace Vlingo.Actors
         public int Id { get; }
         public string Name { get; }
 
+        internal Address(int reservedId)
+            : this(reservedId, null)
+        { }
+
         internal Address(int reservedId, string name)
+            : this(reservedId, name, false)
+        { }
+
+        internal Address(int reservedId, string name, bool prefixName)
         {
             Id = reservedId;
-            Name = name;
+            Name = name == null ?
+                reservedId.ToString() :
+                (
+                    prefixName ?
+                    $"{name}{reservedId}" :
+                    name
+                );
         }
 
         public override bool Equals(object obj)

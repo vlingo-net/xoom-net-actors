@@ -20,6 +20,7 @@ namespace Vlingo.Actors
         internal const string PublicRootName = "#public";
         internal const int DeadLettersId = PublicRootId - 1;
         internal const string DeadLettersName = "#deadLetters";
+        internal const int HighRootId = DeadLettersId - 1;
         internal const string DefaultStage = "__defaultStage";
 
         private CompletesEventuallyProviderKeeper completesProviderKeeper;
