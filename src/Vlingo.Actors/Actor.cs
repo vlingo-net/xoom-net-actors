@@ -12,7 +12,7 @@ namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal readonly ICompletes<object> completes;
+        internal ICompletes<object> completes;
         internal LifeCycle LifeCycle { get; }
 
         public virtual Address Address => LifeCycle.Address;

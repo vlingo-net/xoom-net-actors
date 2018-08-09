@@ -13,12 +13,12 @@ namespace Vlingo.Actors
     {
         private readonly ICompletes<object> completes;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<T> completes, string representation)
+        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
         {
             Actor = actor;
             Consumer = consumer;
             Representation = representation;
-            this.completes = (ICompletes<object>)completes;
+            this.completes = completes;
         }
 
         public LocalMessage(Actor actor, Action<T> consumer, string representation)
@@ -97,11 +97,12 @@ namespace Vlingo.Actors
             {
                 try
                 {
-                    Actor.completes.ClearOutcome();
+                    Actor.completes = completes;
                     Consumer.Invoke((T)(object)Actor);
-                    if (Actor.completes.HasOutcome)
+                    if (Actor.completes != null && Actor.completes.HasOutcome)
                     {
-                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(Actor.completes.Outcome);
+                        var outcome = Actor.completes.Outcome;
+                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(outcome);
                     }
                 }
                 catch(Exception ex)
