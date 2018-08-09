@@ -5,18 +5,14 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace Vlingo.Actors.Plugin
 {
-    public interface IPlugin
+    public interface IPluginConfiguration
     {
-        void Close();
+        void Build(Configuration configuration);
+
+        void BuildWith(Configuration configuration, PluginProperties properties);
+
         string Name { get; }
-        int Pass { get; }
-        IPluginConfiguration Configuration { get; }
-        void Start(IRegistrar registrar);
     }
 }

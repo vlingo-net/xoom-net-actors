@@ -23,6 +23,8 @@ namespace Vlingo.Actors.Plugin
             this.properties = properties;
         }
 
+        public string Name => name;
+
         public Boolean GetBoolean(string key, bool defaultValue)
         {
             var value = GetString(key, defaultValue.ToString());
@@ -57,6 +59,8 @@ namespace Vlingo.Actors.Plugin
         }
 
         public ICollection<string> Keys => dictionary.Keys;
+
+        public bool IsEmpty => dictionary.Count == 0;
 
         public string GetProperty(string key) => GetProperty(key, null);
 
