@@ -18,7 +18,7 @@ namespace Vlingo.Actors
 
         internal Protocols(object[] protocolActors)
         {
-            this._protocolActors = protocolActors;
+            _protocolActors = protocolActors;
         }
 
         public static Two<A, B> Two<A, B>(Protocols protocols)
@@ -43,111 +43,61 @@ namespace Vlingo.Actors
     }
     public class Two<A, B>
     {
-        private readonly Protocols protocols;
+        public A _1;
+        public B _2;
 
         public Two(Protocols protocols)
         {
-            this.protocols = protocols;
-        }
-
-        public A P1()
-        {
-            return protocols.Get<A>(0);
-        }
-
-        public B P2()
-        {
-            return protocols.Get<B>(1);
+            _1 = protocols.Get<A>(0);
+            _2 = protocols.Get<B>(2);
         }
     }
 
     public class Three<A, B, C>
     {
-        private readonly Protocols protocols;
+        public A _1;
+        public B _2;
+        public C _3;
 
         public Three(Protocols protocols)
         {
-            this.protocols = protocols;
-        }
-
-        public A P1()
-        {
-            return protocols.Get<A>(0);
-        }
-
-        public B P2()
-        {
-            return protocols.Get<B>(1);
-        }
-
-        public C P3()
-        {
-            return protocols.Get<C>(2);
+            _1 = protocols.Get<A>(0);
+            _2 = protocols.Get<B>(1);
+            _3 = protocols.Get<C>(2);
         }
     }
 
     public class Four<A, B, C, D>
     {
-        private readonly Protocols protocols;
+        public A _1;
+        public B _2;
+        public C _3;
+        public D _4;
 
         public Four(Protocols protocols)
         {
-            this.protocols = protocols;
-        }
-
-        public A P1()
-        {
-            return protocols.Get<A>(0);
-        }
-
-        public B P2()
-        {
-            return protocols.Get<B>(1);
-        }
-
-        public C P3()
-        {
-            return protocols.Get<C>(2);
-        }
-
-        public D P4()
-        {
-            return protocols.Get<D>(3);
+            _1 = protocols.Get<A>(0);
+            _2 = protocols.Get<B>(1);
+            _3 = protocols.Get<C>(2);
+            _4 = protocols.Get<D>(3);
         }
     }
 
     public class Five<A, B, C, D, E>
     {
-        private readonly Protocols protocols;
+        public A _1;
+        public B _2;
+        public C _3;
+        public D _4;
+        public E _5;
 
         public Five(Protocols protocols)
         {
-            this.protocols = protocols;
-        }
-
-        public A P1()
-        {
-            return protocols.Get<A>(0);
-        }
-
-        public B P2()
-        {
-            return protocols.Get<B>(1);
-        }
-
-        public C P3()
-        {
-            return protocols.Get<C>(2);
-        }
-
-        public D P4()
-        {
-            return protocols.Get<D>(3);
-        }
-
-        public E P5()
-        {
-            return protocols.Get<E>(4);
+            _1 = protocols.Get<A>(0);
+            _2 = protocols.Get<B>(1);
+            _3 = protocols.Get<C>(2);
+            _4 = protocols.Get<D>(3);
+            _5 = protocols.Get<E>(4);
         }
     }
 }

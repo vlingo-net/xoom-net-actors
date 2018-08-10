@@ -45,7 +45,7 @@ namespace Vlingo.Actors
 
         internal void Keep(string name, bool isDefault, ILoggerProvider loggerProvider)
         {
-            if (loggerProviderInfos.Count == 0)
+            if (loggerProviderInfos.Count == 0 || FindDefault() == null)
             {
                 isDefault = true;
             }
@@ -61,7 +61,7 @@ namespace Vlingo.Actors
         private void UndefaultCurrentDefault()
         {
             var currentDefaults = loggerProviderInfos
-                .Where(x => x.Value.IsDefault)
+                .Where(x => x.Value != null && x.Value.IsDefault)
                 .Select(x => new { x.Key, Info = x.Value })
                 .ToList();
 
