@@ -11,16 +11,15 @@ namespace Vlingo.Actors.Plugin
 {
     public class PluginProperties
     {
-        private readonly string name;
         private Properties properties;
 
         public PluginProperties(string name, Properties properties)
         {
-            this.name = name;
+            Name = name;
             this.properties = properties;
         }
 
-        public string Name => name;
+        public string Name { get; }
 
         public Boolean GetBoolean(string key, bool defaultValue)
         {
@@ -42,6 +41,6 @@ namespace Vlingo.Actors.Plugin
 
         public string GetString(string key, string defaultValue) => properties.GetProperty(Key(key), defaultValue);
 
-        private string Key(string key) => "plugin." + name + "." + key;
+        private string Key(string key) => $"plugin.{Name}.{key}";
     }
 }
