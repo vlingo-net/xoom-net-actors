@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,17 @@ namespace Vlingo.Actors
     // TODO: implement using IAppSettingsProvider later
     public sealed class Properties
     {
+        private static Func<Properties> Factory = () =>
+        {
+            var props = new Properties();
+            props.Load(new FileInfo("/vlingo-actors.properties"));
+            return props;
+        };
+
+        private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
+
+        public static Properties Instance => SingleInstance.Value;
+
         private readonly IDictionary<string, string> dictionary;
         public Properties()
         {

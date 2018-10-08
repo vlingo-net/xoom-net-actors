@@ -154,7 +154,7 @@ namespace Vlingo.Actors
         public virtual void Register(string name, bool isDefault, IMailboxProvider mailboxProvider)
             => mailboxProviderKeeper.Keep(name, isDefault, mailboxProvider);
 
-        public virtual void RegisterCommonSupervisor(string stageName, string name, string fullyQualifiedProtocol, string fullyQualifiedSupervisor)
+        public virtual void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
         {
             try
             {
@@ -170,7 +170,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual void RegisterDefaultSupervisor(string stageName, string name, string fullyQualifiedSupervisor)
+        public virtual void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
         {
             try
             {
