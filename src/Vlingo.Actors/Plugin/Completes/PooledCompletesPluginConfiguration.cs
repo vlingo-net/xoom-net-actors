@@ -31,6 +31,7 @@ namespace Vlingo.Actors.Plugin.Completes
         public string Mailbox { get; private set; }
 
         public int PoolSize { get; private set; }
+
         public string Name { get; private set; }
 
         public void Build(Configuration configuration)
