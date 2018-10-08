@@ -23,17 +23,19 @@ namespace Vlingo.Actors
         internal const int HighRootId = DeadLettersId - 1;
         internal const string DefaultStage = "__defaultStage";
 
-        private CompletesEventuallyProviderKeeper completesProviderKeeper;
-        private LoggerProviderKeeper loggerProviderKeeper;
-        private MailboxProviderKeeper mailboxProviderKeeper;
+        private readonly CompletesEventuallyProviderKeeper completesProviderKeeper;
+        private readonly LoggerProviderKeeper loggerProviderKeeper;
+        private readonly MailboxProviderKeeper mailboxProviderKeeper;
+
         private IDictionary<string, Stage> stages;
         private ILogger defaultLogger;
         private ISupervisor defaultSupervisor;
-        private DynaClassLoader classLoader;
+        private readonly DynaClassLoader classLoader;
 
-        private World(string name, bool forceDefaultConfiguration)
+        private World(string name, Configuration configuration)
         {
             Name = name;
+            Configuration = configuration;
             classLoader = new DynaClassLoader(GetType().GetAssemblyLoadContext());
             completesProviderKeeper = new CompletesEventuallyProviderKeeper();
             loggerProviderKeeper = new LoggerProviderKeeper();
@@ -44,24 +46,30 @@ namespace Vlingo.Actors
 
             var defaultStage = StageNamed(DefaultStage);
 
-            var pluginLoader = new PluginLoader();
-
-            pluginLoader.LoadEnabledPlugins(this, 1, forceDefaultConfiguration);
+            configuration.StartPlugins(this, 1);
 
             StartRootFor(defaultStage, DefaultLogger);
 
-            pluginLoader.LoadEnabledPlugins(this, 2, forceDefaultConfiguration);
+            configuration.StartPlugins(this, 2);
+            defaultStage.StartDirectoryScanner();
         }
 
         public AddressFactory AddressFactory { get; }
 
+        public Configuration Configuration { get; }
+
         public static World Start(string name)
         {
-            return Start(name, false);
+            return Start(name, Properties.Instance);
+        }
+
+        public static World Start(string name, Properties properties)
+        {
+            return Start(name, Configuration.DefineWith(properties));
         }
 
         private static readonly object startMutex = new object();
-        public static World Start(string name, bool forceDefaultConfiguration = false)
+        public static World Start(string name, Configuration configuration)
         {
             lock (startMutex)
             {
@@ -70,11 +78,14 @@ namespace Vlingo.Actors
                     throw new ArgumentException("The world name must not be null.");
                 }
 
-                return new World(name, forceDefaultConfiguration);
+                return new World(name, configuration);
             }
         }
 
-        
+        public static World StartWithDefault(string name)
+        {
+            return Start(name, Configuration.Define());
+        }
 
         public T ActorFor<T>(Definition definition)
         {
@@ -109,11 +120,18 @@ namespace Vlingo.Actors
                 {
                     return defaultLogger;
                 }
-                defaultLogger = loggerProviderKeeper.FindDefault().Logger;
 
-                if(defaultLogger == null)
+                if (loggerProviderKeeper != null)
                 {
-                    defaultLogger = LoggerProvider.StandardLoggerProvider(this, "vlingo").Logger;
+                    var maybeLoggerProvider = loggerProviderKeeper.FindDefault();
+                    defaultLogger = maybeLoggerProvider != null ?
+                        maybeLoggerProvider.Logger :
+                        LoggerProvider.NoOpLoggerProvider().Logger;
+                }
+
+                if (defaultLogger == null)
+                {
+                    defaultLogger = LoggerProvider.StandardLoggerProvider(this, "vlingo-net").Logger;
                 }
 
                 return defaultLogger;
@@ -147,7 +165,8 @@ namespace Vlingo.Actors
 
         public virtual void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
         {
-            loggerProviderKeeper.Keep(name, isDefault, loggerProvider);
+            var actualDefault = loggerProviderKeeper.FindDefault() == null ? true : isDefault;
+            loggerProviderKeeper.Keep(name, actualDefault, loggerProvider);
             defaultLogger = loggerProviderKeeper.FindDefault().Logger;
         }
 
@@ -160,13 +179,12 @@ namespace Vlingo.Actors
             {
                 var actualStageName = stageName.Equals("default") ? DefaultStage : stageName;
                 var stage = StageNamed(actualStageName);
-                var supervisorClass = classLoader.LoadClass(fullyQualifiedSupervisor);
                 var common = stage.ActorFor<ISupervisor>(Definition.Has(supervisorClass, Definition.NoParameters, name));
-                stage.RegisterCommonSupervisor(fullyQualifiedProtocol, common);
+                stage.RegisterCommonSupervisor(supervisedProtocol, common);
             }
             catch (Exception e)
             {
-                DefaultLogger.Log($"vlingo-net/actors: World cannot register common supervisor: {fullyQualifiedSupervisor}", e);
+                DefaultLogger.Log($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol.Name}", e);
             }
         }
 
@@ -176,12 +194,11 @@ namespace Vlingo.Actors
             {
                 var actualStageName = stageName.Equals("default") ? DefaultStage : stageName;
                 var stage = StageNamed(actualStageName);
-                var supervisorClass = classLoader.LoadClass(fullyQualifiedSupervisor);
                 defaultSupervisor = stage.ActorFor<ISupervisor>(Definition.Has(supervisorClass, Definition.NoParameters, name));
             }
             catch (Exception e)
             {
-                DefaultLogger.Log("vlingo-net/actors: World cannot register default supervisor override: {fullyQualifiedSupervisor}", e);
+                DefaultLogger.Log($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass.Name}", e);
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
@@ -197,6 +214,10 @@ namespace Vlingo.Actors
                 if(!stages.TryGetValue(name, out Stage stage))
                 {
                     stage = new Stage(this, name);
+                    if(!string.Equals(name, DefaultStage))
+                    {
+                        stage.StartDirectoryScanner();
+                    }
                     stages[name] = stage;
                 }
 
@@ -310,13 +331,12 @@ namespace Vlingo.Actors
         }
 
         private void StartRootFor(Stage stage, ILogger logger)
-            => stage.ActorFor<IStoppable>(
+            => stage.ActorProtocolFor<IStoppable>(
                 Definition.Has<PrivateRootActor>(Definition.NoParameters, PrivateRootName),
                 null,
-                AddressFactory.AddressFrom(PrivateRootId, PrivateRootName),
+                AddressFactory.From(PrivateRootId, PrivateRootName),
                 null,
                 null,
                 logger);
-
     }
 }
