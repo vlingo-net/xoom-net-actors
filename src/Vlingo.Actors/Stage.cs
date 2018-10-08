@@ -16,8 +16,9 @@ namespace Vlingo.Actors
 {
     public class Stage : IStoppable
     {
-        private readonly IDictionary<string, ISupervisor> commonSupervisors;
+        private readonly IDictionary<Type, ISupervisor> commonSupervisors;
         private readonly Directory directory;
+        private IDirectoryScanner directoryScanner;
         private readonly Scheduler scheduler;
         private AtomicBoolean stopped;
 
@@ -26,7 +27,7 @@ namespace Vlingo.Actors
             World = world;
             Name = name;
             directory = new Directory();
-            commonSupervisors = new Dictionary<string, ISupervisor>();
+            commonSupervisors = new Dictionary<Type, ISupervisor>();
             scheduler = new Scheduler();
             stopped = new AtomicBoolean(false);
         }
@@ -41,8 +42,42 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
+        public T ActorFor<T>(Definition definition, Address address, ILogger logger)
+        {
+            var actor = ActorProtocolFor<T>(
+                definition,
+                definition.ParentOr(World.DefaultParent),
+                address,
+                null,
+                definition.Supervisor,
+                logger);
+
+            return actor.ProtocolActor;
+        }
+
+        public T ActorFor<T>(Definition definition, ILogger logger)
+            => ActorFor<T>(
+                definition,
+                definition.ParentOr(World.DefaultParent),
+                definition.Supervisor,
+                logger);
+
+        public T ActorFor<T>(Definition definition, Address address)
+        {
+            var actor = ActorProtocolFor<T>(
+                definition,
+                definition.ParentOr(World.DefaultParent),
+                address,
+                null,
+                definition.Supervisor,
+                definition.LoggerOr(World.DefaultLogger));
+
+            return actor.ProtocolActor;
+        }
+
+
         public Protocols ActorFor(Definition definition, Type[] protocols)
-            => new Protocols(ActorFor(
+            => new Protocols(ActorProtocolFor(
                 definition,
                 protocols,
                 definition.ParentOr(World.DefaultParent),
@@ -59,7 +94,7 @@ namespace Vlingo.Actors
 
             try
             {
-                return ActorFor<T>(
+                return ActorProtocolFor<T>(
                     redefinition,
                     definition.ParentOr(World.DefaultParent),
                     null,
@@ -85,7 +120,7 @@ namespace Vlingo.Actors
                 TestMailbox.Name,
                 definition.ActorName);
 
-            var all = ActorFor(
+            var all = ActorProtocolFor(
                 redefinition,
                 protocols,
                 definition.ParentOr(World.DefaultParent),
@@ -95,24 +130,6 @@ namespace Vlingo.Actors
                 definition.LoggerOr(World.DefaultLogger));
 
             return new Protocols(ActorProtocolActor<object>.ToTestActors(all));
-        }
-
-        public T ActorProxyFor<T>(Actor actor, IMailbox mailbox)
-            => ActorProxy.CreateFor<T>(actor, mailbox);
-
-        public object ActorProxyFor(Type protocol, Actor actor, IMailbox mailbox)
-            => ActorProxy.CreateFor(protocol, actor, mailbox);
-
-        public object[] ActorProxyFor(Type[] protocols, Actor actor, IMailbox mailbox)
-        {
-            var proxies = new object[protocols.Length];
-
-            for (int idx = 0; idx < protocols.Length; ++idx)
-            {
-                proxies[idx] = ActorProxyFor(protocols[idx], actor, mailbox);
-            }
-
-            return proxies;
         }
 
         public int Count => directory.Count;
@@ -129,8 +146,8 @@ namespace Vlingo.Actors
 
         public string Name { get; }
 
-        public void RegisterCommonSupervisor(string fullyQualifiedProtocol, ISupervisor common)
-            => commonSupervisors[fullyQualifiedProtocol] = common;
+        public void RegisterCommonSupervisor(Type protocol, ISupervisor common)
+            => commonSupervisors[protocol] = common;
 
         public Scheduler Scheduler { get; }
 
@@ -158,16 +175,16 @@ namespace Vlingo.Actors
 
         internal T ActorFor<T>(Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
         {
-            var actor = ActorFor<T>(definition, parent, null, null, maybeSupervisor, logger);
+            var actor = ActorProtocolFor<T>(definition, parent, null, null, maybeSupervisor, logger);
             return actor.ProtocolActor;
         }
 
-        internal ActorProtocolActor<object>[] ActorFor(Definition definition, Type[] protocols, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
+        internal ActorProtocolActor<object>[] ActorProtocolFor(Definition definition, Type[] protocols, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
         {
-            return ActorFor(definition, protocols, parent, null, null, maybeSupervisor, logger);
+            return ActorProtocolFor(definition, protocols, parent, null, null, maybeSupervisor, logger);
         }
 
-        internal ActorProtocolActor<T> ActorFor<T>(
+        internal ActorProtocolActor<T> ActorProtocolFor<T>(
             Definition definition, 
             Actor parent,
             Address maybeAddress,
@@ -190,7 +207,7 @@ namespace Vlingo.Actors
             }
         }
 
-        internal ActorProtocolActor<object>[] ActorFor(
+        internal ActorProtocolActor<object>[] ActorProtocolFor(
             Definition definition,
             Type[] protocols,
             Actor parent,
@@ -212,9 +229,27 @@ namespace Vlingo.Actors
             }
         }
 
+        internal T ActorProxyFor<T>(Actor actor, IMailbox mailbox)
+            => ActorProxy.CreateFor<T>(actor, mailbox);
+
+        internal object ActorProxyFor(Type protocol, Actor actor, IMailbox mailbox)
+            => ActorProxy.CreateFor(protocol, actor, mailbox);
+
+        internal object[] ActorProxyFor(Type[] protocols, Actor actor, IMailbox mailbox)
+        {
+            var proxies = new object[protocols.Length];
+
+            for (int idx = 0; idx < protocols.Length; ++idx)
+            {
+                proxies[idx] = ActorProxyFor(protocols[idx], actor, mailbox);
+            }
+
+            return proxies;
+        }
+
         internal ISupervisor CommonSupervisorOr<T>(ISupervisor defaultSupervisor)
         {
-            if(commonSupervisors.TryGetValue(typeof(T).FullName, out ISupervisor value))
+            if(commonSupervisors.TryGetValue(typeof(T), out ISupervisor value))
             {
                 return value;
             }
@@ -222,17 +257,26 @@ namespace Vlingo.Actors
             return defaultSupervisor;
         }
 
+        internal Directory Directory => directory;
+
         internal void HandleFailureOf<T>(ISupervised supervised)
         {
             supervised.Suspend();
             supervised.Supervisor.Inform(supervised.Error, supervised);
         }
 
+        internal void StartDirectoryScanner()
+        {
+            directoryScanner = ActorFor<IDirectoryScanner>(
+                Definition.Has<DirectoryScannerActor>(
+                    Definition.Parameters(directory)));
+        }
+
         internal void Stop(Actor actor)
         {
             var removedActor = directory.Remove(actor.Address);
 
-            if(actor == removedActor)
+            if (actor == removedActor)
             {
                 removedActor.LifeCycle.Stop(actor);
             }
@@ -251,7 +295,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Actor stage has been stopped.");
             }
 
-            var address = maybeAddress ?? World.AddressFactory.AddressFrom(definition.ActorName);
+            var address = maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
             if (directory.IsRegistered(address))
             {
                 throw new InvalidOperationException("Address already exists: " + address);
@@ -308,6 +352,16 @@ namespace Vlingo.Actors
                 all[idx] = new ActorProtocolActor<T>(actor, protocolActors[idx]);
             }
             return all;
+        }
+
+        internal static object[] ToActors(ActorProtocolActor<object>[] all)
+        {
+            var actors = new object[all.Length];
+            for (int idx = 0; idx < all.Length; ++idx)
+            {
+                actors[idx] = all[idx].ProtocolActor;
+            }
+            return actors;
         }
 
         internal static TestActor<T>[] ToTestActors(ActorProtocolActor<T>[] all)
