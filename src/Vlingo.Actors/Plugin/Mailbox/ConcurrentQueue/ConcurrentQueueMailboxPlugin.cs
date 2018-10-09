@@ -9,32 +9,30 @@ using System;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
-    public class ConcurrentQueueMailboxPlugin : IPlugin, IMailboxProvider
+    public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IPlugin, IMailboxProvider
     {
+        private readonly ConcurrentQueueMailboxPluginConfiguration configuration;
         private IDispatcher executorDispatcher;
 
         public ConcurrentQueueMailboxPlugin()
         {
+            configuration = ConcurrentQueueMailboxPluginConfiguration.Define();
         }
 
-        public string Name { get; private set; }
+        public override string Name => configuration.Name;
 
-        public int Pass => 1;
+        public override int Pass => throw new NotImplementedException();
 
-        public void Close()
+        public override IPluginConfiguration Configuration => configuration;
+
+        public override void Start(IRegistrar registrar)
         {
-            executorDispatcher.Close();
+            executorDispatcher = new ExecutorDispatcher(System.Environment.ProcessorCount, configuration.NumberOfDispatchersFactor);
+            registrar.Register(configuration.Name, configuration.IsDefaultMailbox, this);
         }
 
-        public void Start(IRegistrar registrar, string name, PluginProperties properties)
-        {
-            Name = name;
-            ConcurrentQueueMailboxSettings.With(properties.GetInteger("dispatcherThrottlingCount", 1));
-            CreateExecutorDispatcher(properties);
-            RegisterWith(registrar, properties);
-        }
-
-        public IMailbox ProvideMailboxFor(int hashCode) => new ConcurrentQueueMailbox(executorDispatcher);
+        public IMailbox ProvideMailboxFor(int hashCode) 
+            => new ConcurrentQueueMailbox(executorDispatcher, configuration.DispatcherThrottlingCount);
 
         public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
         {
@@ -43,23 +41,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 throw new ArgumentNullException("Dispatcher must not be null.");
             }
 
-            return new ConcurrentQueueMailbox(dispatcher);
+            return new ConcurrentQueueMailbox(dispatcher, configuration.DispatcherThrottlingCount);
         }
 
-        private void CreateExecutorDispatcher(PluginProperties properties)
-        {
-            var numberOfDispatchersFactor = properties.GetFloat("numberOfDispatchersFactor", 1.5f);
-
-            executorDispatcher =
-                new ExecutorDispatcher(
-                    System.Environment.ProcessorCount,
-                    numberOfDispatchersFactor);
-        }
-
-        private void RegisterWith(IRegistrar registrar, PluginProperties properties)
-        {
-            var defaultMailbox = properties.GetBoolean("defaultMailbox", true);
-            registrar.Register(Name, defaultMailbox, this);
-        }
+        public override void Close() => executorDispatcher.Close();
     }
 }

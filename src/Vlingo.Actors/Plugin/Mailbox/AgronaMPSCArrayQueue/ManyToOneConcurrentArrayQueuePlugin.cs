@@ -5,64 +5,69 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
+using System.Linq;
+using System.Collections.Concurrent;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
-    public class ManyToOneConcurrentArrayQueuePlugin : IPlugin, IMailboxProvider
+    public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IPlugin, IMailboxProvider
     {
-        private ManyToOneConcurrentArrayQueueDispatcherPool dispatcherPool;
+        private readonly ManyToOneConcurrentArrayQueuePluginConfiguration configuration;
+        private readonly ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher> dispatchers;
 
         public ManyToOneConcurrentArrayQueuePlugin()
         {
+            configuration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
+            dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);
         }
 
-        public void Close()
+        public override void Close() => dispatchers.Values.ToList().ForEach(x => x.Close());
+
+        public override string Name => configuration.Name;
+
+        public override int Pass => 1;
+
+        public override IPluginConfiguration Configuration => configuration;
+
+        public override void Start(IRegistrar registrar)
+            => registrar.Register(configuration.Name, configuration.IsDefaultMailbox, this);
+
+        public IMailbox ProvideMailboxFor(int hashCode) => ProvideMailboxFor(hashCode, null);
+
+        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
         {
-            dispatcherPool.Close();
-        }
+            ManyToOneConcurrentArrayQueueDispatcher maybeDispatcher = null;
 
-        public string Name { get; private set; }
+            if(dispatcher != null)
+            {
+                maybeDispatcher = (ManyToOneConcurrentArrayQueueDispatcher)dispatcher;
+            }
+            else
+            {
+                dispatchers.TryGetValue(hashCode, out maybeDispatcher);
+            }
 
-        public int Pass => 1;
+            if (maybeDispatcher == null)
+            {
+                var newDispatcher = new ManyToOneConcurrentArrayQueueDispatcher(
+                    configuration.RingSize,
+                    configuration.FixedBackoff,
+                    configuration.DispatcherThrottlingCount,
+                    configuration.SendRetires);
 
-        public bool IsClosed => throw new System.NotImplementedException();
-
-        public bool IsDelivering => throw new System.NotImplementedException();
-
-        public void Start(IRegistrar registrar, string name, PluginProperties properties)
-        {
-            Name = name;
-            CreateDispatcherPool(properties);
-            RegisterWith(registrar, properties);
-        }
-
-        public IMailbox ProvideMailboxFor(int hashCode) => dispatcherPool.AssignFor(hashCode).Mailbox;
-
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher) => dispatcherPool.AssignFor(hashCode).Mailbox;
-
-        private void CreateDispatcherPool(PluginProperties properties)
-        {
-            var numberOfDispatchersFactor = properties.GetFloat("numberOfDispatchersFactor", 1.5f);
-            var size = properties.GetInteger("size", 1048576);
-            var fixedBackoff = properties.GetInteger("fixedBackoff", 2);
-            var dispatcherThrottlingCount = properties.GetInteger("dispatcherThrottlingCount", 1);
-            var totalSendRetries = properties.GetInteger("sendRetires", 10);
-
-            dispatcherPool = new ManyToOneConcurrentArrayQueueDispatcherPool(
-                System.Environment.ProcessorCount,
-                numberOfDispatchersFactor,
-                size,
-                fixedBackoff,
-                dispatcherThrottlingCount,
-                totalSendRetries);
-        }
-
-        private void RegisterWith(IRegistrar registrar, PluginProperties properties)
-        {
-            var defaultMailbox = properties.GetBoolean("defaultMailbox", true);
-
-            registrar.Register(Name, defaultMailbox, this);
+                var otherDispatcher = dispatchers.GetOrAdd(hashCode, newDispatcher);
+                if (otherDispatcher != null)
+                {
+                    otherDispatcher.Start();
+                    return otherDispatcher.Mailbox;
+                }
+                else
+                {
+                    newDispatcher.Start();
+                    return newDispatcher.Mailbox;
+                }
+            }
+            return maybeDispatcher.Mailbox;
         }
     }
 }

@@ -5,54 +5,73 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
+using System.Linq;
+using System.Collections.Concurrent;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
-    public class SharedRingBufferMailboxPlugin : IPlugin, IMailboxProvider
+    public class SharedRingBufferMailboxPlugin : AbstractPlugin, IPlugin, IMailboxProvider
     {
-        private RingBufferDispatcherPool dispatcherPool;
+        private readonly SharedRingBufferMailboxPluginConfiguration configuration;
+        private readonly ConcurrentDictionary<int, RingBufferDispatcher> dispatchers;
 
-        public string Name { get; private set; }
-
-        public int Pass => 1;
-
-        public void Close()
+        public SharedRingBufferMailboxPlugin()
         {
-            dispatcherPool.Close();
+            configuration = SharedRingBufferMailboxPluginConfiguration.Define();
+            dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
         }
 
-        public IMailbox ProvideMailboxFor(int hashCode) => dispatcherPool.AssignFor(hashCode).Mailbox;
+        public override string Name => configuration.Name;
 
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher) => dispatcherPool.AssignFor(hashCode).Mailbox;
+        public override int Pass => 1;
 
-        public void Start(IRegistrar registrar, string name, PluginProperties properties)
+        public override IPluginConfiguration Configuration => configuration;
+
+        public override void Close()
+            => dispatchers.Values.ToList().ForEach(x => x.Close());
+
+        public override void Start(IRegistrar registrar)
         {
-            Name = name;
-            CreateDispatcherPool(properties);
-            RegisterWith(registrar, properties);
+            registrar.Register(configuration.Name, configuration.IsDefaultMailbox, this);
         }
 
-        private void CreateDispatcherPool(PluginProperties properties)
+        public IMailbox ProvideMailboxFor(int hashCode) => ProvideMailboxFor(hashCode, null);
+
+        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
         {
-            var numberOfDispatchersFactor = properties.GetFloat("numberOfDispatchersFactor", 1.5f);
-            var size = properties.GetInteger("size", 1048576);
-            var fixedBackoff = properties.GetInteger("fixedBackoff", 2);
-            var dispatcherThrottlingCount = properties.GetInteger("dispatcherThrottlingCount", 1);
+            RingBufferDispatcher maybeDispatcher = null;
 
-            dispatcherPool = new RingBufferDispatcherPool(
-                System.Environment.ProcessorCount,
-                numberOfDispatchersFactor,
-                size,
-                fixedBackoff,
-                dispatcherThrottlingCount);
-        }
+            if (dispatcher != null)
+            {
+                maybeDispatcher = (RingBufferDispatcher)dispatcher;
+            }
+            else
+            {
+                dispatchers.TryGetValue(hashCode, out maybeDispatcher);
+            }
 
-        private void RegisterWith(IRegistrar registrar, PluginProperties properties)
-        {
-            var defaultMailbox = properties.GetBoolean("defaultMailbox", true);
+            if (maybeDispatcher == null)
+            {
+                var newDispatcher = new RingBufferDispatcher(
+                    configuration.RingSize,
+                    configuration.FixedBackoff,
+                    configuration.DispatcherThrottlingCount);
 
-            registrar.Register(Name, defaultMailbox, this);
+                var otherDispatcher = dispatchers.GetOrAdd(hashCode, newDispatcher);
+
+                if (otherDispatcher != null)
+                {
+                    otherDispatcher.Start();
+                    return otherDispatcher.Mailbox;
+                }
+                else
+                {
+                    newDispatcher.Start();
+                    return newDispatcher.Mailbox;
+                }
+            }
+
+            return maybeDispatcher.Mailbox;
         }
     }
 }

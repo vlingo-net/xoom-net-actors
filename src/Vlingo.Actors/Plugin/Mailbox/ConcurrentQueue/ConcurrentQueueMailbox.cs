@@ -15,12 +15,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         private readonly IDispatcher dispatcher;
         private readonly AtomicBoolean delivering;
         private readonly ConcurrentQueue<IMessage> queue;
+        private readonly byte throttlingCount;
 
-        internal ConcurrentQueueMailbox(IDispatcher dispatcher)
+        internal ConcurrentQueueMailbox(IDispatcher dispatcher, int throttlingCount)
         {
             this.dispatcher = dispatcher;
             delivering = new AtomicBoolean(false);
             queue = new ConcurrentQueue<IMessage>();
+            this.throttlingCount = (byte)throttlingCount;
         }
 
         public void Close()
@@ -56,7 +58,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public void Run()
         {
-            var total = ConcurrentQueueMailboxSettings.Instance.throttlingCount;
+            var total = (int)throttlingCount;
             for(var count = 0; count < total; ++count)
             {
                 var message = Receive();
