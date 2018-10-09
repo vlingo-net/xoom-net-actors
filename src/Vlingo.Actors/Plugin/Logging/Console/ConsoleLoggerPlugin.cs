@@ -9,19 +9,29 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 {
     public class ConsoleLoggerPlugin : IPlugin, ILoggerProvider
     {
+        private readonly ConsoleLoggerPluginConfiguration consoleLoggerPluginConfiguration;
+        private int pass = 0;
 
         public static ILoggerProvider RegisterStandardLogger(string name, IRegistrar registrar)
         {
+            var plugin = new ConsoleLoggerPlugin();
+            var pluginConfiguration = (ConsoleLoggerPluginConfiguration)plugin.Configuration;
+
             var properties = new Properties();
             properties.SetProperty("plugin.consoleLogger.defaulLogger", "true");
 
-            var plugin = new ConsoleLoggerPlugin();
-            plugin.Start(registrar, name, new PluginProperties("consoleLogger", properties));
+            pluginConfiguration.BuildWith(registrar.World.Configuration, new PluginProperties(name, properties));
+            plugin.Start(registrar);
 
             return plugin;
         }
 
-        public string Name { get; private set; }
+        public ConsoleLoggerPlugin()
+        {
+            consoleLoggerPluginConfiguration = ConsoleLoggerPluginConfiguration.Define();
+        }
+
+        public string Name => consoleLoggerPluginConfiguration.Name;
 
         public ILogger Logger { get; private set; }
 
@@ -30,14 +40,35 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             Logger.Close();
         }
 
-        public int Pass => 1;
+        public int Pass
+        {
+            get
+            {
+                pass = pass == 0 ? 1 : 2;
+                return pass;
+            }
+        }
+
+        public IPluginConfiguration Configuration => consoleLoggerPluginConfiguration;
 
         public void Start(IRegistrar registrar, string name, PluginProperties properties)
         {
-            Name = properties.GetString("name", name);
-            Logger = new ConsoleLogger(Name, properties);
-            var isDefaultLogger = properties.GetBoolean("defaultLogger", true);
-            registrar.Register(name, isDefaultLogger, this);
+            // pass 0 or 1 is bootstrap, pass 2 is for reals
+            if (pass < 2)
+            {
+                Logger = new ConsoleLogger(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration);
+                registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
+            }
+            else if (pass == 2 && registrar.World != null)
+            {
+                Logger = registrar.World.ActorFor<ILogger>(Definition.Has<ConsoleLoggerActor>(Definition.Parameters(Logger), Logger));
+                registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
+            }
+        }
+
+        public void Start(IRegistrar registrar)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }
