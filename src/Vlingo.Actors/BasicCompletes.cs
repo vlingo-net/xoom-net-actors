@@ -26,6 +26,7 @@ namespace Vlingo.Actors
         public BasicCompletes(T outcome)
         {
             this.outcome = new AtomicReference<OutcomeData>(new OutcomeData(outcome));
+            state = new State();
         }
 
         public ICompletes<T> After(Func<T> supplier) => After(supplier, -1L, default(T));
@@ -203,6 +204,8 @@ namespace Vlingo.Actors
                 this.completed = new AtomicBoolean(false);
                 this.executingActions = new AtomicBoolean(false);
             }
+
+            internal State() : this(null) { }
 
             internal void CancelTimer()
             {
