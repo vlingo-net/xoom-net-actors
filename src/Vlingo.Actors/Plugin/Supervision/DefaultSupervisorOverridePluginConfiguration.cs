@@ -12,11 +12,9 @@ namespace Vlingo.Actors.Plugin.Supervision
 {
     public class DefaultSupervisorOverridePluginConfiguration : IPluginConfiguration
     {
-        private readonly IList<ConfiguredSupervisor> supervisors;
-
         private DefaultSupervisorOverridePluginConfiguration()
         {
-            supervisors = new List<ConfiguredSupervisor>();
+            Supervisors = new List<ConfiguredSupervisor>();
         }
 
         public static DefaultSupervisorOverridePluginConfiguration Define() => new DefaultSupervisorOverridePluginConfiguration();
@@ -26,17 +24,19 @@ namespace Vlingo.Actors.Plugin.Supervision
             string supervisorName,
             Type supervisorClass)
         {
-            supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisorClass));
+            Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisorClass));
             return this;
         }
 
-        public int Count => supervisors.Count;
+        public int Count => Supervisors.Count;
 
-        public string SupervisorName(int index) => supervisors[index].SupervisorName;
+        public string SupervisorName(int index) => Supervisors[index].SupervisorName;
 
-        public string StageName(int index) => supervisors[index].StageName;
+        public string StageName(int index) => Supervisors[index].StageName;
 
-        public Type SupervisorClass(int index) => supervisors[index].SupervisorClass;
+        public Type SupervisorClass(int index) => Supervisors[index].SupervisorClass;
+
+        internal IList<ConfiguredSupervisor> Supervisors { get; }
 
         public string Name => SupervisorName(0);
 
@@ -57,7 +57,7 @@ namespace Vlingo.Actors.Plugin.Supervision
                     values.Name,
                     values.Supervisor);
 
-                supervisors.Add(supervisor);
+                Supervisors.Add(supervisor);
             }
             configuration.With(this);
         }

@@ -17,7 +17,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         public DefaultSupervisorOverride()
         {
-            Supervisor = Stage.ActorAs<ISupervisor>(Parent);
+            Supervisor = ParentAs<ISupervisor>();
         }
 
         public void Inform(Exception error, ISupervised supervised)

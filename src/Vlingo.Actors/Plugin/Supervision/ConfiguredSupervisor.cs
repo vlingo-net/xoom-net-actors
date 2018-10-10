@@ -6,7 +6,7 @@ namespace Vlingo.Actors.Plugin.Supervision
     internal class ConfiguredSupervisor
     {
         private static readonly Lazy<DynaClassLoader> ClassLoaderSingleton = new Lazy<DynaClassLoader>(
-            () => new DynaClassLoader(typeof(ConfiguredSupervisor).GetAssemblyLoadContext()));
+            () => new DynaClassLoader(typeof(ConfiguredSupervisor).GetAssemblyLoadContext()), true);
 
         private static DynaClassLoader ClassLoader => ClassLoaderSingleton.Value;
 
@@ -61,9 +61,9 @@ namespace Vlingo.Actors.Plugin.Supervision
 
             return StageName.Equals(otherSupervisor.StageName) &&
                    SupervisorName.Equals(otherSupervisor.SupervisorName) &&
-                   (SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null) ||
+                   ((SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null) ||
                    (SupervisedProtocol != null && otherSupervisor.SupervisedProtocol != null &&
-                    SupervisedProtocol.Equals(otherSupervisor.SupervisedProtocol)) &&
+                    SupervisedProtocol.Equals(otherSupervisor.SupervisedProtocol))) &&
                    SupervisorClass.Equals(otherSupervisor.SupervisorClass);
         }
 

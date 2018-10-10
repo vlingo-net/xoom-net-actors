@@ -9,7 +9,7 @@ using System;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
-    public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IPlugin, IMailboxProvider
+    public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
         private readonly ConcurrentQueueMailboxPluginConfiguration configuration;
         private IDispatcher executorDispatcher;
@@ -21,7 +21,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public override string Name => configuration.Name;
 
-        public override int Pass => throw new NotImplementedException();
+        public override int Pass => 1;
 
         public override IPluginConfiguration Configuration => configuration;
 

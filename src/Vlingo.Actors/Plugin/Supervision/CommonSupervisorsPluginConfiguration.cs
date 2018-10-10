@@ -12,11 +12,9 @@ namespace Vlingo.Actors.Plugin.Supervision
 {
     public class CommonSupervisorsPluginConfiguration : IPluginConfiguration
     {
-        private readonly IList<ConfiguredSupervisor> supervisors;
-
         private CommonSupervisorsPluginConfiguration()
         {
-            supervisors = new List<ConfiguredSupervisor>();
+            Supervisors = new List<ConfiguredSupervisor>();
         }
 
         public static CommonSupervisorsPluginConfiguration Define() => new CommonSupervisorsPluginConfiguration();
@@ -27,21 +25,23 @@ namespace Vlingo.Actors.Plugin.Supervision
             Type supervisedProtocol,
             Type supervisorClass)
         {
-            supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisedProtocol, supervisorClass));
+            Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisedProtocol, supervisorClass));
             return this;
         }
 
-        public int Count => supervisors.Count;
+        public int Count => Supervisors.Count;
 
-        public string SupervisorName(int index) => supervisors[index].SupervisorName;
+        public string SupervisorName(int index) => Supervisors[index].SupervisorName;
 
-        public string StageName(int index) => supervisors[index].StageName;
+        public string StageName(int index) => Supervisors[index].StageName;
 
-        public Type SupervisedProtocol(int index) => supervisors[index].SupervisedProtocol;
+        public Type SupervisedProtocol(int index) => Supervisors[index].SupervisedProtocol;
 
-        public Type SupervisorClass(int index) => supervisors[index].SupervisorClass;
+        public Type SupervisorClass(int index) => Supervisors[index].SupervisorClass;
 
         public string Name => SupervisorName(0);
+
+        internal IList<ConfiguredSupervisor> Supervisors { get; }
 
         public void Build(Configuration configuration)
         {
@@ -57,11 +57,11 @@ namespace Vlingo.Actors.Plugin.Supervision
                     values.Protocol,
                     values.Supervisor);
 
-                if (supervisors.Contains(supervisor))
+                if (Supervisors.Contains(supervisor))
                 {
-                    supervisors.Remove(supervisor);
+                    Supervisors.Remove(supervisor);
                 }
-                supervisors.Add(supervisor);
+                Supervisors.Add(supervisor);
             }
             configuration.With(this);
         }

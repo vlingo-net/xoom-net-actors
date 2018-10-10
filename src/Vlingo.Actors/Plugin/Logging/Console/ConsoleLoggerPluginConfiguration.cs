@@ -11,6 +11,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
     {
         private ConsoleLoggerPluginConfiguration()
         {
+            Name = "consoleLogger";
         }
 
         public static ConsoleLoggerPluginConfiguration Define() => new ConsoleLoggerPluginConfiguration();

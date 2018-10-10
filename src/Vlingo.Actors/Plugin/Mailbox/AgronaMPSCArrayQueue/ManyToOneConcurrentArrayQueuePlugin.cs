@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
-    public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IPlugin, IMailboxProvider
+    public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IMailboxProvider
     {
         private readonly ManyToOneConcurrentArrayQueuePluginConfiguration configuration;
         private readonly ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher> dispatchers;

@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
-    public class SharedRingBufferMailboxPlugin : AbstractPlugin, IPlugin, IMailboxProvider
+    public class SharedRingBufferMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
         private readonly SharedRingBufferMailboxPluginConfiguration configuration;
         private readonly ConcurrentDictionary<int, RingBufferDispatcher> dispatchers;

@@ -26,11 +26,36 @@ namespace Vlingo.Actors.TestKit
             return new TestWorld(world, name);
         }
 
+        private static readonly object startNamePropMutex = new object();
+        public static TestWorld Start(string name, Properties properties)
+        {
+            lock (startNamePropMutex)
+            {
+                var world = World.Start(name, properties);
+                return new TestWorld(world, name);
+            }
+        }
+
+        public static TestWorld Start(string name, Configuration configuration)
+        {
+            var world = World.Start(name, configuration);
+            return new TestWorld(world, name);
+        }
+
         public static TestWorld Start(string name, ILoggerProvider loggerProvider)
             => new TestWorld(World.Start(name), name);
 
         public static TestWorld StartWith(World world)
             => new TestWorld(world, world.Name);
+
+        private static readonly object startWithDefaultMutex = new object();
+        public static TestWorld StartWithDefaults(string name)
+        {
+            lock (startWithDefaultMutex)
+            {
+                return new TestWorld(World.Start(name, Configuration.Define()), name);
+            }
+        }
 
         public static void Track(IMessage message)
         {

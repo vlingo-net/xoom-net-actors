@@ -18,11 +18,11 @@ namespace Vlingo.Actors
         private static Func<Properties> Factory = () =>
         {
             var props = new Properties();
-            props.Load(new FileInfo("/vlingo-actors.properties"));
+            props.Load(new FileInfo("vlingo-actors.properties"));
             return props;
         };
 
-        private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, System.Threading.LazyThreadSafetyMode.ExecutionAndPublication);
+        private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, true);
 
         public static Properties Instance => SingleInstance.Value;
 
@@ -57,9 +57,14 @@ namespace Vlingo.Actors
         {
             foreach(var line in File.ReadAllLines(configFile.FullName))
             {
-                var items = line.Split('=');
-                var key = items[0];
-                var val = string.Join('=', items.Skip(1));
+                if(string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("#"))
+                {
+                    continue;
+                }
+
+                var items = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                var key = items[0].Trim();
+                var val = string.Join('=', items.Skip(1)).Trim();
                 SetProperty(key, val);
             }
         }
