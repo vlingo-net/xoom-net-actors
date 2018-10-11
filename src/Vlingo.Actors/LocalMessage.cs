@@ -11,9 +11,9 @@ namespace Vlingo.Actors
 {
     public class LocalMessage<T> : IMessage
     {
-        private readonly ICompletes<object> completes;
+        private readonly ICompletes completes;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
+        public LocalMessage(Actor actor, Action<T> consumer, ICompletes completes, string representation)
         {
             Actor = actor;
             Consumer = consumer;
@@ -45,13 +45,13 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith(this));
+                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
                 }
                 Actor.LifeCycle.NextResuming();
             }
             else if (Actor.IsDispersing)
             {
-                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith(this));
+                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith<T>(this));
             }
             else
             {
@@ -87,11 +87,11 @@ namespace Vlingo.Actors
             }
             else if (Actor.LifeCycle.IsSuspended)
             {
-                Actor.LifeCycle.Environment.Suspended.Stow(message);
+                Actor.LifeCycle.Environment.Suspended.Stow<T>(message);
             }
             else if (Actor.IsStowing)
             {
-                Actor.LifeCycle.Environment.Stowage.Stow(message);
+                Actor.LifeCycle.Environment.Stowage.Stow<T>(message);
             }
             else
             {

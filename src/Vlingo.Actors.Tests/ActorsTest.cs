@@ -24,7 +24,7 @@ namespace Vlingo.Actors.Tests
 
         public TestUntil Until(int times) => TestUntil.Happenings(times);
 
-        public void Dispose() => TestWorld.Terminate();
+        public virtual void Dispose() => TestWorld.Terminate();
 
         protected internal bool IsSuspended(Actor actor) => actor.LifeCycle.IsSuspended;
   }

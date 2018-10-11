@@ -109,8 +109,8 @@ namespace Vlingo.Actors
 
         public IDeadLetters DeadLetters { get; internal set; }
 
-        public ICompletesEventually CompletesFor<T>(ICompletes<T> clientCompletes)
-            => completesProviderKeeper.FindDefault().ProvideCompletesFor<T>(clientCompletes);
+        public ICompletesEventually CompletesFor(ICompletes clientCompletes)
+            => completesProviderKeeper.FindDefault().ProvideCompletesFor(clientCompletes);
 
         public ILogger DefaultLogger
         {

@@ -7,7 +7,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
@@ -102,6 +101,8 @@ namespace Vlingo.Actors
 
         public T Outcome => outcome.Get().data;
 
+        object ICompletes.Outcome => outcome.Get().data;
+
         public ICompletes<TOutcome> With<TOutcome>(TOutcome outcome)
         {
             if(state == null)
@@ -115,6 +116,8 @@ namespace Vlingo.Actors
 
             return (ICompletes<TOutcome>)this;
         }
+
+        public ICompletes With(object outcome) => With<object>(outcome);
 
         public void IntervalSignal(IScheduled scheduled, object data)
         {

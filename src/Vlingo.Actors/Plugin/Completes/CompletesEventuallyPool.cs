@@ -55,8 +55,8 @@ namespace Vlingo.Actors.Plugin.Completes
             }
         }
 
-        public ICompletesEventually ProvideCompletesFor<T>(ICompletes<T> clientCompletes)
-            => new PooledCompletes<T>(completesEventuallyId.GetAndIncrement(),
+        public ICompletesEventually ProvideCompletesFor(ICompletes clientCompletes)
+            => new PooledCompletes(completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventually);
     }

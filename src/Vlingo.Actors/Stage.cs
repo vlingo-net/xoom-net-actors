@@ -149,7 +149,7 @@ namespace Vlingo.Actors
         public void RegisterCommonSupervisor(Type protocol, ISupervisor common)
             => commonSupervisors[protocol] = common;
 
-        public Scheduler Scheduler { get; }
+        public Scheduler Scheduler => scheduler;
 
         public bool IsStopped => stopped.Get();
 

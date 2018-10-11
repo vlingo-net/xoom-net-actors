@@ -12,7 +12,7 @@ namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal ICompletes<object> completes;
+        internal ICompletes completes;
         internal LifeCycle LifeCycle { get; }
 
         public virtual Address Address => LifeCycle.Address;
@@ -72,7 +72,6 @@ namespace Vlingo.Actors
             var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
             LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
             ActorFactory.ThreadLocalEnvironment.Value = null;
-            completes = new BasicCompletes<object>();
         }
 
         protected T ChildActorFor<T>(Definition definition)
