@@ -11,41 +11,29 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class ActorEnvironmentTest : IDisposable
+    public class ActorEnvironmentTest : ActorsTest
     {
-        private readonly TestWorld world;
-
-        public ActorEnvironmentTest()
-        {
-            world = TestWorld.Start("test-world");
-        }
-
-        public void Dispose()
-        {
-            world.Terminate();
-        }
-
         [Fact]
         public void TestExpectedEnvironment()
         {
             var definition = Definition.Has<EnvironmentProviderActor>(Definition.NoParameters, "test-env");
-            var env = world.ActorFor<IEnvironmentProvider>(definition);
+            var env = TestWorld.ActorFor<IEnvironmentProvider>(definition);
             var state = env.ViewTestState();
             var actorDefinition = state.ValueOf<Definition>("definition");
 
             Assert.Empty(TestWorld.AllMessagesFor(env.Address));
-            Assert.Equal(world.World.AddressFactory.TestNextIdValue() - 1, state.ValueOf<Address>("address").Id);
+            Assert.Equal(TestWorld.World.AddressFactory.TestNextIdValue() - 1, state.ValueOf<Address>("address").Id);
             Assert.Equal(definition.ActorName, actorDefinition.ActorName);
             Assert.Equal(definition.Parameters(), actorDefinition.Parameters());
-            Assert.Equal(world.World.DefaultParent, state.ValueOf<Actor>("parent"));
-            Assert.Same(world.Stage, state.ValueOf<Stage>("stage"));
+            Assert.Equal(TestWorld.World.DefaultParent, state.ValueOf<Actor>("parent"));
+            Assert.Same(TestWorld.Stage, state.ValueOf<Stage>("stage"));
         }
 
         [Fact]
         public void TestSecuredEnvironment()
         {
             var definition = Definition.Has<CannotProvideEnvironmentActor>(Definition.NoParameters, "test-env");
-            var env = world.ActorFor<IEnvironmentProvider>(definition);
+            var env = TestWorld.ActorFor<IEnvironmentProvider>(definition);
             var state = env.ViewTestState();
 
             Assert.Empty(TestWorld.AllMessagesFor(env.Address));
@@ -59,7 +47,7 @@ namespace Vlingo.Actors.Tests
         public void TestStop()
         {
             var definition = Definition.Has<StopTesterActor>(Definition.Parameters(0), "test-stop");
-            var stopTest = world.ActorFor<IStopTester>(definition);
+            var stopTest = TestWorld.ActorFor<IStopTester>(definition);
             var env = stopTest.ViewTestState().ValueOf<Environment>("env");
 
             Assert.Single(env.Children);

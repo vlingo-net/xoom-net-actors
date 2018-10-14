@@ -24,7 +24,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public bool IsDefaultMailbox { get; private set; }
 
-        public ConcurrentQueueMailboxPluginConfiguration WithDispatcherThottlingCount(int dispatcherThrottlingCount)
+        public ConcurrentQueueMailboxPluginConfiguration WithDispatcherThrottlingCount(int dispatcherThrottlingCount)
         {
             DispatcherThrottlingCount = dispatcherThrottlingCount;
             return this;
@@ -47,7 +47,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             configuration.With(
                 WithDefaultMailbox()
                 .WithNumberOfDispatchersFactor(1.5f)
-                .WithDispatcherThottlingCount(1));
+                .WithDispatcherThrottlingCount(1));
         }
 
         public void BuildWith(Configuration configuration, PluginProperties properties)

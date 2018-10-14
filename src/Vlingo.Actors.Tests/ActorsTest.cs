@@ -14,8 +14,9 @@ namespace Vlingo.Actors.Tests
     {
         protected ActorsTest() 
         {
-            TestWorld = TestWorld.Start("test");
+            TestWorld = TestWorld.Start($"{GetType().Name}-world");
             World = TestWorld.World;
+            //ActorFactory.ThreadLocalEnvironment.Value = new TestEnvironment();
         }
 
         protected World World { get; }

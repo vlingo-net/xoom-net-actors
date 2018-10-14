@@ -22,7 +22,6 @@ namespace Vlingo.Actors.TestKit
                 TestWorld.testWorld.World.DefaultSupervisor,
                 ConsoleLogger.TestInstance())
         {
-                
         }
     }
 }

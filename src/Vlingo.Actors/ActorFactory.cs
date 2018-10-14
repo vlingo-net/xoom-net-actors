@@ -56,7 +56,7 @@ namespace Vlingo.Actors
                     }
                     catch(Exception ex)
                     {
-                        logger.Log($"vlingo-dotnet/actors: ActorFactory: failed because: {ex.Message}", ex);
+                        logger.Log($"vlingo-net/actors: ActorFactory: failed because: {ex.Message}", ex);
                         Console.WriteLine(ex.StackTrace);
                     }
                     break;

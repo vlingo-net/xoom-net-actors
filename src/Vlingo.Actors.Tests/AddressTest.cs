@@ -10,29 +10,19 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class AddressTest : IDisposable
+    public class AddressTest : ActorsTest
     {
-        private readonly World world;
-        public AddressTest()
-        {
-            world = World.Start("test");
-        }
-        public void Dispose()
-        {
-            world.Terminate();
-        }
-
         [Fact]
         public void TestNameGiven()
         {
-            var address = world.AddressFactory.UniqueWith("test-address");
-            var id = world.AddressFactory.TestNextIdValue() - 1;
+            var address = World.AddressFactory.UniqueWith("test-address");
+            var id = World.AddressFactory.TestNextIdValue() - 1;
 
             Assert.NotNull(address);
             Assert.Equal(id, address.Id);
             Assert.Equal("test-address", address.Name);
 
-            var another = world.AddressFactory.UniqueWith("another-address");
+            var another = World.AddressFactory.UniqueWith("another-address");
 
             Assert.NotEqual(another, address);
             Assert.NotEqual(0, address.CompareTo(another));
@@ -44,18 +34,18 @@ namespace Vlingo.Actors.Tests
         {
             const int id = 123;
 
-            var address = world.AddressFactory.From(id, "test-address");
+            var address = World.AddressFactory.From(id, "test-address");
 
             Assert.NotNull(address);
             Assert.Equal(123, address.Id);
             Assert.Equal("test-address", address.Name);
 
-            var another = world.AddressFactory.From(456, "test-address");
+            var another = World.AddressFactory.From(456, "test-address");
 
             Assert.NotEqual(another, address);
             Assert.NotEqual(0, address.CompareTo(another));
-            Assert.Equal(address, world.AddressFactory.From(123, "test-address"));
-            Assert.Equal(0, address.CompareTo(world.AddressFactory.From(123, "test-address")));
+            Assert.Equal(address, World.AddressFactory.From(123, "test-address"));
+            Assert.Equal(0, address.CompareTo(World.AddressFactory.From(123, "test-address")));
             Assert.Equal(id, address.GetHashCode());
         }
     }

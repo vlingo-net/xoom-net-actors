@@ -17,6 +17,6 @@
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.1.2" />
+    <PackageReference Include="Vlingo.Common" Version="0.1.3" />
   </ItemGroup>
 </Project>

@@ -28,7 +28,7 @@ namespace Vlingo.Actors
             {
                 Action<IDirectoryScanner> consumer = actor => actor.ActorOf<T>(address);
                 var completes = new BasicCompletes<T>(actor.Scheduler);
-                mailbox.Send(new LocalMessage<IDirectoryScanner>(actor, consumer, (ICompletes<object>)completes, ActorOfRepresentation1));
+                mailbox.Send(new LocalMessage<IDirectoryScanner>(actor, consumer, completes, ActorOfRepresentation1));
                 return completes;
             }
             else

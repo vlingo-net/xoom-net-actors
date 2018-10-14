@@ -5,46 +5,38 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Threading;
-using Vlingo.Actors;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class ActorFactoryTest : IDisposable
-    {
-        private World world;
-
-        public ActorFactoryTest() => world = World.Start("test-world");
-
-        public void Dispose() => world.Terminate();
-
+    public class ActorFactoryTest : ActorsTest
+    { 
         [Fact]
         public void TestActorForWithNoParametersAndDefaults()
         {
             var definition = Definition.Has<TestInterfaceActor>(Definition.NoParameters);
 
-            var address = world.AddressFactory.UniqueWith("test-actor");
+            var address = World.AddressFactory.UniqueWith("test-actor");
 
             var mailbox = new TestMailbox();
 
             var actor =
             ActorFactory.ActorFor(
-                    world.Stage,
-                    world.DefaultParent,
+                    World.Stage,
+                    World.DefaultParent,
                     definition,
                     address,
                     mailbox,
                     null,
-                    world.DefaultLogger);
+                    World.DefaultLogger);
 
             Assert.NotNull(actor);
             Assert.NotNull(actor.Stage);
-            Assert.Equal(world.Stage, actor.Stage);
+            Assert.Equal(World.Stage, actor.Stage);
             Assert.NotNull(actor.LifeCycle.Environment.Parent);
-            Assert.Equal(world.DefaultParent, actor.LifeCycle.Environment.Parent);
+            Assert.Equal(World.DefaultParent, actor.LifeCycle.Environment.Parent);
             Assert.NotNull(actor.LifeCycle.Environment);
             Assert.NotNull(actor.LifeCycle.Environment.Definition);
             Assert.Equal(definition, actor.LifeCycle.Environment.Definition);
@@ -57,7 +49,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestActorForWithParameters()
         {
-            world.ActorFor<IParentInterface>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
+            World.ActorFor<IParentInterface>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
 
             var actorName = "test-child";
 
@@ -68,23 +60,23 @@ namespace Vlingo.Actors.Tests
                         actorName);
 
 
-            var address = world.AddressFactory.UniqueWith(actorName);
+            var address = World.AddressFactory.UniqueWith(actorName);
 
             var mailbox = new TestMailbox();
 
             var actor =
                 ActorFactory.ActorFor(
-                        world.Stage,
+                        World.Stage,
                         definition.Parent,
                         definition,
                         address,
                         mailbox,
                         null,
-                        world.DefaultLogger);
+                        World.DefaultLogger);
 
             Assert.NotNull(actor);
             Assert.NotNull(actor.Stage);
-            Assert.Equal(world.Stage, actor.Stage);
+            Assert.Equal(World.Stage, actor.Stage);
             Assert.NotNull(actor.LifeCycle.Environment.Parent);
             Assert.Equal(ParentInterfaceActor.Instance.Value, actor.LifeCycle.Environment.Parent);
             Assert.NotNull(actor.LifeCycle.Environment);
@@ -95,26 +87,24 @@ namespace Vlingo.Actors.Tests
             Assert.NotNull(actor.LifeCycle.Environment.Mailbox);
             Assert.Equal(mailbox, actor.LifeCycle.Environment.Mailbox);
         }
-    }
 
-    public interface IParentInterface { }
-
-    public sealed class ParentInterfaceActor : Actor, IParentInterface
-    {
-        public static ThreadLocal<ParentInterfaceActor> Instance { get; } = new ThreadLocal<ParentInterfaceActor>();
-
-        public ParentInterfaceActor()
+        public sealed class ParentInterfaceActor : Actor, IParentInterface
         {
-            Instance.Value = this;
+            public static ThreadLocal<ParentInterfaceActor> Instance { get; } = new ThreadLocal<ParentInterfaceActor>();
+
+            public ParentInterfaceActor()
+            {
+                Instance.Value = this;
+            }
         }
-    }
 
-    public interface ITestInterface { }
+        public interface ITestInterface { }
 
-    internal sealed class TestInterfaceActor : Actor, ITestInterface { }
+        internal sealed class TestInterfaceActor : Actor, ITestInterface { }
 
-    internal sealed class TestInterfaceWithParamsActor : Actor, ITestInterface
-    {
-        public TestInterfaceWithParamsActor(string text, int val) { }
+        internal sealed class TestInterfaceWithParamsActor : Actor, ITestInterface
+        {
+            public TestInterfaceWithParamsActor(string text, int val) { }
+        }
     }
 }

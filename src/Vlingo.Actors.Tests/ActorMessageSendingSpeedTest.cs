@@ -41,7 +41,7 @@ namespace Vlingo.Actors.Tests
 
         protected void RunWith(string mailboxType)
         {
-            var world = World.Start("speed-test");
+            var world = World.Start($"{GetType().Name}-world");
 
             var actor = world.ActorFor<ISingleOperation>(
                 Definition.Has<SingleOperationActor>(

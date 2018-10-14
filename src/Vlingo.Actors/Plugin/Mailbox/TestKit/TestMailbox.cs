@@ -16,9 +16,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         public const string Name = "testerMailbox";
 
         private readonly IList<string> lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
+        private readonly TestWorld testWorld;
 
         public TestMailbox()
         {
+            testWorld = TestWorld.testWorld;
         }
 
         public void Run()
@@ -41,7 +43,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             {
                 if (!IsLifecycleMessage(message))
                 {
-                    TestWorld.Track(message);
+                    testWorld.Track(message);
                 }
             }
 

@@ -7,17 +7,29 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 
 namespace Vlingo.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {
-        public static TestWorld testWorld;
+        private static ThreadLocal<TestWorld> Instance { get; } = new ThreadLocal<TestWorld>();
+        internal static TestWorld testWorld
+        {
+            get
+            {
+                return Instance.Value;
+            }
+            set
+            {
+                Instance.Value = value;
+            }
+        }
 
-        private static readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
+        private readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
 
-        public static IList<IMessage> AllMessagesFor(Address address)
+        public IList<IMessage> AllMessagesFor(Address address)
             => actorMessages.ContainsKey(address.Id) ? actorMessages[address.Id] : new List<IMessage>();
 
         public static TestWorld Start(string name)
@@ -57,7 +69,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        public static void Track(IMessage message)
+        public void Track(IMessage message)
         {
             var id = message.Actor.Address.Id;
             if (!actorMessages.ContainsKey(id))
