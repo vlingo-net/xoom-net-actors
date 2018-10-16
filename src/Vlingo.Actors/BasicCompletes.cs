@@ -99,11 +99,11 @@ namespace Vlingo.Actors
 
         public bool HasOutcome => outcome.Get() != null;
 
-        public T Outcome => outcome.Get().data;
+        public virtual T Outcome => outcome.Get().data;
 
         object ICompletes.Outcome => outcome.Get().data;
 
-        public ICompletes<TOutcome> With<TOutcome>(TOutcome outcome)
+        public virtual ICompletes<TOutcome> With<TOutcome>(TOutcome outcome)
         {
             if(state == null)
             {

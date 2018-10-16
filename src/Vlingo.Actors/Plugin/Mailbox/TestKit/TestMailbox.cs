@@ -20,7 +20,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public TestMailbox()
         {
-            testWorld = TestWorld.testWorld;
+            testWorld = TestWorld.Instance;
         }
 
         public void Run()

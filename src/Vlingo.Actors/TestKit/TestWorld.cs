@@ -14,16 +14,16 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {
-        private static ThreadLocal<TestWorld> Instance { get; } = new ThreadLocal<TestWorld>();
-        internal static TestWorld testWorld
+        private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
+        internal static TestWorld Instance
         {
             get
             {
-                return Instance.Value;
+                return ThreadLocalInstance.Value;
             }
             set
             {
-                Instance.Value = value;
+                ThreadLocalInstance.Value = value;
             }
         }
 
@@ -112,7 +112,7 @@ namespace Vlingo.Actors.TestKit
         public void Terminate()
         {
             World.Terminate();
-            testWorld = null;
+            Instance = null;
             actorMessages.Clear();
         }
 
@@ -129,7 +129,7 @@ namespace Vlingo.Actors.TestKit
         {
             World = world;
             MailboxProvider = new TestMailboxPlugin(World);
-            testWorld = this;
+            Instance = this;
         }
 
         public void Dispose()
