@@ -129,7 +129,7 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
-            return new Protocols(ActorProtocolActor<object>.ToTestActors(all));
+            return new Protocols(ActorProtocolActor<object>.ToTestActors(all, protocols));
         }
 
         public int Count => directory.Count;
@@ -364,17 +364,23 @@ namespace Vlingo.Actors
             return actors;
         }
 
-        internal static TestActor<T>[] ToTestActors(ActorProtocolActor<T>[] all)
+        internal static object[] ToTestActors(ActorProtocolActor<T>[] all, Type[] protocols)
         {
-            var testActors = new TestActor<T>[all.Length];
+            var testActors = new object[all.Length];
             for (int idx = 0; idx < all.Length; ++idx)
             {
-                testActors[idx] = all[idx].ToTestActor();
+                testActors[idx] = all[idx].ToTestActor(protocols[idx]);
             }
 
             return testActors;
         }
 
         internal TestActor<T> ToTestActor() => new TestActor<T>(actor, ProtocolActor, actor.Address);
+
+        private object ToTestActor(Type protocol)
+        {
+            var type = typeof(TestActor<>).MakeGenericType(protocol);
+            return Activator.CreateInstance(type, actor, ProtocolActor, actor.Address);
+        }
     }
 }

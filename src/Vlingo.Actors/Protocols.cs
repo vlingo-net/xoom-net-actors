@@ -49,7 +49,7 @@ namespace Vlingo.Actors
         public Two(Protocols protocols)
         {
             _1 = protocols.Get<A>(0);
-            _2 = protocols.Get<B>(2);
+            _2 = protocols.Get<B>(1);
         }
     }
 
