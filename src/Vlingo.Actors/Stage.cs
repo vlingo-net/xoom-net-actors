@@ -84,6 +84,8 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger)));
 
+        public ICompletes<T> ActorOf<T>(Address address) => directoryScanner.ActorOf<T>(address);
+
         public TestActor<T> TestActorFor<T>(Definition definition)
         {
             var redefinition = Definition.Has(
