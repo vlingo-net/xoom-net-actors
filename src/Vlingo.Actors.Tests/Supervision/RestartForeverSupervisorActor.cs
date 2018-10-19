@@ -6,22 +6,18 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Threading;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
-    public class PingSupervisorActor : Actor, ISupervisor
+    public class RestartForeverSupervisorActor : Actor, ISupervisor
     {
-        public static readonly ThreadLocal<PingSupervisorActor> Instance = new ThreadLocal<PingSupervisorActor>();
+        private readonly RestartForeverSupervisorTestResults testResults;
 
-        internal readonly PingSupervisorTestResults TestResults;
-
-        public PingSupervisorActor()
+        public RestartForeverSupervisorActor(RestartForeverSupervisorTestResults testResults)
         {
-            TestResults = new PingSupervisorTestResults();
-            Instance.Value = this;
+            this.testResults = testResults;
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
@@ -30,24 +26,24 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            TestResults.InformedCount.IncrementAndGet();
+            testResults.InformedCount.IncrementAndGet();
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            TestResults.UntilInform.Happened();
-        }
-
-        internal class PingSupervisorTestResults
-        {
-            public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
-            public TestUntil UntilInform { get; set; } = TestUntil.Happenings(0);
+            testResults.UntilInform.Happened();
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy
         {
-            public int Intensity => 5;
+            public int Intensity => SupervisionStrategyConstants.ForeverIntensity;
 
-            public long Period => 1000;
+            public long Period => SupervisionStrategyConstants.ForeverPeriod;
 
             public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
+        }
+
+        public class RestartForeverSupervisorTestResults
+        {
+            public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
+            public TestUntil UntilInform { get; set; } = TestUntil.Happenings(0);
         }
     }
 }

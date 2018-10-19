@@ -6,18 +6,48 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading;
+using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
     public class PongSupervisorActor : Actor, ISupervisor
     {
-        public ISupervisionStrategy SupervisionStrategy => throw new NotImplementedException();
+        public static readonly ThreadLocal<PongSupervisorActor> Instance = new ThreadLocal<PongSupervisorActor>();
 
-        public ISupervisor Supervisor => throw new NotImplementedException();
+        internal readonly PongSupervisorTestResults TestResults;
+
+        public PongSupervisorActor()
+        {
+            TestResults = new PongSupervisorTestResults();
+            Instance.Value = this;
+        }
+
+        public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
+
+        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            throw new NotImplementedException();
+            TestResults.InformedCount.IncrementAndGet();
+            supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
+            TestResults.UntilInform.Happened();
+        }
+
+        internal class PongSupervisorTestResults
+        {
+            public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
+            public TestUntil UntilInform { get; set; } = TestUntil.Happenings(0);
+        }
+
+        private class SupervisionStrategyImpl : ISupervisionStrategy
+        {
+            public int Intensity => 10;
+
+            public long Period => 1000;
+
+            public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
         }
     }
 }

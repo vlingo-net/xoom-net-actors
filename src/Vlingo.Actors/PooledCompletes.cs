@@ -30,6 +30,7 @@ namespace Vlingo.Actors
         public void With(object outcome)
         {
             Outcome = outcome;
+            CompletesEventually.With(this);
         }
 
         public bool IsStopped => CompletesEventually.IsStopped;

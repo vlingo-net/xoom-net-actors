@@ -19,9 +19,9 @@ namespace Vlingo.Actors.Tests
             //ActorFactory.ThreadLocalEnvironment.Value = new TestEnvironment();
         }
 
-        protected World World { get; }
+        protected World World { get; set; }
 
-        protected TestWorld TestWorld { get; }
+        protected TestWorld TestWorld { get; set; }
 
         public TestUntil Until(int times) => TestUntil.Happenings(times);
 

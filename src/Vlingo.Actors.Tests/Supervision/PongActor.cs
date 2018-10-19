@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
@@ -27,6 +28,7 @@ namespace Vlingo.Actors.Tests.Supervision
         {
             testResults.PongCount.IncrementAndGet();
             testResults.UntilPonged.Happened();
+            throw new ApplicationException("Intended Pong failure.");
         }
 
         public override void Stop()
