@@ -20,7 +20,7 @@ namespace Vlingo.Actors.Tests.Supervision
         private int times;
 
         public AtomicInteger InformedCount { get; }
-        public TestUntil UntilInformed { get; }
+        public TestUntil UntilInformed { get; set; }
 
         public SuspendedSenderSupervisorActor()
         {
