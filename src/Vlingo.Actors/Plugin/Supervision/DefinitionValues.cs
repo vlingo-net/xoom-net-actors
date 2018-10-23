@@ -33,10 +33,11 @@ namespace Vlingo.Actors.Plugin.Supervision
             {
                 var open = types.IndexOf("[", nextDefinition);
                 var close = types.IndexOf("]", open + 1);
+                var len = close - open - 1;
 
                 if (open >= 0 && close >= 0)
                 {
-                    var definition = types.Substring(open + 1, close);
+                    var definition = types.Substring(open + 1, len);
                     settings.Add(new DefinitionValues(definition));
                     nextDefinition = close + 1;
                 }
@@ -77,7 +78,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             var startName = start + partName.Length;
             var end = definition.IndexOf(" ", startName);
             var actualEnd = end >= 0 ? end : definition.Length;
-            var part = definition.Substring(startName, actualEnd);
+            var part = definition.Substring(startName, actualEnd - startName);
             return part;
         }
     }

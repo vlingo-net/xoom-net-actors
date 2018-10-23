@@ -7,17 +7,17 @@
 
 namespace Vlingo.Actors
 {
-    public class PooledCompletes<T> : ICompletesEventually
+    public class PooledCompletes : ICompletesEventually
     {
         public long Id { get; }
 
-        public ICompletes<T> ClientCompletes { get; }
+        public ICompletes ClientCompletes { get; }
 
         public ICompletesEventually CompletesEventually { get; }
 
         public PooledCompletes(
             long id,
-            ICompletes<T> clientCompletes,
+            ICompletes clientCompletes,
             ICompletesEventually completesEventually)
         {
             Id = id;
@@ -30,6 +30,7 @@ namespace Vlingo.Actors
         public void With(object outcome)
         {
             Outcome = outcome;
+            CompletesEventually.With(this);
         }
 
         public bool IsStopped => CompletesEventually.IsStopped;

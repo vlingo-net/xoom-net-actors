@@ -11,14 +11,14 @@ namespace Vlingo.Actors
 {
     public class LocalMessage<T> : IMessage
     {
-        private readonly ICompletes<object> completes;
+        private readonly ICompletes completes;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<T> completes, string representation)
+        public LocalMessage(Actor actor, Action<T> consumer, ICompletes completes, string representation)
         {
             Actor = actor;
             Consumer = consumer;
             Representation = representation;
-            this.completes = (ICompletes<object>)completes;
+            this.completes = completes;
         }
 
         public LocalMessage(Actor actor, Action<T> consumer, string representation)
@@ -45,13 +45,13 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith(this));
+                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
                 }
                 Actor.LifeCycle.NextResuming();
             }
             else if (Actor.IsDispersing)
             {
-                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith(this));
+                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith<T>(this));
             }
             else
             {
@@ -87,21 +87,22 @@ namespace Vlingo.Actors
             }
             else if (Actor.LifeCycle.IsSuspended)
             {
-                Actor.LifeCycle.Environment.Suspended.Stow(message);
+                Actor.LifeCycle.Environment.Suspended.Stow<T>(message);
             }
             else if (Actor.IsStowing)
             {
-                Actor.LifeCycle.Environment.Stowage.Stow(message);
+                Actor.LifeCycle.Environment.Stowage.Stow<T>(message);
             }
             else
             {
                 try
                 {
-                    Actor.completes.ClearOutcome();
+                    Actor.completes = completes;
                     Consumer.Invoke((T)(object)Actor);
-                    if (Actor.completes.HasOutcome)
+                    if (Actor.completes != null && Actor.completes.HasOutcome)
                     {
-                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(Actor.completes.Outcome);
+                        var outcome = Actor.completes.Outcome;
+                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(outcome);
                     }
                 }
                 catch(Exception ex)

@@ -7,22 +7,50 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 
 namespace Vlingo.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {
-        public static TestWorld testWorld;
+        private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
+        internal static TestWorld Instance
+        {
+            get
+            {
+                return ThreadLocalInstance.Value;
+            }
+            set
+            {
+                ThreadLocalInstance.Value = value;
+            }
+        }
 
-        private static readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
+        private readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
 
-        public static IList<IMessage> AllMessagesFor(Address address)
+        public IList<IMessage> AllMessagesFor(Address address)
             => actorMessages.ContainsKey(address.Id) ? actorMessages[address.Id] : new List<IMessage>();
 
         public static TestWorld Start(string name)
         {
             var world = World.Start(name);
+            return new TestWorld(world, name);
+        }
+
+        private static readonly object startNamePropMutex = new object();
+        public static TestWorld Start(string name, Properties properties)
+        {
+            lock (startNamePropMutex)
+            {
+                var world = World.Start(name, properties);
+                return new TestWorld(world, name);
+            }
+        }
+
+        public static TestWorld Start(string name, Configuration configuration)
+        {
+            var world = World.Start(name, configuration);
             return new TestWorld(world, name);
         }
 
@@ -32,7 +60,16 @@ namespace Vlingo.Actors.TestKit
         public static TestWorld StartWith(World world)
             => new TestWorld(world, world.Name);
 
-        public static void Track(IMessage message)
+        private static readonly object startWithDefaultMutex = new object();
+        public static TestWorld StartWithDefaults(string name)
+        {
+            lock (startWithDefaultMutex)
+            {
+                return new TestWorld(World.Start(name, Configuration.Define()), name);
+            }
+        }
+
+        public void Track(IMessage message)
         {
             var id = message.Actor.Address.Id;
             if (!actorMessages.ContainsKey(id))
@@ -75,7 +112,7 @@ namespace Vlingo.Actors.TestKit
         public void Terminate()
         {
             World.Terminate();
-            testWorld = null;
+            Instance = null;
             actorMessages.Clear();
         }
 
@@ -92,7 +129,7 @@ namespace Vlingo.Actors.TestKit
         {
             World = world;
             MailboxProvider = new TestMailboxPlugin(World);
-            testWorld = this;
+            Instance = this;
         }
 
         public void Dispose()

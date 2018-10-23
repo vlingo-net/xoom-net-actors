@@ -12,20 +12,20 @@ namespace Vlingo.Actors.Tests
 {
     public class ActorsTest : IDisposable
     {
-        protected readonly World world;
-        protected readonly TestWorld testWorld;
-
-        public TestUntil until;
-
         protected ActorsTest() 
         {
-            testWorld = TestWorld.Start("test");
-            world = testWorld.World;
+            TestWorld = TestWorld.Start($"{GetType().Name}-world");
+            World = TestWorld.World;
+            //ActorFactory.ThreadLocalEnvironment.Value = new TestEnvironment();
         }
+
+        protected World World { get; set; }
+
+        protected TestWorld TestWorld { get; set; }
 
         public TestUntil Until(int times) => TestUntil.Happenings(times);
 
-        public void Dispose() => testWorld.Terminate();
+        public virtual void Dispose() => TestWorld.Terminate();
 
         protected internal bool IsSuspended(Actor actor) => actor.LifeCycle.IsSuspended;
   }

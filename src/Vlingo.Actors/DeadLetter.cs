@@ -18,6 +18,8 @@ namespace Vlingo.Actors
             this.representation = representation;
         }
 
+        public string Representation => representation;
+
         public override string ToString() => $"DeadLetter[{actor}.{representation}]";
     }
 }

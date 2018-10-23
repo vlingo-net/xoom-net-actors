@@ -133,8 +133,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 {
                     if (parent.CanSend())
                     {
-                        var delayed = messages.Dequeue();
-                        if (delayed != null)
+                        
+                        if (messages.TryDequeue(out IMessage delayed))
                         {
                             backoff.Reset();
                             parent.Send(delayed);

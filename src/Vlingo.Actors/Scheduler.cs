@@ -27,7 +27,7 @@ namespace Vlingo.Actors
             => CreateAndStore(
                 scheduled,
                 data,
-                TimeSpan.FromMilliseconds(delayBefore),
+                TimeSpan.FromMilliseconds(delayBefore + interval),
                 TimeSpan.FromMilliseconds(Timeout.Infinite),
                 false);
 

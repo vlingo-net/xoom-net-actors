@@ -7,23 +7,34 @@
 
 namespace Vlingo.Actors.Plugin.Supervision
 {
-    public class CommonSupervisorsPlugin : IPlugin
+    public class CommonSupervisorsPlugin : AbstractPlugin
     {
-        public string Name { get; private set; }
+        private readonly CommonSupervisorsPluginConfiguration configuration;
 
-        public int Pass => 2;
+        public CommonSupervisorsPlugin()
+        {
+            configuration = CommonSupervisorsPluginConfiguration.Define();
+        }
 
-        public void Close()
+        public override string Name => "common_supervisors";
+
+        public override int Pass => 2;
+
+        public override IPluginConfiguration Configuration => configuration;
+
+        public override void Close()
         {
         }
 
-        public void Start(IRegistrar registrar, string name, PluginProperties properties)
+        public override void Start(IRegistrar registrar)
         {
-            Name = name;
-
-            foreach (var value in DefinitionValues.AllDefinitionValues(properties))
+            foreach(var supervisor in configuration.Supervisors)
             {
-                registrar.RegisterCommonSupervisor(value.StageName, value.Name, value.Protocol, value.Supervisor);
+                registrar.RegisterCommonSupervisor(
+                    supervisor.StageName,
+                    supervisor.SupervisorName,
+                    supervisor.SupervisedProtocol,
+                    supervisor.SupervisorClass);
             }
         }
     }

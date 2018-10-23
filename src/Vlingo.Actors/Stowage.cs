@@ -73,15 +73,15 @@ namespace Vlingo.Actors
             dispersing.Set(true);
         }
 
-        protected internal void Stow(IMessage message)
+        protected internal void Stow<T>(IMessage message)
         {
             if (IsStowing)
             {
-                stowedMessages.Enqueue(new StowedLocalMessage<IMessage>((LocalMessage<IMessage>)message));
+                stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)message));
             }
         }
 
-        protected internal IMessage SwapWith(IMessage newerMessage)
+        protected internal IMessage SwapWith<T>(IMessage newerMessage)
         {
             if (!HasMessages)
             {
@@ -90,7 +90,7 @@ namespace Vlingo.Actors
             }
 
             var olderMessage = stowedMessages.Dequeue();
-            stowedMessages.Enqueue(new StowedLocalMessage<IMessage>((LocalMessage<IMessage>)newerMessage));
+            stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)newerMessage));
             return olderMessage;
         }
     }

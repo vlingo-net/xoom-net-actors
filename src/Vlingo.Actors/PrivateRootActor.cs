@@ -21,10 +21,18 @@ namespace Vlingo.Actors
 
             Stage.World.SetPrivateRoot(SelfAs<IStoppable>());
 
-            Stage.ActorFor<INoProtocol>(
+            Stage.ActorProtocolFor<INoProtocol>(
               Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
               this,
               new Address(World.PublicRootId, World.PublicRootName),
+              null,
+              null,
+              Logger);
+
+            Stage.ActorProtocolFor<IDeadLetters>(
+              Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
+              this,
+              new Address(World.DeadLettersId, World.DeadLettersName),
               null,
               null,
               Logger);

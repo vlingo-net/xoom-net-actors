@@ -6,22 +6,20 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace Vlingo.Actors.Plugin
 {
     public class PluginProperties
     {
-        private readonly string name;
         private Properties properties;
 
         public PluginProperties(string name, Properties properties)
         {
-            this.name = name;
+            Name = name;
             this.properties = properties;
         }
+
+        public string Name { get; }
 
         public Boolean GetBoolean(string key, bool defaultValue)
         {
@@ -43,47 +41,6 @@ namespace Vlingo.Actors.Plugin
 
         public string GetString(string key, string defaultValue) => properties.GetProperty(Key(key), defaultValue);
 
-        private string Key(string key) => "plugin." + name + "." + key;
-    }
-
-
-    // TODO: implement using IAppSettingsProvider later
-    public sealed class Properties
-    {
-        private readonly IDictionary<string, string> dictionary;
-        public Properties()
-        {
-            dictionary = new Dictionary<string, string>();
-        }
-
-        public ICollection<string> Keys => dictionary.Keys;
-
-        public string GetProperty(string key) => GetProperty(key, null);
-
-        public string GetProperty(string key, string defaultValue)
-        {
-            if(dictionary.TryGetValue(key, out string value))
-            {
-                return value;
-            }
-
-            return defaultValue;
-        }
-
-        public void SetProperty(string key, string value)
-        {
-            dictionary[key] = value;
-        }
-
-        public void Load(FileInfo configFile)
-        {
-            foreach(var line in File.ReadAllLines(configFile.FullName))
-            {
-                var items = line.Split('=');
-                var key = items[0];
-                var val = string.Join('=', items.Skip(1));
-                SetProperty(key, val);
-            }
-        }
+        private string Key(string key) => $"plugin.{Name}.{key}";
     }
 }

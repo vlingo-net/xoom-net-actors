@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
+
 namespace Vlingo.Actors
 {
     public interface IRegistrar
@@ -12,8 +14,8 @@ namespace Vlingo.Actors
         void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider);
         void Register(string name, bool isDefault, ILoggerProvider loggerProvider);
         void Register(string name, bool isDefault, IMailboxProvider mailboxProvider);
-        void RegisterCommonSupervisor(string stageName, string name, string fullyQualifiedProtocol, string fullyQualifiedSupervisor);
-        void RegisterDefaultSupervisor(string stageName, string name, string fullyQualifiedSupervisor);
+        void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass);
+        void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass);
         World World { get; }
     }
 }

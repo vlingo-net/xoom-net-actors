@@ -15,10 +15,13 @@ namespace Vlingo.Actors.Plugin.Completes
         private readonly ICompletesEventually[] pool;
         private readonly AtomicLong poolIndex;
         private readonly long poolSize;
-        public CompletesEventuallyPool(int poolSize)
+        private readonly string mailboxName;
+
+        public CompletesEventuallyPool(int poolSize, string mailboxName)
         {
             completesEventuallyId = new AtomicLong(0);
             this.poolSize = poolSize;
+            this.mailboxName = mailboxName;
             poolIndex = new AtomicLong(0);
             pool = new ICompletesEventually[poolSize];
         }
@@ -44,12 +47,16 @@ namespace Vlingo.Actors.Plugin.Completes
         {
             for (var idx = 0; idx < poolSize; ++idx)
             {
-                pool[idx] = stage.ActorFor<ICompletesEventually>(Definition.Has<CompletesEventuallyActor>(Definition.NoParameters));
+                pool[idx] = stage.ActorFor<ICompletesEventually>(
+                    Definition.Has<CompletesEventuallyActor>(
+                        Definition.NoParameters,
+                        mailboxName,
+                        "completes-eventually-" + (idx + 1)));
             }
         }
 
-        public ICompletesEventually ProvideCompletesFor<T>(ICompletes<T> clientCompletes)
-            => new PooledCompletes<T>(completesEventuallyId.GetAndIncrement(),
+        public ICompletesEventually ProvideCompletesFor(ICompletes clientCompletes)
+            => new PooledCompletes(completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventually);
     }

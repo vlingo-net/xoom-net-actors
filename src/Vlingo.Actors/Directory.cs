@@ -16,9 +16,19 @@ namespace Vlingo.Actors
     {
         private readonly ConcurrentDictionary<Address, Actor>[] maps;
 
-        internal Directory()
+        public Directory()
         {
             maps = Build();
+        }
+
+        internal Actor ActorOf(Address address)
+        {
+            if(maps[MapIndex(address)].TryGetValue(address, out var actor))
+            {
+                return actor;
+            }
+
+            return null;
         }
 
         internal int Count => maps.Sum(m => m.Count);
@@ -34,7 +44,7 @@ namespace Vlingo.Actors
 
                 maps
                     .SelectMany(map => map.Values)
-                    .Select(actor => $"DIR: DUMP: ACTOR: {actor.Address} PARENT: {GetParentAddress(actor)}")
+                    .Select(actor => $"DIR: DUMP: ACTOR: {actor.Address} PARENT: {GetParentAddress(actor)} TYPE: {actor.GetType().FullName}")
                     .ToList()
                     .ForEach(msg => logger.Log(msg));
             }
@@ -72,7 +82,7 @@ namespace Vlingo.Actors
             // up to around 75% of 1024 actors, but very average if not poor performance
             // following that.
             //
-            // TODO: Changed to configuration based values to enable the
+            // TODO: Change to configuration-based values to enable the
             // application to estimate how many actors are likely to exist at
             // any one time. For example, there will be very few actors in some
             // "applications" such as vlingo/cluster, but then the application

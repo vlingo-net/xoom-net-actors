@@ -48,10 +48,16 @@ namespace Vlingo.Actors
 
 
         public static ProxyGenerator ForMain(bool persist)
-            => new ProxyGenerator(RootOfMainClasses, DynaType.Main, persist);
+        {
+            var root = Properties.Instance.GetProperty("proxy.generated.classes.main", RootOfMainClasses);
+            return new ProxyGenerator(root, DynaType.Main, persist);
+        }
 
         public static ProxyGenerator ForTest(bool persist)
-            => new ProxyGenerator(RootOfTestClasses, DynaType.Test, persist);
+        {
+            var root = Properties.Instance.GetProperty("proxy.generated.classes.test", RootOfTestClasses);
+            return new ProxyGenerator(root, DynaType.Test, persist);
+        }
 
         public Result GenerateFor(Type actorProtocol)
         {
@@ -73,10 +79,15 @@ namespace Vlingo.Actors
             }
         }
 
+        private static string RootOfGeneratedSources(DynaType type)
+            => type == DynaType.Main ?
+                Properties.Instance.GetProperty("proxy.generated.sources.main", GeneratedSources) :
+                Properties.Instance.GetProperty("proxy.generated.sources.test", GeneratedTestSources);
+
         private ProxyGenerator(string rootOfClasses, DynaType type, bool persist)
         {
             Type = type;
-            rootOfGenerated = type == DynaType.Main ? GeneratedSources : GeneratedTestSources;
+            rootOfGenerated = RootOfGeneratedSources(type);
             this.persist = persist;
             targetClassPath = new FileInfo(rootOfClasses);
         }
@@ -241,7 +252,7 @@ namespace Vlingo.Actors
                 GetSimpleTypeName(protocolInterface),
                 method.Name,
                 string.Join(", ", method.GetParameters().Select(p => p.Name)));
-            var completesStatement = completes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType)) : "";
+            var completesStatement = completes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format("      mailbox.Send(new LocalMessage<{0}>(actor, consumer, {1}{2}));",
                 GetSimpleTypeName(protocolInterface),

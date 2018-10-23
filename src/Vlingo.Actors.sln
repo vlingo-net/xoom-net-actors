@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27428.2037
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vlingo.Actors", "Vlingo.Actors\Vlingo.Actors.csproj", "{854B3089-2737-4F96-930D-8812DE851903}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vlingo.Actors.Tests", "Vlingo.Actors.Tests\Vlingo.Actors.Tests.csproj", "{1E906E6D-19E3-4943-B3D8-F4E024AE3A03}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vlingo.Actors.Tests", "Vlingo.Actors.Tests\Vlingo.Actors.Tests.csproj", "{1E906E6D-19E3-4943-B3D8-F4E024AE3A03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

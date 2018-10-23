@@ -4,7 +4,7 @@
 
     <!-- NuGet Metadata -->
     <IsPackable>true</IsPackable>
-    <PackageVersion>0.0.1-alpha</PackageVersion>
+    <PackageVersion>0.1.0</PackageVersion>
     <PackageId>Vlingo.Actors</PackageId>
     <Authors>Vlingo</Authors>
     <Description>
@@ -17,6 +17,6 @@
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.1.2" />
+    <PackageReference Include="Vlingo.Common" Version="0.1.3" />
   </ItemGroup>
 </Project>

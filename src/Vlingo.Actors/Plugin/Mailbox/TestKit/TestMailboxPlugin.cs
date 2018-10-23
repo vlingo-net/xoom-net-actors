@@ -7,18 +7,20 @@
 
 namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 {
-    public class TestMailboxPlugin : IPlugin, IMailboxProvider
+    public class TestMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
         public TestMailboxPlugin(IRegistrar registrar)
         {
-            Start(registrar, TestMailbox.Name, null);
+            Start(registrar);
         }
 
-        public string Name { get; private set; }
+        public override string Name => TestMailbox.Name;
 
-        public int Pass => 1;
+        public override int Pass => 1;
 
-        public void Close()
+        public override IPluginConfiguration Configuration => null;
+
+        public override void Close()
         {
         }
 
@@ -26,10 +28,6 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher) => new TestMailbox();
 
-        public void Start(IRegistrar registrar, string name, PluginProperties properties)
-        {
-            Name = name;
-            registrar.Register(name, false, this);
-        }
+        public override void Start(IRegistrar registrar) => registrar.Register(Name, false, this);
     }
 }

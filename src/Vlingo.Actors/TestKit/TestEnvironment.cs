@@ -14,15 +14,14 @@ namespace Vlingo.Actors.TestKit
     {
         public TestEnvironment() :
             base(
-                TestWorld.testWorld.World.Stage,
-                TestWorld.testWorld.World.AddressFactory.AddressFrom("test"),
+                TestWorld.Instance.World.Stage,
+                TestWorld.Instance.World.AddressFactory.UniqueWith("test"),
                 Definition.Has<Actor>(Definition.NoParameters),
-                TestWorld.testWorld.World.DefaultParent,
+                TestWorld.Instance.World.DefaultParent,
                 new TestMailbox(),
-                TestWorld.testWorld.World.DefaultSupervisor,
+                TestWorld.Instance.World.DefaultSupervisor,
                 ConsoleLogger.TestInstance())
         {
-                
         }
     }
 }
