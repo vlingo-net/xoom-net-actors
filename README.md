@@ -1,6 +1,7 @@
 # vlingo-actors
 
-[![Build status](https://ci.appveyor.com/api/projects/status/o1ajhxlf9i2q6gs7/branch/master?svg=true)](https://ci.appveyor.com/project/VlingoNetOwner/vlingo-net-actors/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/o1ajhxlf9i2q6gs7/branch/master?svg=true)](https://ci.appveyor.com/project/VlingoNetOwner/vlingo-net-actors/branch/master) 
+[![NuGet](https://img.shields.io/nuget/v/Vlingo.Actors.svg)](https://www.nuget.org/packages/Vlingo.Actors)
 
 Type safe Actor Model toolkit for reactive concurrency and resiliency using C# and other .NET languages.
 
