@@ -18,9 +18,9 @@ using static Vlingo.Common.Compiler.DynaNaming;
 
 namespace Vlingo.Actors
 {
-    public class ProxyGenerator
+    internal class ProxyGenerator
     {
-        public sealed class Result
+        internal sealed class Result
         {
             internal Result(
                 string fullyQualifiedClassName,

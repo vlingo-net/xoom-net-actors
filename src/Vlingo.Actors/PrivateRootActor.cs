@@ -9,7 +9,7 @@ using System;
 
 namespace Vlingo.Actors
 {
-    public class PrivateRootActor : Actor, IStoppable, ISupervisor
+    public sealed class PrivateRootActor : Actor, IStoppable, ISupervisor
     {
         public ISupervisionStrategy SupervisionStrategy { get; }
 
@@ -38,7 +38,7 @@ namespace Vlingo.Actors
               Logger);
         }
 
-        internal override void AfterStop()
+        internal protected override void AfterStop()
         {
             Stage.World.SetPrivateRoot(null);
             base.AfterStop();

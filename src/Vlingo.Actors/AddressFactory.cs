@@ -39,7 +39,5 @@ namespace Vlingo.Actors
             => $"AddressFactory[highId={highId.Get()}, nextId={nextId.Get()}]";
 
         internal int TestNextIdValue() => nextId.Get();
-
-
     }
 }

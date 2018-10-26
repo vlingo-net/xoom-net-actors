@@ -20,7 +20,7 @@ namespace Vlingo.Actors
             Reset();
         }
 
-        protected internal bool FailedWithExcessiveFailures(long period, int intensity)
+        protected internal virtual bool FailedWithExcessiveFailures(long period, int intensity)
         {
             if (intensity == SupervisionStrategyConstants.ForeverIntensity)
             {
@@ -58,7 +58,7 @@ namespace Vlingo.Actors
             return false;
         }
 
-        protected internal void Reset()
+        protected internal virtual void Reset()
         {
             startOfPeriod = 0;
             timedIntensity = 0;

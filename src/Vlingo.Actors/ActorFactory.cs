@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Vlingo.Actors
 {
-    public class ActorFactory
+    internal class ActorFactory
     {
         internal static readonly ThreadLocal<Environment> ThreadLocalEnvironment = new ThreadLocal<Environment>(false);
 

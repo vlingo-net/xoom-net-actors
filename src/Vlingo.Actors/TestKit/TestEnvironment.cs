@@ -10,7 +10,7 @@ using Vlingo.Actors.Plugin.Mailbox.TestKit;
 
 namespace Vlingo.Actors.TestKit
 {
-    public class TestEnvironment : Environment
+    internal class TestEnvironment : Environment
     {
         public TestEnvironment() :
             base(

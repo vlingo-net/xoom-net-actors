@@ -11,7 +11,6 @@ namespace Vlingo.Actors
     {
         public FailureOutcome(T value) : base(value)
         {
-
         }
     }
 }

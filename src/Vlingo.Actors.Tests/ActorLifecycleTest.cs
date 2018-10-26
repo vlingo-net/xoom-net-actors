@@ -42,13 +42,13 @@ namespace Vlingo.Actors.Tests
                 this.testResults = testResults;
             }
 
-            internal override void BeforeStart()
+            internal protected override void BeforeStart()
             {
                 testResults.receivedBeforeStart.Set(true);
                 testResults.until.Happened();
             }
 
-            internal override void AfterStop()
+            internal protected override void AfterStop()
             {
                 testResults.receivedAfterStop.Set(true);
                 testResults.until.Happened();
