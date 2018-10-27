@@ -114,7 +114,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public Protocols TestActorFor(Definition definition, Type[] protocols)
+        internal Protocols TestActorFor(Definition definition, Type[] protocols)
         {
             var redefinition = Definition.Has(
                 definition.Type,

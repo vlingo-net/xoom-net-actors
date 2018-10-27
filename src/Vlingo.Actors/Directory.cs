@@ -12,11 +12,11 @@ using System.Linq;
 
 namespace Vlingo.Actors
 {
-    public sealed class Directory
+    internal sealed class Directory
     {
         private readonly ConcurrentDictionary<Address, Actor>[] maps;
 
-        public Directory()
+        internal Directory()
         {
             maps = Build();
         }

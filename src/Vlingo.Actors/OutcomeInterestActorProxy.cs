@@ -20,12 +20,12 @@ namespace Vlingo.Actors
             this.reference = reference;
         }
 
-        public void FailureOutcome(Outcome<TOutcome> outcome)
+        public virtual void FailureOutcome(Outcome<TOutcome> outcome)
         {
             outcomeAware.FailureOutcome(outcome, reference);
         }
 
-        public void SuccessfulOutcome(Outcome<TOutcome> outcome)
+        public virtual void SuccessfulOutcome(Outcome<TOutcome> outcome)
         {
             outcomeAware.SuccessfulOutcome(outcome, reference);
         }

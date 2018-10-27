@@ -30,7 +30,7 @@ namespace Vlingo.Actors
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
         }
 
-        internal override void AfterStop()
+        internal protected override void AfterStop()
         {
             Stage.World.SetDefaultParent(null);
             Stage.World.SetPublicRoot(null);

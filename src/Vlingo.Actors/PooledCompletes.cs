@@ -27,15 +27,15 @@ namespace Vlingo.Actors
 
         public object Outcome { get; private set; }
 
-        public void With(object outcome)
+        public virtual void With(object outcome)
         {
             Outcome = outcome;
             CompletesEventually.With(this);
         }
 
-        public bool IsStopped => CompletesEventually.IsStopped;
+        public virtual bool IsStopped => CompletesEventually.IsStopped;
 
-        public void Stop()
+        public virtual void Stop()
         {
         }
     }

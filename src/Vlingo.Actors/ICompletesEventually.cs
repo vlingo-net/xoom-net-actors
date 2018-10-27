@@ -14,9 +14,9 @@ namespace Vlingo.Actors
 
     public abstract class CompletesEventually : ICompletesEventually
     {
-        public bool IsStopped => false;
+        public virtual bool IsStopped => false;
 
-        public void Stop()
+        public virtual void Stop()
         {
         }
 

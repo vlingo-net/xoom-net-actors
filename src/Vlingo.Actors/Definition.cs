@@ -14,7 +14,7 @@ namespace Vlingo.Actors
     // TODO: possible removal/cleanup of overloaded ctors
     public sealed class Definition
     {
-        internal static readonly List<object> NoParameters = new List<object>();
+        public static readonly List<object> NoParameters = new List<object>();
 
         public static Definition Has<T>(List<object> parameters) where T : Actor 
             => new Definition(typeof(T), parameters);

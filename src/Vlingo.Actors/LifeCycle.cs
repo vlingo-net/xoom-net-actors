@@ -9,10 +9,10 @@ using System;
 
 namespace Vlingo.Actors
 {
-    public sealed class LifeCycle
+    internal sealed class LifeCycle
     {
 
-        public Environment Environment { get; set; }
+        internal Environment Environment { get; set; }
         
         internal LifeCycle(Environment environment)
         {

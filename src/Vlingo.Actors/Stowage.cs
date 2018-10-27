@@ -11,7 +11,7 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public class Stowage
+    internal class Stowage
     {
         private Queue<IMessage> stowedMessages;
         private AtomicBoolean dispersing;
@@ -36,7 +36,7 @@ namespace Vlingo.Actors
 
         protected internal bool HasMessages => stowedMessages.Count > 0;
 
-        internal IMessage Head
+        protected internal IMessage Head
         {
             get
             {

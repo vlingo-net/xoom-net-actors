@@ -25,5 +25,10 @@ namespace Vlingo.Actors.Plugin
 
             return string.Equals(Name, ((IPlugin)obj).Name);
         }
+
+        public override int GetHashCode()
+        {
+            return $"{GetType().FullName}::{Name}".GetHashCode();
+        }
     }
 }

@@ -21,11 +21,11 @@ namespace Vlingo.Actors
             Error = error;
         }
 
-        public Address Address => actor.Address;
+        public virtual Address Address => actor.Address;
 
-        public void Escalate() => Supervisor.Supervisor.Inform(Error, this);
+        public virtual void Escalate() => Supervisor.Supervisor.Inform(Error, this);
 
-        public void RestartWithin(long period, int intensity, Scope scope)
+        public virtual void RestartWithin(long period, int intensity, Scope scope)
         {
             if (FailureThresholdReached(period, intensity))
             {
@@ -47,13 +47,13 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Resume()
+        public virtual void Resume()
         {
             actor.LifeCycle.BeforeResume<T>(actor, Error);
             actor.LifeCycle.Resume();
         }
 
-        public void Stop(Scope scope)
+        public virtual void Stop(Scope scope)
         {
             if(scope == Scope.One)
             {
@@ -68,11 +68,11 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Suspend() => actor.LifeCycle.Suspend();
+        public virtual void Suspend() => actor.LifeCycle.Suspend();
 
-        public ISupervisor Supervisor => actor.LifeCycle.Supervisor<T>();
+        public virtual ISupervisor Supervisor => actor.LifeCycle.Supervisor<T>();
 
-        public Exception Error { get; }
+        public virtual Exception Error { get; }
 
         private IEnumerable<Actor> SelfWithSiblings()
             => EnvironmentOf(EnvironmentOf(actor).Parent).Children;

@@ -19,17 +19,6 @@ namespace Vlingo.Actors
 {
     public class Configuration
     {
-        private ConcurrentQueueMailboxPluginConfiguration concurrentQueueMailboxPluginConfiguration;
-        private CommonSupervisorsPluginConfiguration commonSupervisorsPluginConfiguration;
-        private DefaultSupervisorOverridePluginConfiguration defaultSupervisorOverridePluginConfiguration;
-        private ConsoleLoggerPluginConfiguration jdkLoggerPluginConfiguration;
-        private PooledCompletesPluginConfiguration pooledCompletesPluginConfiguration;
-        private ManyToOneConcurrentArrayQueuePluginConfiguration manyToOneConcurrentArrayQueuePluginConfiguration;
-        private SharedRingBufferMailboxPluginConfiguration sharedRingBufferMailboxPluginConfiguration;
-        private string mainProxyGeneratedClassesPath;
-        private string mainProxyGeneratedSourcesPath;
-        private string testProxyGeneratedClassesPath;
-        private string testProxyGeneratedSourcesPath;
         private List<IPlugin> plugins;
 
         public static Configuration Define() => new Configuration();

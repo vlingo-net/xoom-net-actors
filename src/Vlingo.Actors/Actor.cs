@@ -98,7 +98,7 @@ namespace Vlingo.Actors
             }
         }
 
-        internal ICompletes<T> Completes<T>()
+        internal protected ICompletes<T> Completes<T>()
         {
             if(completes == null)
             {
@@ -110,7 +110,7 @@ namespace Vlingo.Actors
 
         protected Definition Definition => LifeCycle.Definition;
 
-        internal ILogger Logger => LifeCycle.Environment.Logger;
+        internal protected ILogger Logger => LifeCycle.Environment.Logger;
 
         protected T ParentAs<T>()
         {
@@ -128,7 +128,7 @@ namespace Vlingo.Actors
             LifeCycle.Secure();
         }
 
-        internal T SelfAs<T>()
+        internal protected T SelfAs<T>()
         {
             return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
         }
@@ -142,7 +142,7 @@ namespace Vlingo.Actors
             return new OutcomeInterestActorProxy<TOutcome, TRef>(outcomeAware, reference);
         }
 
-        internal Stage Stage
+        internal protected Stage Stage
         {
             get
             {
@@ -155,26 +155,29 @@ namespace Vlingo.Actors
             }
         }
 
-        protected Stage StageNamed(string name)
+        internal protected Stage StageNamed(string name)
         {
             return LifeCycle.Environment.Stage.World.StageNamed(name);
         }
 
+        //=======================================
+        // stowing/dispersing
+        //=======================================
 
-        internal bool IsDispersing =>
+        internal protected virtual bool IsDispersing =>
             LifeCycle.Environment.Stowage.IsDispersing;
 
 
-        protected void DisperseStowedMessages()
+        internal protected virtual void DisperseStowedMessages()
         {
             LifeCycle.Environment.Stowage.DispersingMode();
         }
 
-        internal bool IsStowing =>
+        internal protected virtual bool IsStowing =>
             LifeCycle.Environment.Stowage.IsStowing;
 
 
-        protected void StowMessages()
+        internal protected virtual void StowMessages()
         {
             LifeCycle.Environment.Stowage.StowingMode();
         }
@@ -183,29 +186,29 @@ namespace Vlingo.Actors
         // life cycle overrides
         //=======================================
 
-        internal virtual void BeforeStart()
+        internal protected virtual void BeforeStart()
         {
             // override
         }
 
-        internal virtual void AfterStop()
+        internal protected virtual void AfterStop()
         {
             // override
         }
 
-        internal virtual void BeforeRestart(Exception reason)
+        internal protected virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);
         }
 
-        internal virtual void AfterRestart(Exception reason)
+        internal protected virtual void AfterRestart(Exception reason)
         {
             // override
             LifeCycle.BeforeStart(this);
         }
 
-        internal virtual void BeforeResume(Exception reason)
+        internal protected virtual void BeforeResume(Exception reason)
         {
             // override
         }

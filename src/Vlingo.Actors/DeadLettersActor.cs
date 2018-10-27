@@ -43,7 +43,7 @@ namespace Vlingo.Actors
             listeners.Add(listener);
         }
 
-        internal override void AfterStop()
+        internal protected override void AfterStop()
         {
             Stage.World.DeadLetters = null;
             base.AfterStop();

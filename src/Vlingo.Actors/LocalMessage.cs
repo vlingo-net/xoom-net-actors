@@ -35,7 +35,7 @@ namespace Vlingo.Actors
 
         private Action<T> Consumer { get; }
 
-        public void Deliver()
+        public virtual void Deliver()
         {
             if (Actor.LifeCycle.IsResuming)
             {
@@ -59,7 +59,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public string Representation { get; }
+        public virtual string Representation { get; }
 
         public virtual bool IsStowed => false;
 

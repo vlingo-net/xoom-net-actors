@@ -11,7 +11,7 @@ using static Vlingo.Common.Compiler.DynaNaming;
 
 namespace Vlingo.Actors
 {
-    public sealed class ActorProxy
+    internal static class ActorProxy
     {
         private static readonly DynaClassLoader classLoader = new DynaClassLoader(typeof(ActorProxy).GetAssemblyLoadContext());
         private static readonly DynaCompiler proxyCompiler = new DynaCompiler();

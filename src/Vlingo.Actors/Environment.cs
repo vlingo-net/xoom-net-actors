@@ -11,7 +11,7 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public class Environment
+    internal class Environment
     {
         internal Address Address { get; }
         internal List<Actor> Children { get; }

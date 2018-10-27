@@ -7,7 +7,7 @@
 
 namespace Vlingo.Actors
 {
-    public class DirectoryScannerActor : Actor, IDirectoryScanner
+    internal class DirectoryScannerActor : Actor, IDirectoryScanner
     {
         private readonly Directory directory;
 

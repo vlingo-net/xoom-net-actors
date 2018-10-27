@@ -27,7 +27,7 @@ namespace Vlingo.Actors
         ICompletes<T> AndThen(Action<T> consumer);
         ICompletes<T> AtLast(Action<T> consumer);
         ICompletes<T> AtLast(Func<T> supplier);
-        T Outcome { get; }
+        new T Outcome { get; }
         ICompletes<TOutcome> With<TOutcome>(TOutcome outcome);
     }
 
