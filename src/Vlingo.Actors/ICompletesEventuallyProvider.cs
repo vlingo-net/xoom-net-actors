@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
@@ -16,6 +17,6 @@ namespace Vlingo.Actors
         void Close();
         ICompletesEventually CompletesEventually { get; }
         void InitializeUsing(Stage stage);
-        ICompletesEventually ProvideCompletesFor(ICompletes clientCompletes);
+        ICompletesEventually ProvideCompletesFor(ICompletes<object> clientCompletes);
     }
 }

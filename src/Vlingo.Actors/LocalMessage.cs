@@ -6,18 +6,22 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public class LocalMessage<T> : IMessage
     {
-        private readonly ICompletes completes;
+        private Actor actor;
+        private ICompletes<object> completes;
+        private Action<T> consumer;
+        private string representation;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
         {
-            Actor = actor;
-            Consumer = consumer;
-            Representation = representation;
+            this.actor = actor;
+            this.consumer = consumer;
+            this.representation = representation;
             this.completes = completes;
         }
 
@@ -27,17 +31,19 @@ namespace Vlingo.Actors
         }
 
         public LocalMessage(LocalMessage<T> message)
-            : this(message.Actor, message.Consumer, null, message.Representation)
+            : this(message.actor, message.consumer, message.completes, message.representation)
         {
         }
 
-        public Actor Actor { get; }
+        public LocalMessage(IMailbox mailbox)
+        {
+        }
 
-        private Action<T> Consumer { get; }
+        public virtual Actor Actor => actor;
 
         public virtual void Deliver()
         {
-            if (Actor.LifeCycle.IsResuming)
+            if (actor.LifeCycle.IsResuming)
             {
                 if (IsStowed)
                 {
@@ -45,13 +51,14 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
+                    InternalDeliver(actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
                 }
-                Actor.LifeCycle.NextResuming();
+                actor.LifeCycle.NextResuming();
             }
-            else if (Actor.IsDispersing)
+            else if (actor.IsDispersing)
             {
-                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith<T>(this));
+                InternalDeliver(this);
+                actor.LifeCycle.NextDispersing();
             }
             else
             {
@@ -59,56 +66,66 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual string Representation { get; }
-
         public virtual bool IsStowed => false;
 
-        public override string ToString() => $"LocalMessage[{Representation}]";
+        public virtual string Representation => representation;
+
+        public void Set(Actor actor, Action<object> consumer, ICompletes<object> completes, string representation)
+        {
+            this.actor = actor;
+            this.consumer = (Action<T>)(object)consumer;
+            this.representation = representation;
+            this.completes = completes;
+        }
+
+        public override string ToString() => $"LocalMessage[{representation}]";
 
         private void DeadLetter()
         {
-            var deadLetter = new DeadLetter(Actor, Representation);
-            var deadLetters = Actor.DeadLetters;
+            var deadLetter = new DeadLetter(actor, representation);
+            var deadLetters = actor.DeadLetters;
             if(deadLetters != null)
             {
                 deadLetters.FailedDelivery(deadLetter);
             }
             else
             {
-                Actor.Logger.Log($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
+                actor.Logger.Log($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
             }
         }
 
         private void InternalDeliver(IMessage message)
         {
-            if (Actor.IsStopped)
+            var protocol = typeof(T);
+
+            if (actor.IsStopped)
             {
                 DeadLetter();
             }
-            else if (Actor.LifeCycle.IsSuspended)
+            else if (actor.LifeCycle.IsSuspended)
             {
-                Actor.LifeCycle.Environment.Suspended.Stow<T>(message);
+                actor.LifeCycle.Environment.Suspended.Stow<T>(message);
             }
-            else if (Actor.IsStowing)
+            else if (actor.IsStowing && !actor.LifeCycle.Environment.IsStowageOverride(protocol))
             {
-                Actor.LifeCycle.Environment.Stowage.Stow<T>(message);
+                actor.LifeCycle.Environment.Stowage.Stow<T>(message);
             }
             else
             {
                 try
                 {
-                    Actor.completes = completes;
-                    Consumer.Invoke((T)(object)Actor);
-                    if (Actor.completes != null && Actor.completes.HasOutcome)
+                    actor.completes.Reset(completes);
+                    consumer.Invoke(actor);
+                    if (actor.completes.__internal__outcomeSet)
                     {
-                        var outcome = Actor.completes.Outcome;
-                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(outcome);
+                        var outcome = actor.completes.Outcome;
+                        actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.__internal__outcome);
                     }
                 }
                 catch(Exception ex)
                 {
-                    Actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {Actor} sending: {Representation}", ex);
-                    Actor.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(Actor, ex));
+                    actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {actor} sending: {representation}", ex);
+                    actor.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(actor, ex));
                 }
             }
         }

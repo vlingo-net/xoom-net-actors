@@ -6,16 +6,14 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public interface IMessage
+    public interface ICompletesEventuallyProviderKeeper
     {
-        Actor Actor { get; }
-        void Deliver();
-        string Representation { get; }
-        bool IsStowed { get; }
-        void Set(Actor actor, Action<object> consumer, ICompletes<object> completes, string representation);
+        ICompletesEventuallyProvider ProviderFor(string name);
+        void Close();
+        ICompletesEventuallyProvider FindDefault();
+        void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider);
     }
 }

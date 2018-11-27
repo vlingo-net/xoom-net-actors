@@ -13,36 +13,40 @@ namespace Vlingo.Actors
 {
     internal static class ActorProxy
     {
-        private static readonly DynaClassLoader classLoader = new DynaClassLoader(typeof(ActorProxy).GetAssemblyLoadContext());
+        private static readonly DynaClassLoader classLoader = new DynaClassLoader();
         private static readonly DynaCompiler proxyCompiler = new DynaCompiler();
+        private static readonly object _createForMutex = new object();
 
         public static T CreateFor<T>(Actor actor, IMailbox mailbox)
             => (T)CreateFor(typeof(T), actor, mailbox);
 
         public static object CreateFor(Type protocol, Actor actor, IMailbox mailbox)
         {
-            var proxyClassName = FullyQualifiedClassNameFor(protocol, "__Proxy");
-
-            var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
-
-            if(maybeProxy != null)
+            lock (_createForMutex)
             {
-                return maybeProxy;
-            }
+                var proxyClassName = FullyQualifiedClassNameFor(protocol, "__Proxy");
 
-            object newProxy;
-            try
-            {
-                newProxy = TryCreate(actor, mailbox, proxyClassName);
-            }
-            catch (Exception)
-            {
-                newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassName);
-            }
+                var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
 
-            actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
+                if (maybeProxy != null)
+                {
+                    return maybeProxy;
+                }
 
-            return newProxy;
+                object newProxy;
+                try
+                {
+                    newProxy = TryCreate(actor, mailbox, proxyClassName);
+                }
+                catch (Exception)
+                {
+                    newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassName);
+                }
+
+                actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
+
+                return newProxy; 
+            }
         }
 
         private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassName)
@@ -61,14 +65,14 @@ namespace Vlingo.Actors
                 var generator = ProxyGenerator.ForMain(true);
                 return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 try
                 {
                     var generator = ProxyGenerator.ForTest(true);
                     return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
                 }
-                catch(Exception etest)
+                catch (Exception etest)
                 {
                     throw new ArgumentException($"Actor proxy {protocol.Name} not created for main or test: {etest.Message}", etest);
                 }

@@ -22,7 +22,7 @@ namespace Vlingo.Actors.Tests
             var actorDefinition = state.ValueOf<Definition>("definition");
 
             Assert.Empty(TestWorld.AllMessagesFor(env.Address));
-            Assert.Equal(TestWorld.World.AddressFactory.TestNextIdValue() - 1, state.ValueOf<Address>("address").Id);
+            Assert.Equal(TestWorld.World.AddressFactory.TestNextIdValue() - 1, state.ValueOf<IAddress>("address").Id);
             Assert.Equal(definition.ActorName, actorDefinition.ActorName);
             Assert.Equal(definition.Parameters(), actorDefinition.Parameters());
             Assert.Equal(TestWorld.World.DefaultParent, state.ValueOf<Actor>("parent"));

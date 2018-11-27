@@ -29,7 +29,7 @@ namespace Vlingo.Actors.TestKit
 
         private readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
 
-        public IList<IMessage> AllMessagesFor(Address address)
+        public IList<IMessage> AllMessagesFor(IAddress address)
             => actorMessages.ContainsKey(address.Id) ? actorMessages[address.Id] : new List<IMessage>();
 
         public static TestWorld Start(string name)

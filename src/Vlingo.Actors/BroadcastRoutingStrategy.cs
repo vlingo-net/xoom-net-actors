@@ -5,10 +5,19 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System.Collections.Generic;
+
 namespace Vlingo.Actors
 {
-    public interface IScheduled
+    public class BroadcastRoutingStrategy : RoutingStrategyAdapter
     {
-        void IntervalSignal(IScheduled scheduled, object data);
+        public BroadcastRoutingStrategy()
+        {
+        }
+
+        protected override IRouting ChooseRouteFor(IEnumerable<IRoutee> routees)
+        {
+            return Routing.With(routees);
+        }
     }
 }

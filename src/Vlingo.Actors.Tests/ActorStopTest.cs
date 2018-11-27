@@ -95,7 +95,7 @@ namespace Vlingo.Actors.Tests
                 ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), $"{pre}.3"));
             }
 
-            internal protected override void BeforeStart()
+            protected internal override void BeforeStart()
             {
                 base.BeforeStart();
                 if (testResults.untilStart != null)
@@ -105,7 +105,7 @@ namespace Vlingo.Actors.Tests
             }
 
             private static readonly object afterStopMutex = new object();
-            internal protected override void AfterStop()
+            protected internal override void AfterStop()
             {
                 lock (afterStopMutex)
                 {

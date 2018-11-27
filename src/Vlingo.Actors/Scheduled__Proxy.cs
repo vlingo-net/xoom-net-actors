@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
@@ -26,7 +27,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<IScheduled> consumer = actor => actor.IntervalSignal(scheduled, data);
-                mailbox.Send(new LocalMessage<IScheduled>(actor, consumer, RepresentationIntervalSignal1));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, RepresentationIntervalSignal1);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IScheduled>(actor, consumer, RepresentationIntervalSignal1));
+                }
             }
             else
             {

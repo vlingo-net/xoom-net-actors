@@ -11,7 +11,7 @@ namespace Vlingo.Actors
 {
     public class CompletesEventuallyActor : Actor, ICompletesEventually
     {
-        public void With(object outcome)
+        public virtual void With(object outcome)
         {
             try
             {

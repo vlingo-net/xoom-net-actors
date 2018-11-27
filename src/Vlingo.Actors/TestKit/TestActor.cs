@@ -9,7 +9,7 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestActor<T> : ITestStateView
     {
-        public TestActor(Actor actor, T protocol, Address address)
+        public TestActor(Actor actor, T protocol, IAddress address)
         {
             ActorInside = actor;
             Actor = protocol;
@@ -17,7 +17,7 @@ namespace Vlingo.Actors.TestKit
         }
 
         public T Actor { get; }
-        public Address Address { get; }
+        public IAddress Address { get; }
         public Actor ActorInside { get; }
 
         public TestState ViewTestState() => ActorInside.ViewTestState();

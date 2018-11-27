@@ -26,7 +26,7 @@ namespace Vlingo.Actors
         {
             World = world;
             Name = name;
-            directory = new Directory();
+            directory = new Directory(world.AddressFactory.None());
             commonSupervisors = new Dictionary<Type, ISupervisor>();
             scheduler = new Scheduler();
             stopped = new AtomicBoolean(false);
@@ -42,13 +42,16 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
-        public T ActorFor<T>(Definition definition, Address address, ILogger logger)
+        public T ActorFor<T>(Definition definition, IAddress address, ILogger logger)
         {
+            var actorAddress = AllocateAddress(definition, address);
+            var actorMailbox = AllocateMailbox(definition, actorAddress, null);
+
             var actor = ActorProtocolFor<T>(
                 definition,
                 definition.ParentOr(World.DefaultParent),
-                address,
-                null,
+                actorAddress,
+                actorMailbox,
                 definition.Supervisor,
                 logger);
 
@@ -62,13 +65,16 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 logger);
 
-        public T ActorFor<T>(Definition definition, Address address)
+        public T ActorFor<T>(Definition definition, IAddress address)
         {
+            var actorAddress = AllocateAddress(definition, address);
+            var actorMailbox = AllocateMailbox(definition, actorAddress, null);
+
             var actor = ActorProtocolFor<T>(
                 definition,
                 definition.ParentOr(World.DefaultParent),
-                address,
-                null,
+                actorAddress,
+                actorMailbox,
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
@@ -84,7 +90,7 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger)));
 
-        public ICompletes<T> ActorOf<T>(Address address) => directoryScanner.ActorOf<T>(address);
+        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner.ActorOf<T>(address);
 
         public TestActor<T> TestActorFor<T>(Definition definition)
         {
@@ -189,7 +195,7 @@ namespace Vlingo.Actors
         internal ActorProtocolActor<T> ActorProtocolFor<T>(
             Definition definition, 
             Actor parent,
-            Address maybeAddress,
+            IAddress maybeAddress,
             IMailbox maybeMailbox,
             ISupervisor maybeSupervisor,
             ILogger logger)
@@ -213,7 +219,7 @@ namespace Vlingo.Actors
             Definition definition,
             Type[] protocols,
             Actor parent,
-            Address maybeAddress,
+            IAddress maybeAddress,
             IMailbox maybeMailbox,
             ISupervisor maybeSupervisor,
             ILogger logger)
@@ -284,10 +290,16 @@ namespace Vlingo.Actors
             }
         }
 
+        private IAddress AllocateAddress(Definition definition, IAddress maybeAddress)
+            => maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
+
+        private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox maybeMailbox)
+            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition);
+
         private Actor CreateRawActor(
           Definition definition,
           Actor parent,
-          Address maybeAddress,
+          IAddress maybeAddress,
           IMailbox maybeMailbox,
           ISupervisor maybeSupervisor,
           ILogger logger)
@@ -313,9 +325,8 @@ namespace Vlingo.Actors
             }
             catch(Exception e)
             {
-                logger.Log($"Actor instantiation failed because: {e.Message}");
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                logger.Log($"Actor instantiation failed because: {e.Message}", e);
+
                 throw new InvalidOperationException($"Actor instantiation failed because: {e.Message}", e);
             }
 

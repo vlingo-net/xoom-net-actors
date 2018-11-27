@@ -5,10 +5,12 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Common;
+
 namespace Vlingo.Actors
 {
     public interface IDirectoryScanner
     {
-        ICompletes<T> ActorOf<T>(Address address);
+        ICompletes<T> ActorOf<T>(IAddress address);
     }
 }

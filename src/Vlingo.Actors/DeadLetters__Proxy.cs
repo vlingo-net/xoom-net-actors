@@ -27,7 +27,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = actor => actor.Stop();
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "Stop()"));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "Stop()");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "Stop()"));
+                }
             }
             else
             {
@@ -40,7 +47,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = actor => actor.FailedDelivery(deadLetter);
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "FailedDelivery(DeadLetter)"));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "FailedDelivery(DeadLetter)");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "FailedDelivery(DeadLetter)"));
+                }
             }
             else
             {
@@ -53,7 +67,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = actor => actor.RegisterListener(listener);
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "RegisterListener(DeadLettersListener)"));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "RegisterListener(DeadLettersListener)");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "RegisterListener(DeadLettersListener)"));
+                }
             }
             else
             {

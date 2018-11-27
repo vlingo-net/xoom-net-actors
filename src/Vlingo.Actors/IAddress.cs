@@ -5,13 +5,18 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
+
 namespace Vlingo.Actors
 {
-    public class SuccessfulOutcome<TOutcome> : Outcome<TOutcome>
+    public interface IAddress : IComparable<IAddress>
     {
-        public SuccessfulOutcome(TOutcome value)
-            : base(value)
-        {
-        }
+        long Id { get; }
+        long IdSequence { get; }
+        string IdSequenceString { get; }
+        string IdString { get; }
+        T IdTyped<T>();
+        string Name { get; }
+        bool IsDistributable { get; }
     }
 }

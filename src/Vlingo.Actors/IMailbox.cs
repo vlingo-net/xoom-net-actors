@@ -5,6 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
+using Vlingo.Common;
+
 namespace Vlingo.Actors
 {
     // TODO: implement as a thread
@@ -15,11 +18,9 @@ namespace Vlingo.Actors
         bool IsDelivering { get; }
         bool Delivering(bool flag);
         void Send(IMessage message);
+        void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation);
         IMessage Receive();
-    }
-
-    public interface IRunnable
-    {
-        void Run();
+        bool IsPreallocated { get; }
+        int PendingMessages { get; }
     }
 }

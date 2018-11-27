@@ -7,44 +7,45 @@
 
 using System;
 using System.Collections.Generic;
+using Vlingo.Common;
 using Vlingo.Common.Compiler;
 
 namespace Vlingo.Actors
 {
-    public class World : IRegistrar
+    public sealed class World : IRegistrar
     {
-        internal const int PrivateRootId = int.MaxValue;
+        internal const long PrivateRootId = long.MaxValue;
         internal const string PrivateRootName = "#private";
-        internal const int PublicRootId = PrivateRootId - 1;
+        internal const long PublicRootId = PrivateRootId - 1;
         internal const string PublicRootName = "#public";
-        internal const int DeadLettersId = PublicRootId - 1;
+        internal const long DeadLettersId = PublicRootId - 1;
         internal const string DeadLettersName = "#deadLetters";
-        internal const int HighRootId = DeadLettersId - 1;
+        public const long HighRootId = DeadLettersId - 1;
         internal const string DefaultStage = "__defaultStage";
 
-        private readonly CompletesEventuallyProviderKeeper completesProviderKeeper;
-        private readonly LoggerProviderKeeper loggerProviderKeeper;
-        private readonly MailboxProviderKeeper mailboxProviderKeeper;
+        private readonly IDictionary<string, object> dynamicDependencies;
+        private readonly IDictionary<string, Stage> stages;
 
-        private IDictionary<string, Stage> stages;
+        private ICompletesEventuallyProviderKeeper completesProviderKeeper;
+        private ILoggerProviderKeeper loggerProviderKeeper;
+        private IMailboxProviderKeeper mailboxProviderKeeper;
+
         private ILogger defaultLogger;
         private ISupervisor defaultSupervisor;
-        private readonly DynaClassLoader classLoader;
 
         private World(string name, Configuration configuration)
         {
             Name = name;
             Configuration = configuration;
-            classLoader = new DynaClassLoader(GetType().GetAssemblyLoadContext());
-            completesProviderKeeper = new CompletesEventuallyProviderKeeper();
-            loggerProviderKeeper = new LoggerProviderKeeper();
-            mailboxProviderKeeper = new MailboxProviderKeeper();
+            AddressFactory = new BasicAddressFactory();
+            completesProviderKeeper = new DefaultCompletesEventuallyProviderKeeper();
+            loggerProviderKeeper = new DefaultLoggerProviderKeeper();
+            mailboxProviderKeeper = new DefaultMailboxProviderKeeper();
             stages = new Dictionary<string, Stage>();
-
-            AddressFactory = new AddressFactory();
 
             var defaultStage = StageNamed(DefaultStage);
 
+            configuration.StartPlugins(this, 0);
             configuration.StartPlugins(this, 1);
 
             StartRootFor(defaultStage, DefaultLogger);
@@ -53,7 +54,7 @@ namespace Vlingo.Actors
             defaultStage.StartDirectoryScanner();
         }
 
-        public AddressFactory AddressFactory { get; }
+        public IAddressFactory AddressFactory { get; }
 
         public Configuration Configuration { get; }
 
@@ -108,7 +109,7 @@ namespace Vlingo.Actors
 
         public IDeadLetters DeadLetters { get; internal set; }
 
-        public ICompletesEventually CompletesFor(ICompletes clientCompletes)
+        public ICompletesEventually CompletesFor(ICompletes<object> clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(clientCompletes);
 
         public ILogger DefaultLogger
@@ -143,7 +144,7 @@ namespace Vlingo.Actors
         {
             get
             {
-                if(defaultSupervisor == null)
+                if (defaultSupervisor == null)
                 {
                     defaultSupervisor = DefaultParent.SelfAs<ISupervisor>();
                 }
@@ -156,23 +157,23 @@ namespace Vlingo.Actors
 
         public string Name { get; }
 
-        public virtual void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider)
+        public void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider)
         {
             completesEventuallyProvider.InitializeUsing(Stage);
             completesProviderKeeper.Keep(name, completesEventuallyProvider);
         }
 
-        public virtual void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
+        public void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
         {
             var actualDefault = loggerProviderKeeper.FindDefault() == null ? true : isDefault;
             loggerProviderKeeper.Keep(name, actualDefault, loggerProvider);
             defaultLogger = loggerProviderKeeper.FindDefault().Logger;
         }
 
-        public virtual void Register(string name, bool isDefault, IMailboxProvider mailboxProvider)
+        public void Register(string name, bool isDefault, IMailboxProvider mailboxProvider)
             => mailboxProviderKeeper.Keep(name, isDefault, mailboxProvider);
 
-        public virtual void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
+        public void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
         {
             try
             {
@@ -187,7 +188,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
+        public void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
         {
             try
             {
@@ -203,6 +204,44 @@ namespace Vlingo.Actors
             }
         }
 
+        public void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper)
+        {
+            if (this.completesProviderKeeper != null)
+            {
+                this.completesProviderKeeper.Close();
+            }
+
+            this.completesProviderKeeper = keeper;
+        }
+
+        public void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper)
+        {
+            if (this.loggerProviderKeeper != null)
+            {
+                this.loggerProviderKeeper.Close();
+            }
+            this.loggerProviderKeeper = keeper;
+        }
+
+        public void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper)
+        {
+            if (this.mailboxProviderKeeper != null)
+            {
+                this.mailboxProviderKeeper.Close();
+            }
+            this.mailboxProviderKeeper = keeper;
+        }
+
+        public void RegisterDynamic(string name, object dep)
+        {
+            this.dynamicDependencies[name] = dep;
+        }
+
+        public TDependency ResolveDynamic<TDependency>(string name)
+        {
+            return (TDependency)this.dynamicDependencies[name];
+        }
+
         public Stage Stage => StageNamed(DefaultStage);
 
         private readonly object stageNamedMutex = new object();
@@ -210,10 +249,10 @@ namespace Vlingo.Actors
         {
             lock (stageNamedMutex)
             {
-                if(!stages.TryGetValue(name, out Stage stage))
+                if (!stages.TryGetValue(name, out Stage stage))
                 {
                     stage = new Stage(this, name);
-                    if(!string.Equals(name, DefaultStage))
+                    if (!string.Equals(name, DefaultStage))
                     {
                         stage.StartDirectoryScanner();
                     }
@@ -224,9 +263,9 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual bool IsTerminated => Stage.IsStopped;
+        public bool IsTerminated => Stage.IsStopped;
 
-        public virtual void Terminate()
+        public void Terminate()
         {
             if (!IsTerminated)
             {
@@ -272,7 +311,7 @@ namespace Vlingo.Actors
         {
             lock (defaultParentMutex)
             {
-                if(defaultParent != null && DefaultParent != null)
+                if (defaultParent != null && DefaultParent != null)
                 {
                     throw new InvalidOperationException("Default parent already exists.");
                 }
@@ -286,7 +325,7 @@ namespace Vlingo.Actors
         {
             lock (deadLettersMutex)
             {
-                if(deadLetters != null && DeadLetters != null)
+                if (deadLetters != null && DeadLetters != null)
                 {
                     deadLetters.Stop();
                     throw new InvalidOperationException("Dead letters already exists.");
@@ -309,7 +348,7 @@ namespace Vlingo.Actors
                     throw new InvalidOperationException("Private root already exists.");
                 }
 
-                PrivateRoot = privateRoot; 
+                PrivateRoot = privateRoot;
             }
         }
 

@@ -6,13 +6,14 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public class StowedLocalMessage<T> : LocalMessage<T>
     {
-        public StowedLocalMessage(Actor actor, Action<T> consumer, string representation)
-            : base(actor, consumer, representation)
+        public StowedLocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
+            : base(actor, consumer, completes, representation)
         {
         }
 

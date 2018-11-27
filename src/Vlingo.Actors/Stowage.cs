@@ -5,7 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Collections.Generic;
 using Vlingo.Common;
 
@@ -14,19 +13,22 @@ namespace Vlingo.Actors
     internal class Stowage
     {
         private Queue<IMessage> stowedMessages;
-        private AtomicBoolean dispersing;
-        private AtomicBoolean stowing;
+        private bool dispersing;
+        private bool stowing;
 
         public Stowage()
         {
-            dispersing = new AtomicBoolean(false);
-            stowing = new AtomicBoolean(false);
+            dispersing = false;
+            stowing = false;
             Reset();
         }
 
-        protected internal int Count => stowedMessages.Count;
+        public override string ToString()
+            => $"Stowage[stowing={stowing}, dispersing={dispersing}, messages={stowedMessages}]";
 
-        protected internal void Dump(ILogger logger)
+        internal int Count => stowedMessages.Count;
+
+        internal void Dump(ILogger logger)
         {
             foreach (var message in stowedMessages)
             {
@@ -34,9 +36,9 @@ namespace Vlingo.Actors
             }
         }
 
-        protected internal bool HasMessages => stowedMessages.Count > 0;
+        internal bool HasMessages => stowedMessages.Count > 0;
 
-        protected internal IMessage Head
+        internal IMessage Head
         {
             get
             {
@@ -50,38 +52,58 @@ namespace Vlingo.Actors
             }
         }
 
-        protected internal void Reset()
+        internal void Reset()
         {
             stowedMessages = new Queue<IMessage>();
-            stowing.Set(false);
-            dispersing.Set(false);
+            stowing = false;
+            dispersing = false;
         }
 
-        protected internal bool IsStowing => stowing.Get();
+        internal bool IsStowing => stowing;
 
-        public void StowingMode()
+        internal void StowingMode()
         {
-            stowing.Set(true);
-            dispersing.Set(false);
+            stowing = true;
+            dispersing = false;
         }
 
-        protected internal bool IsDispersing => dispersing.Get();
+        internal bool IsDispersing => dispersing;
 
-        protected internal void DispersingMode()
+        internal void DispersingMode()
         {
-            stowing.Set(false);
-            dispersing.Set(true);
+            stowing = false;
+            dispersing = true;
         }
 
-        protected internal void Stow<T>(IMessage message)
+        void Restow(Stowage other)
         {
-            if (IsStowing)
+            var message = Head;
+            while (message != null)
             {
-                stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)message));
+                other.Stow(message);
+                message = Head;
             }
         }
 
-        protected internal IMessage SwapWith<T>(IMessage newerMessage)
+        internal void Stow(IMessage message)
+        {
+            if (IsStowing)
+            {
+                IMessage toStow = null;
+                if (message.IsStowed)
+                {
+                    toStow = message;
+                }
+                else
+                {
+                    toStow = new StowedLocalMessage<object>((LocalMessage<object>)message);
+                }
+
+                stowedMessages.Enqueue(toStow);
+            }
+        }
+
+        internal IMessage SwapWith<T>(IMessage newerMessage)
         {
             if (!HasMessages)
             {

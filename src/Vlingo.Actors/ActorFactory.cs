@@ -10,15 +10,59 @@ using System.Threading;
 
 namespace Vlingo.Actors
 {
-    internal class ActorFactory
+    internal static class ActorFactory
     {
         internal static readonly ThreadLocal<Environment> ThreadLocalEnvironment = new ThreadLocal<Environment>(false);
+
+        public static Type ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
+            => ActorClassWithProtocol(actorClassname, typeof(TProtocol));
+
+        public static Type ActorClassWithProtocol(string actorClassname, Type protocolClass)
+        {
+            try
+            {
+                var actorClass = Type.GetType(actorClassname);
+                AssertActorWithProtocol(actorClass, protocolClass);
+                return actorClass;
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException($"The class {actorClassname} cannot be loaded because: {e.Message}", e);
+            }
+        }
+
+        private static void AssertActorWithProtocol(Type candidateActorClass, Type protocolClass)
+        {
+            var superclass = candidateActorClass.BaseType;
+            while (superclass != null)
+            {
+                if (superclass == typeof(Actor))
+                {
+                    break;
+                }
+                superclass = superclass.BaseType;
+            }
+
+            if (superclass == null)
+            {
+                throw new ArgumentException($"Class must extend Vlingo.Actors.Actor: {candidateActorClass.FullName}");
+            }
+
+            foreach (var protocolInterfaceClass in candidateActorClass.GetInterfaces())
+            {
+                if (protocolClass == protocolInterfaceClass)
+                {
+                    return;
+                }
+            }
+            throw new ArgumentException($"Actor class {candidateActorClass.FullName} must implement: {protocolClass.FullName}");
+        }
 
         internal static Actor ActorFor(
           Stage stage,
           Actor parent,
           Definition definition,
-          Address address,
+          IAddress address,
           IMailbox mailbox,
           ISupervisor supervisor,
           ILogger logger)
@@ -54,10 +98,18 @@ namespace Vlingo.Actors
                         actor = (Actor)ctor.Invoke(definition.InternalParameters().ToArray());
                         actor.LifeCycle.SendStart(actor);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
-                        logger.Log($"vlingo-net/actors: ActorFactory: failed because: {ex.Message}", ex);
-                        Console.WriteLine(ex.StackTrace);
+                        var cause = ex.InnerException ?? ex;
+                        logger.Log("ActorFactory: failed actor creation. "
+                                    + "This is sometimes cause be the constructor parameter types not matching "
+                                    + "the types in the Definition.parameters(). Often it is caused by a "
+                                    + "failure in the actor constructor. We have attempted to uncover "
+                                    + "the root cause here, but that may not be available in some cases.\n"
+                                    + "The root cause may be: " + cause.Message + "\n"
+                                    + "See stacktrace for more information. We strongly recommend reviewing your "
+                                    + "constructor for possible failures in dependencies that it creates.",
+                                    cause);
                     }
                     break;
                 }
@@ -78,7 +130,7 @@ namespace Vlingo.Actors
 
         internal static IMailbox ActorMailbox(
             Stage stage,
-            Address address,
+            IAddress address,
             Definition definition)
         {
             var mailboxName = stage.World.MailboxNameFrom(definition.MailboxName);

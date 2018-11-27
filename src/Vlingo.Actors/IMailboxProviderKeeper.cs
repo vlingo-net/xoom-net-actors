@@ -7,10 +7,12 @@
 
 namespace Vlingo.Actors
 {
-    public class FailureOutcome<T> : Outcome<T>
+    public interface IMailboxProviderKeeper
     {
-        public FailureOutcome(T value) : base(value)
-        {
-        }
+        IMailbox AssignMailbox(string name, int hashCode);
+        void Close();
+        string FindDefault();
+        void Keep(string name, bool isDefault, IMailboxProvider mailboxProvider);
+        bool IsValidMailboxName(string candidateMailboxName);
     }
 }

@@ -13,7 +13,7 @@ namespace Vlingo.Actors
     {
 
         internal Environment Environment { get; set; }
-        
+
         internal LifeCycle(Environment environment)
         {
             Environment = environment;
@@ -21,7 +21,7 @@ namespace Vlingo.Actors
 
         public override int GetHashCode() => Address.GetHashCode();
 
-        internal Address Address => Environment.Address;
+        internal IAddress Address => Environment.Address;
 
         internal Definition Definition
         {
@@ -124,8 +124,15 @@ namespace Vlingo.Actors
             try
             {
                 Action<IStartable> consumer = actor => actor.Start();
-                var message = new LocalMessage<IStartable>(targetActor, consumer, "Start()");
-                Environment.Mailbox.Send(message);
+                if (!Environment.Mailbox.IsPreallocated)
+                {
+                    var message = new LocalMessage<IStartable>(targetActor, consumer, "Start()");
+                    Environment.Mailbox.Send(message);
+                }
+                else
+                {
+                    Environment.Mailbox.Send(targetActor, consumer, null, "Start()");
+                }
             }
             catch (Exception ex)
             {
@@ -146,13 +153,26 @@ namespace Vlingo.Actors
             SendFirstIn(Environment.Stowage);
         }
 
-        private void SendFirstIn(Stowage stowage)
+        internal void NextDispersing()
+        {
+            if (IsDispersing)
+            {
+                if (!SendFirstIn(Environment.Stowage))
+                {
+                    Environment.Stowage.Reset();
+                }
+            }
+        }
+
+        internal bool SendFirstIn(Stowage stowage)
         {
             var maybeMessage = stowage.Head;
             if (maybeMessage != null)
             {
                 Environment.Mailbox.Send(maybeMessage);
+                return true;
             }
+            return falase;
         }
 
         internal bool IsStowing => Environment.Stowage.IsStowing;
@@ -187,6 +207,7 @@ namespace Vlingo.Actors
         internal void Suspend()
         {
             Environment.Suspended.StowingMode();
+            Environment.Stowage.Restow(Environment.Suspended);
         }
 
         internal ISupervisor Supervisor<T>()

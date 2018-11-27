@@ -23,7 +23,9 @@ namespace Vlingo.Actors
             this.actor = actor;
             this.mailbox = mailbox;
         }
+
         public bool IsEnabled => false;
+
         public string Name => null;
 
         public void Log(string message)
@@ -31,7 +33,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<ILogger> consumer = actor => actor.Log(message);
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation1));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, LogRepresentation1);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation1));
+                }
             }
             else
             {
@@ -43,7 +52,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<ILogger> consumer = actor => actor.Log(message, ex);
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation2));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, LogRepresentation2);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation2));
+                }
             }
             else
             {
@@ -55,7 +71,14 @@ namespace Vlingo.Actors
             if (!actor.IsStopped)
             {
                 Action<ILogger> consumer = actor => actor.Close();
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, CloseRepresentation3));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, CloseRepresentation3);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, CloseRepresentation3));
+                }
             }
             else
             {

@@ -42,35 +42,35 @@ namespace Vlingo.Actors.Tests.Supervision
             throw new ApplicationException("Intended failure.");
         }
 
-        internal protected override void BeforeStart()
+        protected internal override void BeforeStart()
         {
             testResults.BeforeStartCount.IncrementAndGet();
             testResults.UntilFailNow.Happened();
             base.BeforeStart();
         }
 
-        internal protected override void AfterStop()
+        protected internal override void AfterStop()
         {
             testResults.AfterStopCount.IncrementAndGet();
             testResults.UntilFailNow.Happened();
             base.AfterStop();
         }
 
-        internal protected override void BeforeRestart(Exception reason)
+        protected internal override void BeforeRestart(Exception reason)
         {
             testResults.BeforeRestartCount.IncrementAndGet();
             testResults.UntilFailNow.Happened();
             base.BeforeRestart(reason);
         }
 
-        internal protected override void AfterRestart(Exception reason)
+        protected internal override void AfterRestart(Exception reason)
         {
             base.AfterRestart(reason);
             testResults.AfterRestartCount.IncrementAndGet();
             testResults.UntilAfterRestart.Happened();
         }
 
-        internal protected override void BeforeResume(Exception reason)
+        protected internal override void BeforeResume(Exception reason)
         {
             testResults.BeforeResume.IncrementAndGet();
             testResults.UntilBeforeResume.Happened();

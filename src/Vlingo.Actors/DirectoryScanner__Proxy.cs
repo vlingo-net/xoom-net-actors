@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
@@ -22,13 +23,21 @@ namespace Vlingo.Actors
             this.mailbox = mailbox;
         }
 
-        public ICompletes<T> ActorOf<T>(Address address)
+        public ICompletes<T> ActorOf<T>(IAddress address)
         {
             if (!actor.IsStopped)
             {
                 Action<IDirectoryScanner> consumer = actor => actor.ActorOf<T>(address);
                 var completes = new BasicCompletes<T>(actor.Scheduler);
-                mailbox.Send(new LocalMessage<IDirectoryScanner>(actor, consumer, completes, ActorOfRepresentation1));
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, completes, ActorOfRepresentation1);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDirectoryScanner>(actor, consumer, completes, ActorOfRepresentation1));
+                }
+                
                 return completes;
             }
             else

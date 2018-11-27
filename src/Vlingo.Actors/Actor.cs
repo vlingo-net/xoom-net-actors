@@ -7,15 +7,16 @@
 
 using System;
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal ICompletes completes;
+        internal ResultCompletes completes;
         internal LifeCycle LifeCycle { get; }
 
-        public virtual Address Address => LifeCycle.Address;
+        public virtual IAddress Address => LifeCycle.Address;
 
         public virtual IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
@@ -33,6 +34,7 @@ namespace Vlingo.Actors
             {
                 if (LifeCycle.Address.Id != World.DeadLettersId)
                 {
+                    // TODO: remove this actor as a child on parent
                     LifeCycle.Stop(this);
                 }
             }
@@ -54,7 +56,7 @@ namespace Vlingo.Actors
 
         public override string ToString() => $"Actor[type={GetType().Name} address={Address}]";
 
-        internal Actor Parent
+        internal virtual Actor Parent
         {
             get
             {
@@ -72,9 +74,10 @@ namespace Vlingo.Actors
             var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
             LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
             ActorFactory.ThreadLocalEnvironment.Value = null;
+            completes = new ResultCompletes();
         }
 
-        protected T ChildActorFor<T>(Definition definition)
+        protected internal virtual T ChildActorFor<T>(Definition definition)
         {
             if (definition.Supervisor != null)
             {
@@ -98,7 +101,7 @@ namespace Vlingo.Actors
             }
         }
 
-        internal protected ICompletes<T> Completes<T>()
+        protected internal virtual ICompletes<T> Completes<T>()
         {
             if(completes == null)
             {
@@ -108,11 +111,14 @@ namespace Vlingo.Actors
             return (ICompletes<T>)completes;
         }
 
-        protected Definition Definition => LifeCycle.Definition;
+        protected internal virtual ICompletesEventually CompletesEventually()
+            => LifeCycle.Environment.Stage.World.CompletesFor(completes.ClientCompletes());
 
-        internal protected ILogger Logger => LifeCycle.Environment.Logger;
+        protected internal virtual Definition Definition => LifeCycle.Definition;
 
-        protected T ParentAs<T>()
+        protected internal virtual ILogger Logger => LifeCycle.Environment.Logger;
+
+        protected internal virtual T ParentAs<T>()
         {
             if (LifeCycle.Environment.IsSecured)
             {
@@ -123,26 +129,17 @@ namespace Vlingo.Actors
             return LifeCycle.Environment.Stage.ActorProxyFor<T>(parent, parent.LifeCycle.Environment.Mailbox);
         }
 
-        protected void Secure()
+        protected virtual void Secure()
         {
             LifeCycle.Secure();
         }
 
-        internal protected T SelfAs<T>()
+        protected internal virtual T SelfAs<T>()
         {
             return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
         }
 
-        protected IOutcomeInterest<TOutcome> SelfAsOutcomeInterest<TOutcome, TRef>(TRef reference)
-        {
-            var outcomeAware = LifeCycle.Environment.Stage.ActorProxyFor<IOutcomeAware<TOutcome, TRef>>(
-                this,
-                LifeCycle.Environment.Mailbox);
-
-            return new OutcomeInterestActorProxy<TOutcome, TRef>(outcomeAware, reference);
-        }
-
-        internal protected Stage Stage
+        protected internal Stage Stage
         {
             get
             {
@@ -155,7 +152,7 @@ namespace Vlingo.Actors
             }
         }
 
-        internal protected Stage StageNamed(string name)
+        protected internal virtual Stage StageNamed(string name)
         {
             return LifeCycle.Environment.Stage.World.StageNamed(name);
         }
@@ -164,51 +161,52 @@ namespace Vlingo.Actors
         // stowing/dispersing
         //=======================================
 
-        internal protected virtual bool IsDispersing =>
-            LifeCycle.Environment.Stowage.IsDispersing;
+        protected internal virtual bool IsDispersing =>
+            LifeCycle.IsDispersing;
 
 
-        internal protected virtual void DisperseStowedMessages()
+        protected internal virtual void DisperseStowedMessages()
         {
-            LifeCycle.Environment.Stowage.DispersingMode();
+            LifeCycle.DisperseStowedMessages();
         }
 
-        internal protected virtual bool IsStowing =>
-            LifeCycle.Environment.Stowage.IsStowing;
+        protected internal virtual bool IsStowing =>
+            LifeCycle.IsStowing;
 
 
-        internal protected virtual void StowMessages()
+        protected internal virtual void StowMessages(params Type[] stowageOverrides)
         {
-            LifeCycle.Environment.Stowage.StowingMode();
+            LifeCycle.StowMessages();
+            LifeCycle.Environment.StowageOverrides(stowageOverrides);
         }
 
         //=======================================
         // life cycle overrides
         //=======================================
 
-        internal protected virtual void BeforeStart()
+        protected internal virtual void BeforeStart()
         {
             // override
         }
 
-        internal protected virtual void AfterStop()
+        protected internal virtual void AfterStop()
         {
             // override
         }
 
-        internal protected virtual void BeforeRestart(Exception reason)
+        protected internal virtual void BeforeRestart(Exception reason)
         {
             // override
             LifeCycle.AfterStop(this);
         }
 
-        internal protected virtual void AfterRestart(Exception reason)
+        protected internal virtual void AfterRestart(Exception reason)
         {
             // override
             LifeCycle.BeforeStart(this);
         }
 
-        internal protected virtual void BeforeResume(Exception reason)
+        protected internal virtual void BeforeResume(Exception reason)
         {
             // override
         }
