@@ -23,15 +23,24 @@ namespace Vlingo.Actors
             this.actor = actor;
             this.mailbox = mailbox;
         }
+
         public bool IsEnabled => false;
+
         public string Name => null;
 
         public void Log(string message)
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Log(message);
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation1));
+                Action<ILogger> consumer = x => x.Log(message);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, LogRepresentation1);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation1));
+                }
             }
             else
             {
@@ -42,8 +51,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Log(message, ex);
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation2));
+                Action<ILogger> consumer = x => x.Log(message, ex);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, LogRepresentation2);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, LogRepresentation2));
+                }
             }
             else
             {
@@ -54,8 +70,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Close();
-                mailbox.Send(new LocalMessage<ILogger>(actor, consumer, CloseRepresentation3));
+                Action<ILogger> consumer = x => x.Close();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, CloseRepresentation3);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ILogger>(actor, consumer, CloseRepresentation3));
+                }
             }
             else
             {

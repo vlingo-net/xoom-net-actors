@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Concurrent;
 using Vlingo.Common;
 
@@ -27,7 +28,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public void Close()
         {
-            queue.Clear();
+            // queue.Clear();
             dispatcher.Close();
         }
 
@@ -54,6 +55,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public bool IsDelivering => delivering.Get();
 
+        public bool IsPreallocated => false;
+
+        public int PendingMessages => queue.Count;
+
         public bool Delivering(bool flag) => delivering.CompareAndSet(!flag, flag);
 
         public void Run()
@@ -77,6 +82,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             {
                 dispatcher.Execute(this);
             }
+        }
+
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        {
+            throw new NotSupportedException("Not a preallocated mailbox.");
         }
     }
 }

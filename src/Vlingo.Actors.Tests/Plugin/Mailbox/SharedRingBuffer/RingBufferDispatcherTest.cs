@@ -7,8 +7,8 @@
 
 using System;
 using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
-using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
@@ -30,8 +30,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
-                var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
-                mailbox.Send(message);
+                mailbox.Send(actor, consumer, null, "Take(int)");
             }
 
             testResults.Until.Completes();
@@ -42,9 +41,10 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
-                var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
-                mailbox.Send(message);
+                mailbox.Send(actor, consumer, null, "Take(int)");
             }
+
+            Until(0).Completes();
 
             Assert.Equal(mailboxSize, testResults.Highest.Get());
         }
@@ -64,8 +64,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
-                var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
-                mailbox.Send(message);
+                mailbox.Send(actor, consumer, null, "Take(int)");
             }
 
             testResults.Until.Completes();
@@ -88,8 +87,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
-                var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
-                mailbox.Send(message);
+                mailbox.Send(actor, consumer, null, "Take(int)");
             }
 
             dispatcher.Start();

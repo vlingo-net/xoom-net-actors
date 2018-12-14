@@ -5,8 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.TestKit;
+using NSubstitute;
+using System;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -43,6 +45,17 @@ namespace Vlingo.Actors.Tests
             Assert.True(testResults.Invoked.Get());
         }
 
+        [Fact]
+        public void TestThatARegisteredDependencyCanBeResolved()
+        {
+            var name = Guid.NewGuid().ToString();
+            var dep = Substitute.For<IAnyDependecy>();
+            World.RegisterDynamic(name, dep);
+
+            var result = World.ResolveDynamic<IAnyDependecy>(name);
+            Assert.Same(dep, result);
+        }
+
         [Fact(DisplayName = "TestTermination")]
         public override void Dispose()
         {
@@ -72,6 +85,8 @@ namespace Vlingo.Actors.Tests
             public AtomicBoolean Invoked { get; set; } = new AtomicBoolean(false);
             public TestUntil UntilSimple { get; set; } = TestUntil.Happenings(0);
         }
+
+        public interface IAnyDependecy {}
     }
 
     public interface ISimpleWorld

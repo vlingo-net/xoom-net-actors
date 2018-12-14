@@ -6,38 +6,44 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public class LocalMessage<T> : IMessage
+    public class LocalMessage<TActor> : IMessage
     {
-        private readonly ICompletes completes;
+        private Actor actor;
+        private ICompletes completes;
+        private Action<TActor> consumer;
+        private string representation;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes completes, string representation)
         {
-            Actor = actor;
-            Consumer = consumer;
-            Representation = representation;
+            this.actor = actor;
+            this.consumer = consumer;
+            this.representation = representation;
             this.completes = completes;
         }
 
-        public LocalMessage(Actor actor, Action<T> consumer, string representation)
+        public LocalMessage(Actor actor, Action<TActor> consumer, string representation)
             : this(actor, consumer, null, representation)
         {
         }
 
-        public LocalMessage(LocalMessage<T> message)
-            : this(message.Actor, message.Consumer, null, message.Representation)
+        public LocalMessage(LocalMessage<TActor> message)
+            : this(message.actor, message.consumer, message.completes, message.representation)
         {
         }
 
-        public Actor Actor { get; }
+        public LocalMessage(IMailbox mailbox)
+        {
+        }
 
-        private Action<T> Consumer { get; }
+        public virtual Actor Actor => actor;
 
         public virtual void Deliver()
         {
-            if (Actor.LifeCycle.IsResuming)
+            if (actor.LifeCycle.IsResuming)
             {
                 if (IsStowed)
                 {
@@ -45,13 +51,14 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    InternalDeliver(Actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
+                    InternalDeliver(actor.LifeCycle.Environment.Suspended.SwapWith<TActor>(this));
                 }
-                Actor.LifeCycle.NextResuming();
+                actor.LifeCycle.NextResuming();
             }
-            else if (Actor.IsDispersing)
+            else if (actor.IsDispersing)
             {
-                InternalDeliver(Actor.LifeCycle.Environment.Stowage.SwapWith<T>(this));
+                InternalDeliver(this);
+                actor.LifeCycle.NextDispersing();
             }
             else
             {
@@ -59,56 +66,65 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual string Representation { get; }
-
         public virtual bool IsStowed => false;
 
-        public override string ToString() => $"LocalMessage[{Representation}]";
+        public virtual string Representation => representation;
+
+        public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes completes, string representation)
+        {
+            this.actor = actor;
+            this.consumer = (TActor x) => consumer.Invoke((TConsumer)(object)x);
+            this.representation = representation;
+            this.completes = completes;
+        }
+
+        public override string ToString() => $"LocalMessage[{representation}]";
 
         private void DeadLetter()
         {
-            var deadLetter = new DeadLetter(Actor, Representation);
-            var deadLetters = Actor.DeadLetters;
+            var deadLetter = new DeadLetter(actor, representation);
+            var deadLetters = actor.DeadLetters;
             if(deadLetters != null)
             {
                 deadLetters.FailedDelivery(deadLetter);
             }
             else
             {
-                Actor.Logger.Log($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
+                actor.Logger.Log($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
             }
         }
 
         private void InternalDeliver(IMessage message)
         {
-            if (Actor.IsStopped)
+            var protocol = typeof(TActor);
+
+            if (actor.IsStopped)
             {
                 DeadLetter();
             }
-            else if (Actor.LifeCycle.IsSuspended)
+            else if (actor.LifeCycle.IsSuspended)
             {
-                Actor.LifeCycle.Environment.Suspended.Stow<T>(message);
+                actor.LifeCycle.Environment.Suspended.Stow(message);
             }
-            else if (Actor.IsStowing)
+            else if (actor.IsStowing && !actor.LifeCycle.Environment.IsStowageOverride(protocol))
             {
-                Actor.LifeCycle.Environment.Stowage.Stow<T>(message);
+                actor.LifeCycle.Environment.Stowage.Stow(message);
             }
             else
             {
                 try
                 {
-                    Actor.completes = completes;
-                    Consumer.Invoke((T)(object)Actor);
-                    if (Actor.completes != null && Actor.completes.HasOutcome)
+                    actor.completes.Reset(completes);
+                    consumer.Invoke((TActor)(object)actor);
+                    if (actor.completes.HasInternalOutcomeSet)
                     {
-                        var outcome = Actor.completes.Outcome;
-                        Actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(outcome);
+                        actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.InternalOutcome);
                     }
                 }
                 catch(Exception ex)
                 {
-                    Actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {Actor} sending: {Representation}", ex);
-                    Actor.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(Actor, ex));
+                    actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {actor} sending: {representation}", ex);
+                    actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(actor, ex));
                 }
             }
         }

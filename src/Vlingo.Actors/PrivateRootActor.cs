@@ -24,7 +24,7 @@ namespace Vlingo.Actors
             Stage.ActorProtocolFor<INoProtocol>(
               Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
               this,
-              new Address(World.PublicRootId, World.PublicRootName),
+              Stage.World.AddressFactory.From(World.PublicRootId, World.PublicRootName),
               null,
               null,
               Logger);
@@ -32,13 +32,13 @@ namespace Vlingo.Actors
             Stage.ActorProtocolFor<IDeadLetters>(
               Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
               this,
-              new Address(World.DeadLettersId, World.DeadLettersName),
+              Stage.World.AddressFactory.From(World.DeadLettersId, World.DeadLettersName),
               null,
               null,
               Logger);
         }
 
-        internal protected override void AfterStop()
+        protected internal override void AfterStop()
         {
             Stage.World.SetPrivateRoot(null);
             base.AfterStop();

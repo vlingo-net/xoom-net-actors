@@ -1,6 +1,6 @@
 ﻿using System;
-using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests.Supervision
 {

@@ -5,8 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Threading;
+using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 
@@ -20,8 +20,14 @@ namespace Vlingo.Actors.Tests
 
         private string greeting;
         private int value;
-        private readonly TestUntil untilHello = TestUntil.Happenings(1);
-        private readonly TestUntil untilOne = TestUntil.Happenings(1);
+        private readonly TestUntil untilHello;
+        private readonly TestUntil untilOne;
+
+        public CompletesActorProtocolTest()
+        {
+            untilHello = TestUntil.Happenings(1);
+            untilOne = TestUntil.Happenings(1);
+        }
 
         public override void Dispose()
         {
@@ -31,27 +37,27 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void TestReturnsCompletes()
+        public void TestReturnsCompletesForSideEffects()
         {
             var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesActor>(Definition.NoParameters));
 
-            uc.GetHello().After(hello => SetHello(hello.greeting));
+            uc.GetHello().AndThenConsume(hello => SetHello(hello.greeting));
             untilHello.Completes();
             Assert.Equal(Hello, greeting);
 
-            uc.GetOne().After(value => SetValue(value));
+            uc.GetOne().AndThenConsume(value => SetValue(value));
             untilOne.Completes();
             Assert.Equal(1, value);
         }
 
         [Fact]
-        public void TestAfterAndThenCompletes()
+        public void TestAfterAndThenCompletesForSideEffects()
         {
             var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesActor>(Definition.NoParameters));
             var helloCompletes = uc.GetHello();
             helloCompletes
-                .After(() => new Hello(Prefix + helloCompletes.Outcome.greeting))
-                .AndThen(hello => SetHello(hello.greeting));
+                .AndThen(hello => new Hello(Prefix + helloCompletes.Outcome.greeting))
+                .AndThenConsume(hello => SetHello(hello.greeting));
             untilHello.Completes();
 
             Assert.NotEqual(Hello, helloCompletes.Outcome.greeting);
@@ -61,8 +67,8 @@ namespace Vlingo.Actors.Tests
 
             var one = uc.GetOne();
             one
-                .After(() => one.Outcome + 1)
-                .AndThen(value => SetValue(value));
+                .AndThen(value => one.Outcome + 1)
+                .AndThenConsume(value => SetValue(value));
             untilOne.Completes();
 
             Assert.NotEqual(1, one.Outcome);
@@ -72,17 +78,30 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void TestThatTimeOutOccurs()
+        public void TestThatTimeOutOccursForSideEffects()
         {
             var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesCausesTimeoutActor>(Definition.NoParameters));
             var helloCompletes = uc.GetHello()
-                .After(hello => SetHello(hello.greeting), 2, new Hello(HelloNot));
+                .AndThenConsume(2, new Hello(HelloNot), hello => SetHello(hello.greeting))
+                .Otherwise(failedHello =>
+                {
+                    SetHello(failedHello.greeting);
+                    return failedHello;
+                });
+
             untilHello.Completes();
 
             Assert.NotEqual(Hello, greeting);
             Assert.Equal(HelloNot, helloCompletes.Outcome.greeting);
 
-            var oneCompletes = uc.GetOne().After(value => SetValue(value), 2, 0);
+            var oneCompletes = uc.GetOne()
+                .AndThenConsume(2, 0, value => SetValue(value))
+                .Otherwise(value =>
+                {
+                    untilOne.Happened();
+                    return 0;
+                });
+
             untilOne.Completes();
 
             Assert.NotEqual(1, value);
@@ -110,6 +129,8 @@ namespace Vlingo.Actors.Tests
         {
             this.greeting = greeting;
         }
+
+        public override string ToString() => $"Hello[{greeting}]";
     }
 
     public interface IUsesCompletes
@@ -120,9 +141,9 @@ namespace Vlingo.Actors.Tests
 
     public class UsesCompletesActor : Actor, IUsesCompletes
     {
-        public ICompletes<Hello> GetHello() => Completes<Hello>().With(new Hello(CompletesActorProtocolTest.Hello));
+        public ICompletes<Hello> GetHello() => Completes().With(new Hello(CompletesActorProtocolTest.Hello));
 
-        public ICompletes<int> GetOne() => Completes<int>().With(1);
+        public ICompletes<int> GetOne() => Completes().With(1);
     }
 
     public class UsesCompletesCausesTimeoutActor : Actor, IUsesCompletes
@@ -135,7 +156,7 @@ namespace Vlingo.Actors.Tests
             }
             catch (ThreadInterruptedException) { }
 
-            return Completes<Hello>().With(new Hello(CompletesActorProtocolTest.Hello));
+            return Completes().With(new Hello(CompletesActorProtocolTest.Hello));
         }
 
         public ICompletes<int> GetOne()
@@ -146,7 +167,7 @@ namespace Vlingo.Actors.Tests
             }
             catch (ThreadInterruptedException) { }
 
-            return Completes<int>().With(1);
+            return Completes().With(1);
         }
     }
 }

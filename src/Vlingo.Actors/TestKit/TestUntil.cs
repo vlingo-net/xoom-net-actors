@@ -12,14 +12,14 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestUntil : IDisposable
     {
-        private readonly CountdownEvent countDown;
+        private readonly CountdownEvent countDownEvent;
         private readonly bool zero;
 
         public static TestUntil Happenings(int times) => new TestUntil(count: times);
 
         public void CompleteNow()
         {
-            while (!countDown.IsSet)
+            while (!countDownEvent.IsSet)
             {
                 Happened();
             }
@@ -42,7 +42,7 @@ namespace Vlingo.Actors.TestKit
             {
                 try
                 {
-                    countDown.Wait();
+                    countDownEvent.Wait();
                 }
                 catch (Exception)
                 {
@@ -51,25 +51,59 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
+        public bool CompletesWithin(long timeout)
+        {
+            var countDown = timeout;
+            while (true)
+            {
+                if (countDownEvent.IsSet)
+                {
+                    return true;
+                }
+
+                try
+                {
+                    Thread.Sleep(TimeSpan.FromMilliseconds((countDown >= 0 && countDown < 100) ? countDown : 100));
+                }
+                catch (Exception)
+                {
+                }
+
+                if (countDownEvent.IsSet)
+                {
+                    return true;
+                }
+
+                if (timeout >= 0)
+                {
+                    countDown -= 100;
+                    if (countDown <= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
         public TestUntil Happened()
         {
-            if (!countDown.IsSet)
+            if (!countDownEvent.IsSet)
             {
-                countDown.Signal();
+                countDownEvent.Signal();
             }
 
             return this;
         }
 
-        public int Remaining => countDown.CurrentCount;
+        public int Remaining => countDownEvent.CurrentCount;
 
-        public override string ToString() => $"TestUntil[count={countDown.CurrentCount} , zero={zero}]";
+        public override string ToString() => $"TestUntil[count={countDownEvent.CurrentCount} , zero={zero}]";
         
-        public void Dispose() => countDown.Dispose();
+        public void Dispose() => countDownEvent.Dispose();
 
         private TestUntil(int count)
         {
-            countDown = new CountdownEvent(initialCount: count);
+            countDownEvent = new CountdownEvent(initialCount: count);
 
             zero = (count == 0);
         }

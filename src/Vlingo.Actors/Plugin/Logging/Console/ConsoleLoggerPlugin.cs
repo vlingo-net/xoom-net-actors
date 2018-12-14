@@ -10,7 +10,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
     public class ConsoleLoggerPlugin : AbstractPlugin, ILoggerProvider
     {
         private readonly ConsoleLoggerPluginConfiguration consoleLoggerPluginConfiguration;
-        private int pass = 0;
+        private int pass = 1;
 
         public static ILoggerProvider RegisterStandardLogger(string name, IRegistrar registrar)
         {
@@ -18,7 +18,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             var pluginConfiguration = (ConsoleLoggerPluginConfiguration)plugin.Configuration;
 
             var properties = new Properties();
-            properties.SetProperty("plugin.consoleLogger.defaulLogger", "true");
+            properties.SetProperty($"plugin.{name}.defaulLogger", "true");
 
             pluginConfiguration.BuildWith(registrar.World.Configuration, new PluginProperties(name, properties));
             plugin.Start(registrar);
@@ -40,14 +40,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             Logger.Close();
         }
 
-        public override int Pass
-        {
-            get
-            {
-                pass = pass == 0 ? 1 : 2;
-                return pass;
-            }
-        }
+        public override int Pass => pass;
 
         public override IPluginConfiguration Configuration => consoleLoggerPluginConfiguration;
 
@@ -58,6 +51,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             {
                 Logger = new ConsoleLogger(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration);
                 registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
+                pass = 2;
             }
             else if (pass == 2 && registrar.World != null)
             {

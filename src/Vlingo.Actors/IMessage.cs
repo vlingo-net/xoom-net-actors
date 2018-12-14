@@ -5,6 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
+using Vlingo.Common;
+
 namespace Vlingo.Actors
 {
     public interface IMessage
@@ -13,5 +16,6 @@ namespace Vlingo.Actors
         void Deliver();
         string Representation { get; }
         bool IsStowed { get; }
+        void Set<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation);
     }
 }

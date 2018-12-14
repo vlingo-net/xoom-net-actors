@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Common;
+
 namespace Vlingo.Actors
 {
     public class PooledCompletes : ICompletesEventually
@@ -25,7 +27,7 @@ namespace Vlingo.Actors
             CompletesEventually = completesEventually;
         }
 
-        public object Outcome { get; private set; }
+        public virtual object Outcome { get; private set; }
 
         public virtual void With(object outcome)
         {

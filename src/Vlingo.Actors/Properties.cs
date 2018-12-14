@@ -62,9 +62,9 @@ namespace Vlingo.Actors
                     continue;
                 }
 
-                var items = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
+                var items = line.Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
                 var key = items[0].Trim();
-                var val = string.Join('=', items.Skip(1)).Trim();
+                var val = string.Join("=", items.Skip(1)).Trim();
                 SetProperty(key, val);
             }
         }

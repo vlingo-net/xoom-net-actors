@@ -21,7 +21,7 @@ namespace Vlingo.Actors
             Error = error;
         }
 
-        public virtual Address Address => actor.Address;
+        public virtual IAddress Address => actor.Address;
 
         public virtual void Escalate() => Supervisor.Supervisor.Inform(Error, this);
 

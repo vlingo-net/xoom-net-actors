@@ -19,14 +19,14 @@ namespace Vlingo.Actors.Tests
             var stowage = new Stowage();
             stowage.StowingMode();
 
-            stowage.Stow<object>(LocalMessage());
+            stowage.Stow(LocalMessage());
             Assert.True(stowage.HasMessages);
 
             _ = stowage.Head;
             Assert.False(stowage.HasMessages);
 
-            stowage.Stow<object>(LocalMessage());
-            stowage.Stow<object>(LocalMessage());
+            stowage.Stow(LocalMessage());
+            stowage.Stow(LocalMessage());
             Assert.True(stowage.HasMessages);
 
             _ = stowage.Head;
@@ -42,9 +42,9 @@ namespace Vlingo.Actors.Tests
             var stowage = new Stowage();
             stowage.StowingMode();
 
-            stowage.Stow<object>(LocalMessage());
-            stowage.Stow<object>(LocalMessage());
-            stowage.Stow<object>(LocalMessage());
+            stowage.Stow(LocalMessage());
+            stowage.Stow(LocalMessage());
+            stowage.Stow(LocalMessage());
 
             Assert.NotNull(stowage.Head);
             Assert.NotNull(stowage.Head);
@@ -61,9 +61,9 @@ namespace Vlingo.Actors.Tests
             Assert.True(stowage.IsStowing);
             Assert.False(stowage.IsDispersing);
 
-            stowage.Stow<object>(LocalMessage());
-            stowage.Stow<object>(LocalMessage());
-            stowage.Stow<object>(LocalMessage());
+            stowage.Stow(LocalMessage());
+            stowage.Stow(LocalMessage());
+            stowage.Stow(LocalMessage());
 
             Assert.True(stowage.HasMessages);
 
@@ -80,9 +80,9 @@ namespace Vlingo.Actors.Tests
             var stowage = new Stowage();
             stowage.StowingMode();
 
-            stowage.Stow<object>(LocalMessage("1"));
-            stowage.Stow<object>(LocalMessage("2"));
-            stowage.Stow<object>(LocalMessage("3"));
+            stowage.Stow(LocalMessage("1"));
+            stowage.Stow(LocalMessage("2"));
+            stowage.Stow(LocalMessage("3"));
 
             Assert.True(stowage.HasMessages);
 
@@ -104,7 +104,7 @@ namespace Vlingo.Actors.Tests
             Assert.False(stowage.IsDispersing);
         }
 
-        private static IMessage LocalMessage() => new LocalMessage<object>(null, null, null, null);
-        private static IMessage LocalMessage(string encode) => new LocalMessage<object>(null, null, null, encode);
+        private static IMessage LocalMessage() => new LocalMessage<object>(null, _ => {}, null, "");
+        private static IMessage LocalMessage(string encode) => new LocalMessage<object>(null, _ => { }, null, encode);
     }
 }

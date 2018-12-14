@@ -23,8 +23,16 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ICancellable> consumer = actor => actor.Cancel();
-                mailbox.Send(new LocalMessage<ICancellable>(actor, consumer, "Cancel()"));
+                Action<ICancellable> consumer = x => x.Cancel();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "Cancel()");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ICancellable>(actor, consumer, "Cancel()"));
+                }
+                
                 return true;
             }
 

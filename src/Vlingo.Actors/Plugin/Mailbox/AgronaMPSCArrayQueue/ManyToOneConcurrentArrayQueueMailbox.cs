@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
@@ -38,6 +39,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         public bool IsDelivering
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
+        public bool IsPreallocated => false;
+
+        public int PendingMessages 
+            => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
+
         public bool Delivering(bool flag) 
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
@@ -57,5 +63,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         }
 
         public IMessage Receive() => queue.Take();
+
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        {
+            throw new NotSupportedException("Not a preallocated mailbox.");
+        }
     }
 }

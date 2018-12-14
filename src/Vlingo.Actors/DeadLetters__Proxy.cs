@@ -26,8 +26,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.Stop();
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "Stop()"));
+                Action<IDeadLetters> consumer = x => x.Stop();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "Stop()");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "Stop()"));
+                }
             }
             else
             {
@@ -39,8 +46,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.FailedDelivery(deadLetter);
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "FailedDelivery(DeadLetter)"));
+                Action<IDeadLetters> consumer = x => x.FailedDelivery(deadLetter);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "FailedDelivery(DeadLetter)");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "FailedDelivery(DeadLetter)"));
+                }
             }
             else
             {
@@ -52,8 +66,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.RegisterListener(listener);
-                mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "RegisterListener(DeadLettersListener)"));
+                Action<IDeadLetters> consumer = x => x.RegisterListener(listener);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "RegisterListener(DeadLettersListener)");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "RegisterListener(DeadLettersListener)"));
+                }
             }
             else
             {

@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Common;
+
 namespace Vlingo.Actors
 {
     internal class DirectoryScannerActor : Actor, IDirectoryScanner
@@ -16,15 +18,15 @@ namespace Vlingo.Actors
             this.directory = directory;
         }
 
-        public ICompletes<T> ActorOf<T>(Address address)
+        public ICompletes<T> ActorOf<T>(IAddress address)
         {
             var actor = directory.ActorOf(address);
             if(actor != null)
             {
-                return Completes<T>().With<T>(Stage.ActorAs<T>(actor));
+                return Completes().With(Stage.ActorAs<T>(actor));
             }
 
-            return Completes<T>().With<T>(default(T));
+            return Completes().With(default(T));
         }
     }
 }

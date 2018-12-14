@@ -22,19 +22,36 @@ namespace Vlingo.Actors
         private readonly Scheduler scheduler;
         private AtomicBoolean stopped;
 
-        public Stage(World world, string name)
+        /// <summary>
+        /// Initializes the new <c>Stage</c> of the world and with name. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="world">The <c>World</c> parent of this <c>Stage</c>.</param>
+        /// <param name="name">The <c>string</c> name of this <c>Stage</c>.</param>
+        internal Stage(World world, string name)
         {
             World = world;
             Name = name;
-            directory = new Directory();
+            directory = new Directory(world.AddressFactory.None());
             commonSupervisors = new Dictionary<Type, ISupervisor>();
             scheduler = new Scheduler();
             stopped = new AtomicBoolean(false);
         }
 
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol type as the means to message the backing <c>Actor</c>.
+        /// </summary>
+        /// <typeparam name="T">The protocol.</typeparam>
+        /// <param name="actor">The <c>Actor</c> that implements the <typeparamref name="T"/> protocol</param>
+        /// <returns>The <paramref name="actor"/> as <typeparamref name="T"/></returns>
         public T ActorAs<T>(Actor actor)
             => ActorProxyFor<T>(actor, actor.LifeCycle.Environment.Mailbox);
 
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol.
+        /// </summary>
+        /// <typeparam name="T">The protocol type.</typeparam>
+        /// <param name="definition">The <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
+        /// <returns>The <c>Actor</c> as <typeparamref name="T"/>.</returns>
         public T ActorFor<T>(Definition definition)
             => ActorFor<T>(
                 definition,
@@ -42,19 +59,39 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
-        public T ActorFor<T>(Definition definition, Address address, ILogger logger)
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
+        /// that will be assigned the specific <paramref name="address"/> and <paramref name="address"/>.
+        /// </summary>
+        /// <typeparam name="T">The protocol</typeparam>
+        /// <param name="definition">The <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
+        /// <param name="address">The <c>IAddress</c> to assign to the newly created <c>Actor</c>.</param>
+        /// <param name="logger">The <c>ILogger</c> to assign to the newly created <c>Actor</c>.</param>
+        /// <returns>The <c>Actor</c> as <typeparamref name="T"/>.</returns>
+        public T ActorFor<T>(Definition definition, IAddress address, ILogger logger)
         {
+            var actorAddress = AllocateAddress(definition, address);
+            var actorMailbox = AllocateMailbox(definition, actorAddress, null);
+
             var actor = ActorProtocolFor<T>(
                 definition,
                 definition.ParentOr(World.DefaultParent),
-                address,
-                null,
+                actorAddress,
+                actorMailbox,
                 definition.Supervisor,
                 logger);
 
             return actor.ProtocolActor;
         }
 
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
+        /// that will be assigned the specific <paramref name="logger"/>.
+        /// </summary>
+        /// <typeparam name="T">The protocol.</typeparam>
+        /// <param name="definition">The <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
+        /// <param name="logger">The <c>ILogger</c> to assign to the newly created <c>Actor</c>.</param>
+        /// <returns>The <c>Actor</c> as <typeparamref name="T"/>.</returns>
         public T ActorFor<T>(Definition definition, ILogger logger)
             => ActorFor<T>(
                 definition,
@@ -62,30 +99,66 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 logger);
 
-        public T ActorFor<T>(Definition definition, Address address)
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
+        /// that will be assigned the specific <paramref name="address"/>.
+        /// </summary>
+        /// <typeparam name="T">The protocol.</typeparam>
+        /// <param name="definition">The <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
+        /// <param name="address">The <c>IAddress</c> to assign to the newly created <c>Actor</c>.</param>
+        /// <returns>The <c>Actor</c> as <typeparamref name="T"/>.</returns>
+        public T ActorFor<T>(Definition definition, IAddress address)
         {
+            var actorAddress = AllocateAddress(definition, address);
+            var actorMailbox = AllocateMailbox(definition, actorAddress, null);
+
             var actor = ActorProtocolFor<T>(
                 definition,
                 definition.ParentOr(World.DefaultParent),
-                address,
-                null,
+                actorAddress,
+                actorMailbox,
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
             return actor.ProtocolActor;
         }
 
-
+        /// <summary>
+        /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
+        /// newly created <c>Actor</c> according to <paramref name="definition"/>.
+        /// </summary>
+        /// <param name="definition">The <c>Definition</c> providing parameters to the <c>Actor</c>.</param>
+        /// <param name="protocols">The array of protocol that the <c>Actor</c> supports.</param>
+        /// <returns>A <see cref="Protocols"/> instance.</returns>
         public Protocols ActorFor(Definition definition, Type[] protocols)
-            => new Protocols(ActorProtocolFor(
+        {
+            var all = ActorProtocolFor(
                 definition,
                 protocols,
                 definition.ParentOr(World.DefaultParent),
                 definition.Supervisor,
-                definition.LoggerOr(World.DefaultLogger)));
+                definition.LoggerOr(World.DefaultLogger));
 
-        public ICompletes<T> ActorOf<T>(Address address) => directoryScanner.ActorOf<T>(address);
+            return new Protocols(ActorProtocolActor<object>.ToActors(all));
+        }
 
+        /// <summary>
+        /// Answers the <c>ICompletes&lt;T&gt;</c> that will eventually complete with the <typeparamref name="T"/> protocol
+        /// of the backing <c>Actor</c> of the given <paramref name="address"/>, or <c>null</c> if not found.   
+        /// </summary>
+        /// <typeparam name="T">The protocol supported by the backing <c>Actor</c>.</typeparam>
+        /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
+        /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
+        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner.ActorOf<T>(address);
+
+        /// <summary>
+        /// Answers the <c>TestActor&lt;T&gt;</c>, <typeparamref name="T"/> being the protocol, of the new created <c>Actor</c> that implements the protocol.
+        /// The <c>TestActor&lt;T&gt;</c> is specifically used for test scenarios and provides runtime access to the internal
+        /// <c>Actor</c> instance. Test-based <c>Actor</c> instances are backed by the synchronous <c>TestMailbox</c>.
+        /// </summary>
+        /// <typeparam name="T">The protocol type.</typeparam>
+        /// <param name="definition">the <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
+        /// <returns></returns>
         public TestActor<T> TestActorFor<T>(Definition definition)
         {
             var redefinition = Definition.Has(
@@ -114,6 +187,14 @@ namespace Vlingo.Actors
             }
         }
 
+        /// <summary>
+        /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
+        /// newly created <c>Actor</c> according to <paramref name="definition"/>, that can be used for testing.
+        /// Test-based <c>Actor</c> instances are backed by the synchronous <c>TestMailbox</c>.
+        /// </summary>
+        /// <param name="definition">The <c>Definition</c> providing parameters to the <c>Actor</c>.</param>
+        /// <param name="protocols">The array of protocols that the <c>Actor</c> supports.</param>
+        /// <returns></returns>
         internal Protocols TestActorFor(Definition definition, Type[] protocols)
         {
             var redefinition = Definition.Has(
@@ -134,8 +215,14 @@ namespace Vlingo.Actors
             return new Protocols(ActorProtocolActor<object>.ToTestActors(all, protocols));
         }
 
+        /// <summary>
+        /// Gets the count of the number of <c>Actor</c> instances contained in this <c>Stage</c>.
+        /// </summary>
         public int Count => directory.Count;
 
+        /// <summary>
+        /// A debugging tool used to print information about the <c>Actor</c> instances contained in this <c>Stage</c>.
+        /// </summary>
         public void Dump()
         {
             var logger = World.DefaultLogger;
@@ -146,15 +233,32 @@ namespace Vlingo.Actors
             }
         }
 
+        /// <summary>
+        /// Gets the name of this <c>Stage</c>.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Registers with this <c>Stage</c> the <paramref name="common"/> supervisor for the given <paramref name="protocol"/>.
+        /// </summary>
+        /// <param name="protocol"></param>
+        /// <param name="common"></param>
         public void RegisterCommonSupervisor(Type protocol, ISupervisor common)
             => commonSupervisors[protocol] = common;
 
+        /// <summary>
+        /// Gets the <c>Scheduler</c> of this <c>Stage</c>.
+        /// </summary>
         public Scheduler Scheduler => scheduler;
 
+        /// <summary>
+        /// Gets whether or not this <c>Stage</c> has been stopped or is in the process of stopping.
+        /// </summary>
         public bool IsStopped => stopped.Get();
 
+        /// <summary>
+        /// Initiates the process of stopping this <c>Stage</c>.
+        /// </summary>
         public void Stop()
         {
             if (!stopped.CompareAndSet(false, true))
@@ -173,23 +277,55 @@ namespace Vlingo.Actors
             scheduler.Close();
         }
 
+        /// <summary>
+        /// Gets the <c>World</c> instance of this <c>Stage</c>.
+        /// </summary>
         public World World { get; }
 
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol for the newly created <c>Actor</c> instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <typeparam name="T">The protocol of the <c>Actor</c>.</typeparam>
+        /// <param name="definition">The definition of the <c>Actor</c>.</param>
+        /// <param name="parent">The <c>Actor</c> parent of this <c>Actor</c>.</param>
+        /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
+        /// <param name="logger">The logger for this <c>Actor</c>.</param>
+        /// <returns></returns>
         internal T ActorFor<T>(Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
         {
             var actor = ActorProtocolFor<T>(definition, parent, null, null, maybeSupervisor, logger);
             return actor.ProtocolActor;
         }
 
+        /// <summary>
+        /// Answers the <c>ActorProtocolActor&lt;object&gt;[]</c> for the newly created Actor instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition">The <c>Definition</c> of the <c>Actor</c>.</param>
+        /// <param name="protocols">The protocols of the <c>Actor</c>.</param>
+        /// <param name="parent">The <c>Actor</c> parent of this <c>Actor</c>.</param>
+        /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
+        /// <param name="logger">Teh logger for this <c>Actor</c>.</param>
+        /// <returns></returns>
         internal ActorProtocolActor<object>[] ActorProtocolFor(Definition definition, Type[] protocols, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
         {
             return ActorProtocolFor(definition, protocols, parent, null, null, maybeSupervisor, logger);
         }
 
+        /// <summary>
+        /// Answers the ActorProtocolActor for the newly created Actor instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="definition"></param>
+        /// <param name="parent"></param>
+        /// <param name="maybeAddress"></param>
+        /// <param name="maybeMailbox"></param>
+        /// <param name="maybeSupervisor"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
         internal ActorProtocolActor<T> ActorProtocolFor<T>(
             Definition definition, 
             Actor parent,
-            Address maybeAddress,
+            IAddress maybeAddress,
             IMailbox maybeMailbox,
             ISupervisor maybeSupervisor,
             ILogger logger)
@@ -209,11 +345,22 @@ namespace Vlingo.Actors
             }
         }
 
+        /// <summary>
+        /// Answers the ActorProtocolActor[] for the newly created Actor instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition"></param>
+        /// <param name="protocols"></param>
+        /// <param name="parent"></param>
+        /// <param name="maybeAddress"></param>
+        /// <param name="maybeMailbox"></param>
+        /// <param name="maybeSupervisor"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
         internal ActorProtocolActor<object>[] ActorProtocolFor(
             Definition definition,
             Type[] protocols,
             Actor parent,
-            Address maybeAddress,
+            IAddress maybeAddress,
             IMailbox maybeMailbox,
             ISupervisor maybeSupervisor,
             ILogger logger)
@@ -231,12 +378,33 @@ namespace Vlingo.Actors
             }
         }
 
+        /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol proxy for this newly created Actor. (INTERNAL ONLY)
+        /// </summary>
+        /// <typeparam name="T">The protocol of the Actor</typeparam>
+        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
+        /// <param name="mailbox">The Mailbox instance of this Actor</param>
+        /// <returns></returns>
         internal T ActorProxyFor<T>(Actor actor, IMailbox mailbox)
             => ActorProxy.CreateFor<T>(actor, mailbox);
 
+        /// <summary>
+        /// Answers the <paramref name="protocol"/> proxy for this newly created Actor. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocol">The protocol of the Actor</param>
+        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
+        /// <param name="mailbox">The Mailbox instance of this Actor</param>
+        /// <returns></returns>
         internal object ActorProxyFor(Type protocol, Actor actor, IMailbox mailbox)
             => ActorProxy.CreateFor(protocol, actor, mailbox);
 
+        /// <summary>
+        /// Answers the <c>object[]</c> protocol proxies for this newly created Actor. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocols">The protocols of the Actor</param>
+        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
+        /// <param name="mailbox">The Mailbox instance of this Actor</param>
+        /// <returns></returns>
         internal object[] ActorProxyFor(Type[] protocols, Actor actor, IMailbox mailbox)
         {
             var proxies = new object[protocols.Length];
@@ -249,6 +417,13 @@ namespace Vlingo.Actors
             return proxies;
         }
 
+        /// <summary>
+        /// Answers the common Supervisor for the given protocol or the defaultSupervisor if there is
+        /// no registered common Supervisor. (INTERNAL ONLY)
+        /// </summary>
+        /// <typeparam name="T">The protocol of the supervisor.</typeparam>
+        /// <param name="defaultSupervisor">The default Supervisor to be used if there is no registered common Supervisor.</param>
+        /// <returns></returns>
         internal ISupervisor CommonSupervisorOr<T>(ISupervisor defaultSupervisor)
         {
             if(commonSupervisors.TryGetValue(typeof(T), out ISupervisor value))
@@ -259,14 +434,24 @@ namespace Vlingo.Actors
             return defaultSupervisor;
         }
 
+        /// <summary>
+        /// Answers my Directory instance. (INTERNAL ONLY)
+        /// </summary>
         internal Directory Directory => directory;
 
-        internal void HandleFailureOf<T>(ISupervised supervised)
+        /// <summary>
+        /// Handles a failure by suspending the Actor and dispatching to the Supervisor. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="supervised">The Supervised instance, which is an Actor</param>
+        internal void HandleFailureOf(ISupervised supervised)
         {
             supervised.Suspend();
             supervised.Supervisor.Inform(supervised.Error, supervised);
         }
 
+        /// <summary>
+        /// Start the directory scan process in search for a given Actor instance. (INTERNAL ONLY)
+        /// </summary>
         internal void StartDirectoryScanner()
         {
             directoryScanner = ActorFor<IDirectoryScanner>(
@@ -274,6 +459,11 @@ namespace Vlingo.Actors
                     Definition.Parameters(directory)));
         }
 
+        /// <summary>
+        /// Stop the given Actor and all its children. The Actor instance is first removed from
+        /// the Directory of this Stage. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="actor">The <c>Actor</c> to stop.</param>
         internal void Stop(Actor actor)
         {
             var removedActor = directory.Remove(actor.Address);
@@ -284,10 +474,42 @@ namespace Vlingo.Actors
             }
         }
 
+        /// <summary>
+        /// Answers an Address for an Actor. If maybeAddress is allocated answer it; otherwise
+        /// answer a newly allocated Address. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition">The Definition of the newly created Actor</param>
+        /// <param name="maybeAddress">The possible address</param>
+        /// <returns></returns>
+        private IAddress AllocateAddress(Definition definition, IAddress maybeAddress)
+            => maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
+
+        /// <summary>
+        /// Answers a Mailbox for an Actor. If maybeMailbox is allocated answer it; otherwise
+        /// answer a newly allocated Mailbox. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition">the Definition of the newly created Actor</param>
+        /// <param name="address">the Address allocated to the Actor</param>
+        /// <param name="maybeMailbox">the possible Mailbox</param>
+        /// <returns></returns>
+        private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox maybeMailbox)
+            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition);
+
+        /// <summary>
+        /// Answers a newly created Actor instance from the internal ActorFactory. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition"></param>
+        /// <param name="parent"></param>
+        /// <param name="maybeAddress"></param>
+        /// <param name="maybeMailbox"></param>
+        /// <param name="maybeSupervisor"></param>
+        /// <param name="logger"></param>
+        /// <exception cref="InvalidOperationException" />
+        /// <returns></returns>
         private Actor CreateRawActor(
           Definition definition,
           Actor parent,
-          Address maybeAddress,
+          IAddress maybeAddress,
           IMailbox maybeMailbox,
           ISupervisor maybeSupervisor,
           ILogger logger)
@@ -313,9 +535,8 @@ namespace Vlingo.Actors
             }
             catch(Exception e)
             {
-                logger.Log($"Actor instantiation failed because: {e.Message}");
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                logger.Log($"Actor instantiation failed because: {e.Message}", e);
+
                 throw new InvalidOperationException($"Actor instantiation failed because: {e.Message}", e);
             }
 
@@ -325,6 +546,9 @@ namespace Vlingo.Actors
             return actor;
         }
 
+        /// <summary>
+        /// Stops all Actor instances from the PrivateRootActor down to the last child. (INTERNAL ONLY)
+        /// </summary>
         private void Sweep()
         {
             if (World.PrivateRoot != null)
@@ -334,6 +558,10 @@ namespace Vlingo.Actors
         }
     }
 
+    /// <summary>
+    /// Internal type used to manage Actor proxy creation. (INTERNAL ONLY)
+    /// </summary>
+    /// <typeparam name="T">The protocol type.</typeparam>
     internal class ActorProtocolActor<T>
     {
         private readonly Actor actor;

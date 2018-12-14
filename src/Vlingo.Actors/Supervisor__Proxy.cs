@@ -30,8 +30,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ISupervisor> consumer = actor => actor.Inform(error, supervised);
-                mailbox.Send(new LocalMessage<ISupervisor>(actor, consumer, RepresentationInform1));
+                Action<ISupervisor> consumer = x => x.Inform(error, supervised);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, RepresentationInform1);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ISupervisor>(actor, consumer, RepresentationInform1));
+                }
             }
             else
             {

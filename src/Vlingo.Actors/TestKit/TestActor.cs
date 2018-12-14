@@ -9,17 +9,22 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestActor<T> : ITestStateView
     {
-        public TestActor(Actor actor, T protocol, Address address)
+        public TestActor(Actor actor, T protocol, IAddress address)
         {
             ActorInside = actor;
             Actor = protocol;
             Address = address;
         }
 
-        public T Actor { get; }
-        public Address Address { get; }
-        public Actor ActorInside { get; }
+        public virtual T Actor { get; }
 
-        public TestState ViewTestState() => ActorInside.ViewTestState();
+        public virtual TActor ActorAs<TActor>()
+            => (TActor)(object)Actor;
+
+        public virtual IAddress Address { get; }
+
+        public virtual Actor ActorInside { get; }
+
+        public virtual TestState ViewTestState() => ActorInside.ViewTestState();
     }
 }

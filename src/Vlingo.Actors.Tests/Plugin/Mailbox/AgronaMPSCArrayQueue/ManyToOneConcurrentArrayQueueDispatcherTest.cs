@@ -7,8 +7,8 @@
 
 using System;
 using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
-using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue

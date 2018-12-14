@@ -7,9 +7,12 @@
 
 namespace Vlingo.Actors
 {
-    public interface IOutcomeInterest<TOutcome>
+    public interface ILoggerProviderKeeper
     {
-        void FailureOutcome(Outcome<TOutcome> outcome);
-        void SuccessfulOutcome(Outcome<TOutcome> outcome);
+        void Close();
+        ILoggerProvider FindDefault();
+        ILoggerProvider FindNamed(string name);
+        void Keep(string name, bool isDefault, ILoggerProvider loggerProvider);
+
     }
 }

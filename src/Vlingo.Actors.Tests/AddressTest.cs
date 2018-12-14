@@ -5,7 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -32,12 +31,12 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestNameAndIdGiven()
         {
-            const int id = 123;
+            const long id = 123;
 
             var address = World.AddressFactory.From(id, "test-address");
 
             Assert.NotNull(address);
-            Assert.Equal(123, address.Id);
+            Assert.Equal(id, address.Id);
             Assert.Equal("test-address", address.Name);
 
             var another = World.AddressFactory.From(456, "test-address");

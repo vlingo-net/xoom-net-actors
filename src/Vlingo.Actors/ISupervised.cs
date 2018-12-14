@@ -12,7 +12,7 @@ namespace Vlingo.Actors
 {
     public interface ISupervised
     {
-        Address Address { get; }
+        IAddress Address { get; }
         void Escalate();
         void RestartWithin(long period, int intensity, Scope scope);
         void Resume();

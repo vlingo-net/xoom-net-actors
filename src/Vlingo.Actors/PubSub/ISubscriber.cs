@@ -5,6 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System.Runtime.CompilerServices;
-
-[assembly:InternalsVisibleTo("Vlingo.Actors.Tests")]
+namespace Vlingo.Actors.PubSub
+{
+    public interface ISubscriber
+    {
+        void Receive(IMessage message);
+    }
+}

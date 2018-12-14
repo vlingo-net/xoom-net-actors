@@ -7,17 +7,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    internal class Environment
+    public class Environment
     {
-        internal Address Address { get; }
+        internal IAddress Address { get; }
         internal List<Actor> Children { get; }
         internal Definition Definition { get; }
         internal FailureMark FailureMark { get; }
-        
+
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
         internal ISupervisor MaybeSupervisor { get; }
@@ -29,10 +30,11 @@ namespace Vlingo.Actors
 
         private readonly AtomicBoolean secured;
         private readonly AtomicBoolean stopped;
+        private Type[] stowageOverrides;
 
-        internal Environment(
+        protected internal Environment(
             Stage stage,
-            Address address,
+            IAddress address,
             Definition definition,
             Actor parent,
             IMailbox mailbox,
@@ -57,6 +59,7 @@ namespace Vlingo.Actors
             Children = new List<Actor>(0);
             ProxyCache = new Dictionary<Type, object>();
             Stowage = new Stowage();
+            stowageOverrides = null;
             Suspended = new Stowage();
 
             secured = new AtomicBoolean(false);
@@ -94,7 +97,7 @@ namespace Vlingo.Actors
 
         internal void Stop()
         {
-            if(stopped.CompareAndSet(false, true))
+            if (stopped.CompareAndSet(false, true))
             {
                 StopChildren();
                 Suspended.Reset();
@@ -102,7 +105,22 @@ namespace Vlingo.Actors
                 Mailbox.Close();
             }
         }
-        
+
+        internal bool IsStowageOverride(Type protocol)
+        {
+            if (stowageOverrides != null)
+            {
+                return stowageOverrides.Contains(protocol);
+            }
+
+            return false;
+        }
+
+        internal void StowageOverrides(params Type[] overrides)
+        {
+            stowageOverrides = overrides;
+        }
+
         private void StopChildren()
         {
             Children.ForEach(c => c.Stop());

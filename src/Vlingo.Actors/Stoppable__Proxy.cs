@@ -26,8 +26,15 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IStoppable> consumer = actor => actor.Stop();
-                mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Stop()"));
+                Action<IStoppable> consumer = x => x.Stop();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "Stop()");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Stop()"));
+                }
             }
             else
             {

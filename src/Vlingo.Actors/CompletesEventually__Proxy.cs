@@ -11,8 +11,8 @@ namespace Vlingo.Actors
 {
     public class CompletesEventually__Proxy : ICompletesEventually
     {
-        private const string RepresentationStop1 = "Stop()";
-        private const string RepresentationWith2 = "With(object)";
+        private const string RepresentationStop = "Stop()";
+        private const string RepresentationWith = "With(object)";
 
         private readonly Actor actor;
         private readonly IMailbox mailbox;
@@ -29,12 +29,19 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IStoppable> consumer = actor => actor.Stop();
-                mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, RepresentationStop1));
+                Action<IStoppable> consumer = x => x.Stop();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, RepresentationStop);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, RepresentationStop));
+                }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationStop1));
+                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationStop));
             }
         }
 
@@ -42,12 +49,19 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ICompletesEventually> consumer = actor => actor.With(outcome);
-                mailbox.Send(new LocalMessage<ICompletesEventually>(actor, consumer, RepresentationWith2));
+                Action<ICompletesEventually> consumer = x => x.With(outcome);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, RepresentationWith);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<ICompletesEventually>(actor, consumer, RepresentationWith));
+                }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationWith2));
+                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationWith));
             }
         }
     }

@@ -28,6 +28,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         public void Close()
         {
             closed.Set(true);
+            Mailbox.Close();
         }
 
         public void Execute(IMailbox mailbox)

@@ -8,8 +8,8 @@
 using System;
 using System.Collections.Concurrent;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
-using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
@@ -111,6 +111,10 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public bool IsDelivering => false;
 
+            public bool IsPreallocated => false;
+
+            public int PendingMessages => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
+
             public void Close() { }
 
             public bool Delivering(bool flag) => flag;
@@ -144,6 +148,11 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             }
 
             public void Send(IMessage message) => queue.Enqueue(message);
+
+            public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class CountTakerActor : Actor, ICountTaker

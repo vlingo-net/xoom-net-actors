@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Vlingo.Common;
 using Vlingo.Common.Compiler;
 
 using static Vlingo.Common.Compiler.DynaFile;
@@ -122,6 +123,7 @@ namespace Vlingo.Actors
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
             namespaces.Add(typeof(Actor).Namespace);
+            namespaces.Add(typeof(AtomicBoolean).Namespace); // Vlingo.Common
 
             namespaces.Add(protocolInterface.Namespace);
 
@@ -129,7 +131,7 @@ namespace Vlingo.Actors
                 .ToList()
                 .ForEach(t => namespaces.Add(t.Namespace));
 
-            return string.Join('\n', namespaces.Select(x => $"using {x};"));
+            return string.Join("\n", namespaces.Select(x => $"using {x};"));
             
         }
 
@@ -239,7 +241,7 @@ namespace Vlingo.Actors
 
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
-            var completes = DoesImplementICompletes(method.ReturnType);
+            var isACompletes = DoesImplementICompletes(method.ReturnType);
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {p.Name}"));
             var methodSignature = string.Format("  public {0} {1}({2})",
@@ -248,17 +250,26 @@ namespace Vlingo.Actors
                 methodParamSignature);
 
             var ifNotStopped = "    if(!actor.IsStopped)\n    {";
-            var consumerStatement = string.Format("      Action<{0}> consumer = actor => actor.{1}({2});",
+            var consumerStatement = string.Format("      Action<{0}> consumer = x => x.{1}({2});",
                 GetSimpleTypeName(protocolInterface),
                 method.Name,
                 string.Join(", ", method.GetParameters().Select(p => p.Name)));
-            var completesStatement = completes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
+            var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
-            var mailboxSendStatement = string.Format("      mailbox.Send(new LocalMessage<{0}>(actor, consumer, {1}{2}));",
+            var mailboxSendStatement = string.Format(
+                "      if(mailbox.IsPreallocated)\n" +
+                "      {{\n" +
+                "        mailbox.Send(actor, consumer, {0}, {1});\n" +
+                "      }}\n" +
+                "      else\n" +
+                "      {{\n" +
+                "        mailbox.Send(new LocalMessage<{2}>(actor, consumer, {3}{1}));\n" +
+                "      }}",
+                isACompletes ? "completes" : "null",
+                representationName,
                 GetSimpleTypeName(protocolInterface),
-                completes ? "completes, " : "",
-                representationName);
-            var completesReturnStatement = completes ? "        return completes;\n" : "";
+                isACompletes ? "completes, " : "");
+            var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
             var elseDead = string.Format("      actor.DeadLetters.FailedDelivery(new DeadLetter(actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
             var returnStatement = string.IsNullOrEmpty(returnValue) ? "" : string.Format("    return {0};\n", returnValue);

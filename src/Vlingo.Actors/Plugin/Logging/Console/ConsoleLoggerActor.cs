@@ -15,6 +15,11 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 
         public ConsoleLoggerActor(ConsoleLogger logger)
         {
+            if (logger == null)
+            {
+                throw new ArgumentNullException("ConsoleLogger can not be null");
+            }
+
             this.logger = logger;
         }
 

@@ -20,9 +20,9 @@ namespace Vlingo.Actors
             Stage.World.DeadLetters = SelfAs<IDeadLetters>();
         }
 
-        public void FailedDelivery(DeadLetter deadLetter)
+        public virtual void FailedDelivery(DeadLetter deadLetter)
         {
-            Logger.Log($"vlingo-dotnet/actors: {deadLetter}");
+            Logger.Log(deadLetter.ToString());
 
             foreach (var listener in listeners)
             {
@@ -38,12 +38,12 @@ namespace Vlingo.Actors
             }
         }
 
-        public void RegisterListener(IDeadLettersListener listener)
+        public virtual void RegisterListener(IDeadLettersListener listener)
         {
             listeners.Add(listener);
         }
 
-        internal protected override void AfterStop()
+        protected internal override void AfterStop()
         {
             Stage.World.DeadLetters = null;
             base.AfterStop();
