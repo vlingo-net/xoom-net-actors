@@ -14,6 +14,11 @@ namespace Vlingo.Actors.PubSub
     {
         private readonly IDictionary<Topic, ISet<ISubscriber>> index;
 
+        public Subscriptions()
+        {
+            index = new Dictionary<Topic, ISet<ISubscriber>>();
+        }
+
         public virtual AffectedSubscriptions Create(Topic topic, ISubscriber subscriber)
         {
             if (!index.ContainsKey(topic))

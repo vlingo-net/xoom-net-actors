@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
-using Vlingo.Actors.TestKit;
 using Xunit;
 using static Vlingo.Actors.Tests.DeadLettersTest;
 
