@@ -123,7 +123,7 @@ namespace Vlingo.Actors
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
             namespaces.Add(typeof(Actor).Namespace);
-            namespaces.Add(typeof(ResultCompletes).Namespace); // Vlingo.Common
+            namespaces.Add(typeof(AtomicBoolean).Namespace); // Vlingo.Common
 
             namespaces.Add(protocolInterface.Namespace);
 
@@ -131,7 +131,7 @@ namespace Vlingo.Actors
                 .ToList()
                 .ForEach(t => namespaces.Add(t.Namespace));
 
-            return string.Join('\n', namespaces.Select(x => $"using {x};"));
+            return string.Join("\n", namespaces.Select(x => $"using {x};"));
             
         }
 
@@ -250,7 +250,7 @@ namespace Vlingo.Actors
                 methodParamSignature);
 
             var ifNotStopped = "    if(!actor.IsStopped)\n    {";
-            var consumerStatement = string.Format("      Action<{0}> consumer = actor => actor.{1}({2});",
+            var consumerStatement = string.Format("      Action<{0}> consumer = x => x.{1}({2});",
                 GetSimpleTypeName(protocolInterface),
                 method.Name,
                 string.Join(", ", method.GetParameters().Select(p => p.Name)));
@@ -258,18 +258,18 @@ namespace Vlingo.Actors
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
                 "      if(mailbox.IsPreallocated)\n" +
-                "      {\n" +
+                "      {{\n" +
                 "        mailbox.Send(actor, consumer, {0}, {1});\n" +
-                "      }\n" +
+                "      }}\n" +
                 "      else\n" +
-                "      {\n" +
+                "      {{\n" +
                 "        mailbox.Send(new LocalMessage<{2}>(actor, consumer, {3}{1}));\n" +
-                "      }",
+                "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
                 GetSimpleTypeName(protocolInterface),
                 isACompletes ? "completes, " : "");
-            var completesReturnStatement = isACompletes ? "        return completes;\n" : "";
+            var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
             var elseDead = string.Format("      actor.DeadLetters.FailedDelivery(new DeadLetter(actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
             var returnStatement = string.IsNullOrEmpty(returnValue) ? "" : string.Format("    return {0};\n", returnValue);

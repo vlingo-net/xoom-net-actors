@@ -9,6 +9,14 @@ using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// SmallestMailboxRoutingStrategy is a <see cref="IRoutingStrategy"/> that
+    /// includes the pooled <see cref="Routee"/> with the fewest pending messages
+    /// in its <see cref="IMailbox"/> in the <see cref="Routing"/>. By default, the
+    /// first <see cref="Routee"/> encountered that has zero pending messages will
+    /// be chosen. Otherwise, the <see cref="Routee"/> with the fewest pending
+    /// messages will be chosen.
+    /// </summary>
     public class SmallestMailboxRoutingStrategy : RoutingStrategyAdapter
     {
         protected override Routing ChooseRouteFor(IList<Routee> routees)

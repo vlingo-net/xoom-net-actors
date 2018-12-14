@@ -36,6 +36,18 @@ namespace Vlingo.Actors
         public T IdTyped<T>()
             => (T)(object)IdString;
 
+        public override bool Equals(object obj)
+        {
+            if (obj == null || obj.GetType() != typeof(BasicAddress))
+            {
+                return false;
+            }
+
+            return id.Equals(((BasicAddress)obj).id);
+        }
+
+        public override int GetHashCode() => id.GetHashCode();
+
         internal BasicAddress(long reservedId) : this(reservedId, null)
         {
         }

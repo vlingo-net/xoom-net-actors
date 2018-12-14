@@ -27,7 +27,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDirectoryScanner> consumer = actor => actor.ActorOf<T>(address);
+                Action<IDirectoryScanner> consumer = x => x.ActorOf<T>(address);
                 var completes = new BasicCompletes<T>(actor.Scheduler);
                 if (mailbox.IsPreallocated)
                 {

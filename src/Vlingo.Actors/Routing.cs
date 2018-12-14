@@ -12,6 +12,11 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// Routing is an ordered sequence of <see cref="Routee"/> that
+    /// was computed by a <see cref="IRoutingStrategy"/> and whose elements
+    /// will be the target of a message forwarded by a <see cref="Router"/>.
+    /// </summary>
     public class Routing
     {
         public static Routing Empty() => new Routing();
@@ -41,7 +46,7 @@ namespace Vlingo.Actors
         public virtual IList<TProtocol> RouteesAs<TProtocol>()
             => routees.Select(r => r.As<TProtocol>()).ToList();
 
-        public virtual bool IsEmpty => routees.Count > 0;
+        public virtual bool IsEmpty => routees.Count == 0;
 
         public override string ToString() => $"Routing[routees={routees}]";
 

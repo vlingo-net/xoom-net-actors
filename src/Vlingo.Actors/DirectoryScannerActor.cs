@@ -23,10 +23,10 @@ namespace Vlingo.Actors
             var actor = directory.ActorOf(address);
             if(actor != null)
             {
-                return Completes<T>().With(Stage.ActorAs<T>(actor));
+                return Completes().With(Stage.ActorAs<T>(actor));
             }
 
-            return Completes<T>().With(default(T));
+            return Completes().With(default(T));
         }
     }
 }

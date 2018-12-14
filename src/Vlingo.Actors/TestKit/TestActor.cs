@@ -16,10 +16,15 @@ namespace Vlingo.Actors.TestKit
             Address = address;
         }
 
-        public T Actor { get; }
-        public IAddress Address { get; }
-        public Actor ActorInside { get; }
+        public virtual T Actor { get; }
 
-        public TestState ViewTestState() => ActorInside.ViewTestState();
+        public virtual TActor ActorAs<TActor>()
+            => (TActor)(object)Actor;
+
+        public virtual IAddress Address { get; }
+
+        public virtual Actor ActorInside { get; }
+
+        public virtual TestState ViewTestState() => ActorInside.ViewTestState();
     }
 }

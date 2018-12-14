@@ -32,7 +32,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Log(message);
+                Action<ILogger> consumer = x => x.Log(message);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, LogRepresentation1);
@@ -51,7 +51,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Log(message, ex);
+                Action<ILogger> consumer = x => x.Log(message, ex);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, LogRepresentation2);
@@ -70,7 +70,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ILogger> consumer = actor => actor.Close();
+                Action<ILogger> consumer = x => x.Close();
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, CloseRepresentation3);

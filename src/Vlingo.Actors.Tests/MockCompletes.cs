@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests
@@ -14,7 +15,7 @@ namespace Vlingo.Actors.Tests
         private T outcome;
 
         public MockCompletes()
-            : base(null)
+            : base((Scheduler)null)
         {
             UntilWith = TestUntil.Happenings(0);
             WithCount = 0;

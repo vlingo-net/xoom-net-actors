@@ -68,22 +68,36 @@ namespace Vlingo.Actors.Tests
                 until.Happened();
             };
 
-            World.Stage.ActorOf<INoProtocol>(address5).After(afterConsumer);
-            World.Stage.ActorOf<INoProtocol>(address4).After(afterConsumer);
-            World.Stage.ActorOf<INoProtocol>(address3).After(afterConsumer);
-            World.Stage.ActorOf<INoProtocol>(address2).After(afterConsumer);
-            World.Stage.ActorOf<INoProtocol>(address1).After(afterConsumer);
+            World.Stage.ActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
+            World.Stage.ActorOf<INoProtocol>(address4).AndThenConsume(afterConsumer);
+            World.Stage.ActorOf<INoProtocol>(address3).AndThenConsume(afterConsumer);
+            World.Stage.ActorOf<INoProtocol>(address2).AndThenConsume(afterConsumer);
+            World.Stage.ActorOf<INoProtocol>(address1).AndThenConsume(afterConsumer);
 
-            World.Stage.ActorOf<INoProtocol>(address6).After(actor =>
-            {
-                Assert.Null(actor);
-                until.Happened();
-            });
-            World.Stage.ActorOf<INoProtocol>(address7).After(actor =>
-            {
-                Assert.Null(actor);
-                until.Happened();
-            });
+            World.Stage.ActorOf<INoProtocol>(address6)
+                .AndThenConsume(actor =>
+                {
+                    Assert.Null(actor);
+                    until.Happened();
+                })
+                .Otherwise(actor =>
+                {
+                    Assert.Null(actor);
+                    until.Happened();
+                    return null;
+                });
+            World.Stage.ActorOf<INoProtocol>(address7)
+                .AndThenConsume(actor =>
+                {
+                    Assert.Null(actor);
+                    until.Happened();
+                })
+                .Otherwise(actor =>
+                {
+                    Assert.Null(actor);
+                    until.Happened();
+                    return null;
+                });
 
             until.Completes();
             Assert.Equal(5, scanFound.Get());

@@ -26,7 +26,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IScheduled> consumer = actor => actor.IntervalSignal(scheduled, data);
+                Action<IScheduled> consumer = x => x.IntervalSignal(scheduled, data);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, RepresentationIntervalSignal1);

@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Common;
+
 namespace Vlingo.Actors.Tests.Plugin.Completes
 {
     public class MockCompletesEventuallyProvider : ICompletesEventuallyProvider

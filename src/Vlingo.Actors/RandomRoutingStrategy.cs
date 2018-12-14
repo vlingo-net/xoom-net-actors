@@ -10,6 +10,11 @@ using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// RandomRoutingStrategy is a <see cref="IRoutingStrategy"/> that
+    /// includes a random one of the pooled <c>IList&lt;<see cref="Routee"/>&gt; routees</c>
+    /// in the <see cref="Routing"/>
+    /// </summary>
     public class RandomRoutingStrategy : RoutingStrategyAdapter
     {
         private readonly Random random;

@@ -9,6 +9,12 @@ using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// RoutingStrategy is an object that knows how to compute a
+    /// <see cref="Routing"/> for a message based on a defined strategy
+    /// (e.g., round robin, smallest mailbox, etc.). An empty <see cref="Routing"/>
+    /// is not legal and will result in an <c>InvalidOperationException</c>.
+    /// </summary>
     public interface IRoutingStrategy
     {
         Routing ChooseRouteFor<T1>(T1 routable1, IList<Routee> routees);

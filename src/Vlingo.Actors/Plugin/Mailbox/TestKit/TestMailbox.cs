@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 {
@@ -16,11 +17,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         public const string Name = "testerMailbox";
 
         private readonly IList<string> lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
-        private readonly TestWorld testWorld;
+        private readonly TestWorld world;
 
         public TestMailbox()
         {
-            testWorld = TestWorld.Instance;
+            world = TestWorld.Instance;
         }
 
         public void Run()
@@ -35,6 +36,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public bool IsDelivering => throw new NotSupportedException("TestMailbox does not support this operation.");
 
+        public bool IsPreallocated => false;
+
+        public int PendingMessages => throw new NotSupportedException("TestMailbox does not support this operation.");
+
         public bool Delivering(bool flag) => throw new NotSupportedException("TestMailbox does not support this operation.");
 
         public void Send(IMessage message)
@@ -43,7 +48,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             {
                 if (!IsLifecycleMessage(message))
                 {
-                    testWorld.Track(message);
+                    world.Track(message);
                 }
             }
 
@@ -57,6 +62,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             var representation = message.Representation;
             var openParenIndex = representation.IndexOf('(');
             return lifecycleMessages.Contains(representation.Substring(0, openParenIndex));
+        }
+
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        {
+            throw new NotSupportedException("Not a preallocated mailbox.");
         }
     }
 }

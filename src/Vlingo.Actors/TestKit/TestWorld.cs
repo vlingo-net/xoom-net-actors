@@ -27,10 +27,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        private readonly IDictionary<int, List<IMessage>> actorMessages = new Dictionary<int, List<IMessage>>();
-
-        public IList<IMessage> AllMessagesFor(IAddress address)
-            => actorMessages.ContainsKey(address.Id) ? actorMessages[address.Id] : new List<IMessage>();
+        private readonly IDictionary<long, IList<IMessage>> actorMessages;
 
         public static TestWorld Start(string name)
         {
@@ -69,16 +66,6 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        public void Track(IMessage message)
-        {
-            var id = message.Actor.Address.Id;
-            if (!actorMessages.ContainsKey(id))
-            {
-                actorMessages[id] = new List<IMessage>();
-            }
-            actorMessages[id].Add(message);
-        }
-
         public TestActor<T> ActorFor<T>(Definition definition)
         {
             if (World.IsTerminated)
@@ -98,6 +85,25 @@ namespace Vlingo.Actors.TestKit
 
             return World.Stage.TestActorFor(definition, protocols);
         }
+        public IList<IMessage> AllMessagesFor(IAddress address)
+        {
+            if(actorMessages.TryGetValue(address.Id, out var all))
+            {
+                return all;
+            }
+
+            return new List<IMessage>();
+        }
+
+        public void Close()
+        {
+            if (!IsTerminated)
+            {
+                Terminate();
+            }
+        }
+
+        public void ClearTrackedMessages() => actorMessages.Clear();
 
         public ILogger DefaultLogger => World.DefaultLogger;
 
@@ -116,19 +122,26 @@ namespace Vlingo.Actors.TestKit
             actorMessages.Clear();
         }
 
+        public void Track(IMessage message)
+        {
+            var id = message.Actor.Address.Id;
+            if (!actorMessages.ContainsKey(id))
+            {
+                actorMessages[id] = new List<IMessage>();
+            }
+
+            actorMessages[id].Add(message);
+        }
+
         public World World { get; }
 
         public IMailboxProvider MailboxProvider { get; }
-
-        public void ClearTrackedMessages()
-        {
-            actorMessages.Clear();
-        }
 
         private TestWorld(World world, string name)
         {
             World = world;
             MailboxProvider = new TestMailboxPlugin(World);
+            actorMessages = new Dictionary<long, IList<IMessage>>();
             Instance = this;
         }
 

@@ -9,6 +9,11 @@ using System;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// RouterSpecification specifies the definition and protocol of
+    /// the <see cref="Actor"/> to which a <see cref="Router"/> will route,
+    /// as well as other details such as pool size.
+    /// </summary>
     public class RouterSpecification
     {
         private readonly int poolSize; //TODO: refactor towards resizable pool

@@ -5,7 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
@@ -75,7 +77,7 @@ namespace Vlingo.Actors
             dispersing = true;
         }
 
-        void Restow(Stowage other)
+        internal void Restow(Stowage other)
         {
             var message = Head;
             while (message != null)
@@ -96,7 +98,9 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    toStow = new StowedLocalMessage<object>((LocalMessage<object>)message);
+                    var closedMsgType = message.GetType().GetGenericArguments().First();
+                    var stowedLocalMsgType = typeof(StowedLocalMessage<>).MakeGenericType(closedMsgType);
+                    toStow = (IMessage)Activator.CreateInstance(stowedLocalMsgType, message);
                 }
 
                 stowedMessages.Enqueue(toStow);

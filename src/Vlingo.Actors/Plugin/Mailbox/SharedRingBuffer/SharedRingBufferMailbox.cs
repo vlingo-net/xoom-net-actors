@@ -8,196 +8,101 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailbox : IMailbox
     {
+        private readonly AtomicBoolean closed;
+
         private readonly IDispatcher dispatcher;
         private readonly int mailboxSize;
-        private readonly OverflowQueue overflowQueue;
         private readonly IMessage[] messages;
-        private int sendIndex;
-        private int receiveIndex;
+        private readonly AtomicLong sendIndex;
+        private readonly AtomicLong readyIndex;
+        private readonly AtomicLong receiveIndex;
 
-        internal SharedRingBufferMailbox(IDispatcher dispatcher, int mailboxSize)
+        protected internal SharedRingBufferMailbox(IDispatcher dispatcher, int mailboxSize)
         {
             this.dispatcher = dispatcher;
             this.mailboxSize = mailboxSize;
-            overflowQueue = new OverflowQueue(this);
+            closed = new AtomicBoolean(false);
             messages = new IMessage[mailboxSize];
-            receiveIndex = 0;
-            sendIndex = 0;
+            readyIndex = new AtomicLong(-1);
+            receiveIndex = new AtomicLong(-1);
+            sendIndex = new AtomicLong(-1);
+
+            InitPreallocated();
         }
 
-        public void Close()
+        public virtual void Close()
         {
-            if (!IsClosed)
+            if (!closed.Get())
             {
-                IsClosed = true;
+                closed.Set(true);
                 dispatcher.Close();
-                overflowQueue.Close();
-                Clear();
             }
         }
 
-        public bool IsClosed { get; private set; }
+        public virtual bool IsClosed => closed.Get();
 
-        public bool IsDelivering => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
+        public virtual bool IsDelivering 
+            => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
 
-        public bool Delivering(bool flag) => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
+        public virtual bool Delivering(bool flag)
+            => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
 
-        public int OverflowCount => overflowQueue.Count;
+        public virtual bool IsPreallocated => true;
 
-        public void Send(IMessage message)
+        public int PendingMessages => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation");
+
+        public virtual void Send(IMessage message) => throw new NotSupportedException("Use preallocated mailbox Send(Actor, ...).");
+
+        public virtual void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
         {
-            lock (messages)
+            var messageIndex = sendIndex.IncrementAndGet();
+            var ringSendIndex = (int)(messageIndex % mailboxSize);
+            int retries = 0;
+            while (ringSendIndex == (int)(receiveIndex.Get() % mailboxSize))
             {
-                if(messages[sendIndex] == null)
+                if (++retries >= mailboxSize)
                 {
-                    messages[sendIndex] = message;
-                    if(++sendIndex >= mailboxSize)
-                    {
-                        sendIndex = 0;
-                    }
-
-                    if (dispatcher.RequiresExecutionNotification)
-                    {
-                        dispatcher.Execute(this);
-                    }
-                }
-                else
-                {
-                    overflowQueue.DelayedSend(message);
-                    dispatcher.Execute(this);
-                }
-            }
-        }
-
-        public IMessage Receive()
-        {
-            var message = messages[receiveIndex];
-            if (message != null)
-            {
-                messages[receiveIndex] = null;
-                if (++receiveIndex >= mailboxSize)
-                {
-                    receiveIndex = 0;
-                }
-                if (overflowQueue.IsOverflowed)
-                {
-                    overflowQueue.Execute();
-                }
-            }
-            return message;
-        }
-
-        public void Run() => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
-
-        private bool CanSend()
-        {
-            var index = sendIndex;
-            if (index >= mailboxSize)
-            {
-                index = 0;
-            }
-
-            return messages[index] == null;
-        }
-
-        private void Clear()
-        {
-            for (int idx = 0; idx < mailboxSize; ++idx)
-            {
-                messages[idx] = null;
-            }
-        }
-
-        private class OverflowQueue : IRunnable
-        {
-            private Backoff backoff;
-            private Queue<IMessage> messages;
-            private bool open;
-
-            internal OverflowQueue(SharedRingBufferMailbox parent)
-            {
-                backoff = new Backoff();
-                messages = new Queue<IMessage>();
-                open = false;
-                this.parent = parent;
-            }
-
-            public void Run()
-            {
-                while (open)
-                {
-                    if (parent.CanSend())
-                    {
-                        
-                        if (messages.TryDequeue(out IMessage delayed))
-                        {
-                            backoff.Reset();
-                            parent.Send(delayed);
-                        }
-                        else
-                        {
-                            backoff.Now();
-                        }
-                    }
-                    else
-                    {
-                        backoff.Now();
-                    }
-                }
-            }
-
-            private Thread _internalThread;
-            private readonly object _threadMutex = new object();
-            private readonly SharedRingBufferMailbox parent;
-
-            private void Start()
-            {
-                lock (_threadMutex)
-                {
-                    if(_internalThread != null)
+                    if (closed.Get())
                     {
                         return;
                     }
-                    _internalThread = new Thread(Run);
-                    _internalThread.Start();
+                    else
+                    {
+                        retries = 0;
+                    }
                 }
             }
 
-            internal int Count => messages.Count;
+            messages[ringSendIndex].Set(actor, consumer, completes, representation);
+            while (readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
+            { }
+        }
 
-            public bool IsOverflowed => open && messages.Count > 0;
-
-            internal void Close()
+        public virtual IMessage Receive()
+        {
+            var messageIndex = receiveIndex.Get();
+            if (messageIndex < readyIndex.Get())
             {
-                open = false;
-                messages.Clear();
+                var index = (int)(receiveIndex.IncrementAndGet() % mailboxSize);
+                return messages[index];
             }
 
-            internal void DelayedSend(IMessage message)
-            {
-                messages.Enqueue(message);
-                if (!open)
-                {
-                    open = true;
-                    Start();
-                }
-                else
-                {
-                    Execute();
-                }
-            }
+            return null;
+        }
 
-            internal void Execute()
+        public virtual void Run() => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
+
+        private void InitPreallocated()
+        {
+            for (int idx = 0; idx < mailboxSize; ++idx)
             {
-                if (_internalThread != null)
-                {
-                    _internalThread.Interrupt();
-                }
+                messages[idx] = new LocalMessage<object>(this);
             }
         }
     }

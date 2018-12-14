@@ -6,8 +6,8 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -27,13 +27,13 @@ namespace Vlingo.Actors.Tests
                 stoppables[idx].CreateChildren();
             }
 
-            testSpecs.untilStart.Completes();
+            testSpecs.untilStart.CompletesWithin(2000);
             testSpecs.untilTerminatingStop = TestUntil.Happenings(12);
             testSpecs.terminating.Set(true);
 
             World.Terminate();
 
-            testSpecs.untilTerminatingStop.Completes();
+            testSpecs.untilTerminatingStop.CompletesWithin(2000);
 
             Assert.Equal(12, testSpecs.terminatingStopCount.Get());
         }
@@ -50,7 +50,7 @@ namespace Vlingo.Actors.Tests
                 stoppables[idx].CreateChildren();
             }
 
-            testResults.untilStart.Completes();
+            testResults.untilStart.CompletesWithin(2000);
 
             testResults.untilStop = TestUntil.Happenings(12);
 
@@ -59,12 +59,16 @@ namespace Vlingo.Actors.Tests
                 stoppables[idx].Stop();
             }
 
-            testResults.untilStop.Completes();
+            testResults.untilStop.CompletesWithin(2000);
 
             Assert.Equal(12, testResults.stopCount.Get());
 
+            testResults.untilTerminatingStop = TestUntil.Happenings(0);
+
             testResults.terminating.Set(true);
             World.Terminate();
+
+            testResults.untilTerminatingStop.CompletesWithin(2000);
 
             Assert.Equal(0, testResults.terminatingStopCount.Get());
         }
@@ -111,7 +115,8 @@ namespace Vlingo.Actors.Tests
                 {
                     if (testResults.terminating.Get())
                     {
-                        testResults.terminatingStopCount.IncrementAndGet();
+                        var count = testResults.terminatingStopCount.IncrementAndGet();
+                        Console.WriteLine("TERMINATING AND STOPPED: " + count + " ");
                         testResults.untilTerminatingStop.Happened();
                     }
                     else

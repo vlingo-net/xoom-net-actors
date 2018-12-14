@@ -9,13 +9,17 @@ using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// BroadcastRoutingStrategy is a <see cref="IRoutingStrategy"/> that
+    /// includes all pooled <c>IList&lt;<see cref="Routee"/>&gt; routees</c> in the <see cref="Routing"/>.
+    /// </summary>
     public class BroadcastRoutingStrategy : RoutingStrategyAdapter
     {
         public BroadcastRoutingStrategy()
         {
         }
 
-        protected override IRouting ChooseRouteFor(IEnumerable<IRoutee> routees)
+        protected override Routing ChooseRouteFor(IList<Routee> routees)
         {
             return Routing.With(routees);
         }

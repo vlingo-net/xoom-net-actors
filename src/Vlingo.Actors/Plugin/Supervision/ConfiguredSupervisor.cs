@@ -6,7 +6,7 @@ namespace Vlingo.Actors.Plugin.Supervision
     internal class ConfiguredSupervisor
     {
         private static readonly Lazy<DynaClassLoader> ClassLoaderSingleton = new Lazy<DynaClassLoader>(
-            () => new DynaClassLoader(typeof(ConfiguredSupervisor).GetAssemblyLoadContext()), true);
+            () => new DynaClassLoader(), true);
 
         private static DynaClassLoader ClassLoader => ClassLoaderSingleton.Value;
 

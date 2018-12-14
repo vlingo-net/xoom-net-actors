@@ -9,6 +9,11 @@ using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// Router is a kind of <see cref="Actor"/> that forwards a message
+    /// to zero or more other <c><see cref="Actor"/> actors</c> according to a
+    /// <see cref="Routing"/> that is computed by a <see cref="IRoutingStrategy"/>.
+    /// </summary>
     public abstract class Router : Actor
     {
         private readonly IList<Routee> routees;
@@ -16,7 +21,7 @@ namespace Vlingo.Actors
 
         protected internal Router(RouterSpecification specification, IRoutingStrategy routingStrategy)
         {
-            for (int i = 0; i < specification.poolSize(); i++)
+            for (int i = 0; i < specification.PoolSize; i++)
             {
                 ChildActorFor(specification.RouterDefinition, specification.RouterProtocol);
             }

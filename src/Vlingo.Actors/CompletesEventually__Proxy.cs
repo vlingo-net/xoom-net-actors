@@ -29,7 +29,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IStoppable> consumer = actor => actor.Stop();
+                Action<IStoppable> consumer = x => x.Stop();
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, RepresentationStop);
@@ -49,7 +49,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<ICompletesEventually> consumer = actor => actor.With(outcome);
+                Action<ICompletesEventually> consumer = x => x.With(outcome);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, RepresentationWith);

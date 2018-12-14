@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests.Plugin.Completes
 {
@@ -33,7 +34,19 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
         {
         }
 
+        public void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper)
+        {
+        }
+
         public void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
+        {
+        }
+
+        public void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper)
+        {
+        }
+
+        public void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper)
         {
         }
     }

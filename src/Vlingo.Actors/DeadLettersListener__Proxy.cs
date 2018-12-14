@@ -24,7 +24,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLettersListener> consumer = actor => actor.Handle(deadLetter);
+                Action<IDeadLettersListener> consumer = x => x.Handle(deadLetter);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, "Handle(DeadLetter)");

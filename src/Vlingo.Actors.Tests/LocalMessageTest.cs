@@ -9,6 +9,7 @@ using System;
 using System.Threading;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
+using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -20,7 +21,7 @@ namespace Vlingo.Actors.Tests
         {
             var testResults = new SimpleTestResults();
             TestWorld.ActorFor<ISimple>(Definition.Has<SimpleActor>(Definition.Parameters(testResults), "test1-actor"));
-            Action<ISimple> consumer = actor => actor.Simple();
+            Action<ISimple> consumer = x => x.Simple();
             var message = new LocalMessage<ISimple>(SimpleActor.Instance.Value, consumer, "Simple()");
 
             message.Deliver();
@@ -38,7 +39,7 @@ namespace Vlingo.Actors.Tests
 
             SimpleActor.Instance.Value.Stop();
 
-            Action<ISimple> consumer = actor => actor.Simple();
+            Action<ISimple> consumer = x => x.Simple();
             var message = new LocalMessage<ISimple>(SimpleActor.Instance.Value, consumer, "Simple()");
 
             message.Deliver();
@@ -54,7 +55,7 @@ namespace Vlingo.Actors.Tests
             TestWorld.ActorFor<ISimple>(Definition.Has<SimpleActor>(Definition.Parameters(testResults), "test1-actor"));
             testResults.UntilSimple = TestUntil.Happenings(1);
 
-            Action<ISimple> consumer = actor => actor.Simple2(2);
+            Action<ISimple> consumer = x => x.Simple2(2);
             var message = new LocalMessage<ISimple>(SimpleActor.Instance.Value, consumer, "Simple2(int)");
 
             message.Deliver();

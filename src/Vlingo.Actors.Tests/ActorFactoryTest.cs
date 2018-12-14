@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Xunit;
@@ -12,7 +13,7 @@ using Xunit;
 namespace Vlingo.Actors.Tests
 {
     public class ActorFactoryTest : ActorsTest
-    { 
+    {
         [Fact]
         public void TestActorForWithNoParametersAndDefaults()
         {
@@ -88,7 +89,28 @@ namespace Vlingo.Actors.Tests
             Assert.Equal(mailbox, actor.LifeCycle.Environment.Mailbox);
         }
 
-        public sealed class ParentInterfaceActor : Actor, IParentInterface
+        [Fact]
+        public void TestConstructorFailure()
+        {
+            World.ActorFor<IParentInterface>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
+            var address = World.AddressFactory.UniqueWith("test-actor-ctor-failure");
+            var definition = Definition.Has<FailureActor>(
+                Definition.Parameters("test-ctor-failure", -100), 
+                ParentInterfaceActor.Instance.Value, 
+                address.Name);
+            var mailbox = new TestMailbox();
+
+            Assert.Throws<ArgumentException>(() => ActorFactory.ActorFor(
+                World.Stage,
+                definition.Parent,
+                definition,
+                address,
+                mailbox,
+                null,
+                World.DefaultLogger));
+        }
+
+        private class ParentInterfaceActor : Actor, IParentInterface
         {
             public static ThreadLocal<ParentInterfaceActor> Instance { get; } = new ThreadLocal<ParentInterfaceActor>();
 
@@ -100,11 +122,19 @@ namespace Vlingo.Actors.Tests
 
         public interface ITestInterface { }
 
-        internal sealed class TestInterfaceActor : Actor, ITestInterface { }
+        private class TestInterfaceActor : Actor, ITestInterface { }
 
-        internal sealed class TestInterfaceWithParamsActor : Actor, ITestInterface
+        private class TestInterfaceWithParamsActor : Actor, ITestInterface
         {
             public TestInterfaceWithParamsActor(string text, int val) { }
+        }
+
+        private class FailureActor : Actor, ITestInterface
+        {
+            public FailureActor(string text, int val)
+            {
+                throw new InvalidOperationException("Failed in ctor with: " + text + " and: " + val);
+            }
         }
     }
 }

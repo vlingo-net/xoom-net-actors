@@ -10,6 +10,9 @@ using System.Linq;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// Routee represents a potential target for for a routed message.
+    /// </summary>
     public class Routee
     {
         private readonly Actor actor;

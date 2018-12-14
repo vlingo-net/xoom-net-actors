@@ -10,14 +10,14 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public class LocalMessage<T> : IMessage
+    public class LocalMessage<TActor> : IMessage
     {
         private Actor actor;
-        private ICompletes<object> completes;
-        private Action<T> consumer;
+        private ICompletes completes;
+        private Action<TActor> consumer;
         private string representation;
 
-        public LocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
+        public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes completes, string representation)
         {
             this.actor = actor;
             this.consumer = consumer;
@@ -25,12 +25,12 @@ namespace Vlingo.Actors
             this.completes = completes;
         }
 
-        public LocalMessage(Actor actor, Action<T> consumer, string representation)
+        public LocalMessage(Actor actor, Action<TActor> consumer, string representation)
             : this(actor, consumer, null, representation)
         {
         }
 
-        public LocalMessage(LocalMessage<T> message)
+        public LocalMessage(LocalMessage<TActor> message)
             : this(message.actor, message.consumer, message.completes, message.representation)
         {
         }
@@ -51,7 +51,7 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    InternalDeliver(actor.LifeCycle.Environment.Suspended.SwapWith<T>(this));
+                    InternalDeliver(actor.LifeCycle.Environment.Suspended.SwapWith<TActor>(this));
                 }
                 actor.LifeCycle.NextResuming();
             }
@@ -70,10 +70,10 @@ namespace Vlingo.Actors
 
         public virtual string Representation => representation;
 
-        public void Set(Actor actor, Action<object> consumer, ICompletes<object> completes, string representation)
+        public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes completes, string representation)
         {
             this.actor = actor;
-            this.consumer = (Action<T>)(object)consumer;
+            this.consumer = (TActor x) => consumer.Invoke((TConsumer)(object)x);
             this.representation = representation;
             this.completes = completes;
         }
@@ -96,7 +96,7 @@ namespace Vlingo.Actors
 
         private void InternalDeliver(IMessage message)
         {
-            var protocol = typeof(T);
+            var protocol = typeof(TActor);
 
             if (actor.IsStopped)
             {
@@ -104,28 +104,27 @@ namespace Vlingo.Actors
             }
             else if (actor.LifeCycle.IsSuspended)
             {
-                actor.LifeCycle.Environment.Suspended.Stow<T>(message);
+                actor.LifeCycle.Environment.Suspended.Stow(message);
             }
             else if (actor.IsStowing && !actor.LifeCycle.Environment.IsStowageOverride(protocol))
             {
-                actor.LifeCycle.Environment.Stowage.Stow<T>(message);
+                actor.LifeCycle.Environment.Stowage.Stow(message);
             }
             else
             {
                 try
                 {
                     actor.completes.Reset(completes);
-                    consumer.Invoke(actor);
-                    if (actor.completes.__internal__outcomeSet)
+                    consumer.Invoke((TActor)(object)actor);
+                    if (actor.completes.HasInternalOutcomeSet)
                     {
-                        var outcome = actor.completes.Outcome;
-                        actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.__internal__outcome);
+                        actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.InternalOutcome);
                     }
                 }
                 catch(Exception ex)
                 {
                     actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {actor} sending: {representation}", ex);
-                    actor.Stage.HandleFailureOf<T>(new StageSupervisedActor<T>(actor, ex));
+                    actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(actor, ex));
                 }
             }
         }

@@ -26,7 +26,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.Stop();
+                Action<IDeadLetters> consumer = x => x.Stop();
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, "Stop()");
@@ -46,7 +46,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.FailedDelivery(deadLetter);
+                Action<IDeadLetters> consumer = x => x.FailedDelivery(deadLetter);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, "FailedDelivery(DeadLetter)");
@@ -66,7 +66,7 @@ namespace Vlingo.Actors
         {
             if (!actor.IsStopped)
             {
-                Action<IDeadLetters> consumer = actor => actor.RegisterListener(listener);
+                Action<IDeadLetters> consumer = x => x.RegisterListener(listener);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, "RegisterListener(DeadLettersListener)");

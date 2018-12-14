@@ -22,7 +22,7 @@ namespace Vlingo.Actors
 
         public void Start()
         {
-            Action<IStartable> consumer = actor => actor.Start();
+            Action<IStartable> consumer = x => x.Start();
             if (mailbox.IsPreallocated)
             {
                 mailbox.Send(actor, consumer, null, "Start()");
