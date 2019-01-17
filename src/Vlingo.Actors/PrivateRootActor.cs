@@ -9,7 +9,7 @@ using System;
 
 namespace Vlingo.Actors
 {
-    public sealed class PrivateRootActor : Actor, IStoppable, ISupervisor
+    public sealed class PrivateRootActor : Actor, ISupervisor
     {
         public ISupervisionStrategy SupervisionStrategy { get; }
 

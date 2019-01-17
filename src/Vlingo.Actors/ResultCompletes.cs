@@ -6,16 +6,17 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Common;
 
-namespace Vlingo.Common
+namespace Vlingo.Actors
 {
     internal abstract class ResultCompletes : ICompletes
     {
-        private ICompletes _internalClientCompletes;
+        private ICompletes internalClientCompletes;
         internal ICompletes InternalClientCompletes
         {
-            get => resultHolder._internalClientCompletes;
-            set => resultHolder._internalClientCompletes = value;
+            get => resultHolder.internalClientCompletes;
+            set => resultHolder.internalClientCompletes = value;
         }
 
         private object _internalOutcome;

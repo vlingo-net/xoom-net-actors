@@ -11,15 +11,4 @@ namespace Vlingo.Actors
     {
         void With(object outcome);
     }
-
-    public abstract class CompletesEventually : ICompletesEventually
-    {
-        public virtual bool IsStopped => false;
-
-        public virtual void Stop()
-        {
-        }
-
-        public abstract void With(object outcome);
-    }
 }

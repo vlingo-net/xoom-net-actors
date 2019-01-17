@@ -11,8 +11,9 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
-    public class ManyToOneConcurrentArrayQueueMailbox : IMailbox
+    public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
     {
+        private bool disposed;
         private readonly IDispatcher dispatcher;
         private readonly BlockingCollection<IMessage> queue;
         private readonly int totalSendRetries;
@@ -31,7 +32,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         {
             dispatcher.Close();
             queue.CompleteAdding();
-            queue.Dispose();
+            Dispose(true);
         }
 
         public bool IsClosed => dispatcher.IsClosed;
@@ -67,6 +68,32 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
         {
             throw new NotSupportedException("Not a preallocated mailbox.");
+        }
+        
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+            {
+                return;    
+            }
+      
+            if (disposing) {
+                
+                if (!queue.IsAddingCompleted)
+                {
+                    Close();
+                }
+
+                queue.Dispose();
+            }
+      
+            disposed = true;
         }
     }
 }

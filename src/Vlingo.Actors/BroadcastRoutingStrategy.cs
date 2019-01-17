@@ -15,10 +15,6 @@ namespace Vlingo.Actors
     /// </summary>
     public class BroadcastRoutingStrategy : RoutingStrategyAdapter
     {
-        public BroadcastRoutingStrategy()
-        {
-        }
-
         protected override Routing ChooseRouteFor(IList<Routee> routees)
         {
             return Routing.With(routees);

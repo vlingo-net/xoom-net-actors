@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Generic;
 
 namespace Vlingo.Actors.Plugin.Supervision
@@ -31,8 +32,8 @@ namespace Vlingo.Actors.Plugin.Supervision
             var hasNext = true;
             while (hasNext)
             {
-                var open = types.IndexOf("[", nextDefinition);
-                var close = types.IndexOf("]", open + 1);
+                var open = types.IndexOf("[", nextDefinition, StringComparison.Ordinal);
+                var close = types.IndexOf("]", open + 1, StringComparison.Ordinal);
                 var len = close - open - 1;
 
                 if (open >= 0 && close >= 0)
@@ -68,7 +69,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         private string PartFor(string definition, string partName)
         {
-            var start = definition.IndexOf(partName);
+            var start = definition.IndexOf(partName, StringComparison.Ordinal);
 
             if (start == -1)
             {
@@ -76,7 +77,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             }
 
             var startName = start + partName.Length;
-            var end = definition.IndexOf(" ", startName);
+            var end = definition.IndexOf(" ", startName, StringComparison.Ordinal);
             var actualEnd = end >= 0 ? end : definition.Length;
             var part = definition.Substring(startName, actualEnd - startName);
             return part;

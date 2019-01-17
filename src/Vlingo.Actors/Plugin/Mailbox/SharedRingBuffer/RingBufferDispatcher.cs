@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
@@ -15,9 +16,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         private readonly Backoff backoff;
         private readonly AtomicBoolean closed;
         private readonly int throttlingCount;
-
-        private readonly object _mutex = new object();
-        private Thread _internalThread;
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private Task started;
 
         public bool IsClosed => closed.Get();
 
@@ -33,24 +33,17 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public void Execute(IMailbox mailbox)
         {
-            if (_internalThread != null)
-            {
-                _internalThread.Interrupt();
-            }
+            cancellationTokenSource.Cancel();
         }
 
         public void Start()
         {
-            lock (_mutex)
+            if (started != null)
             {
-                if(_internalThread != null)
-                {
-                    return;
-                }
-
-                _internalThread = new Thread(Run);
-                _internalThread.Start();
+                return;
             }
+            
+            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
         }
 
         public void Run()

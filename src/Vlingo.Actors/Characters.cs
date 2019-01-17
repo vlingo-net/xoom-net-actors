@@ -19,21 +19,21 @@ namespace Vlingo.Actors
         public Characters(IList<T> states)
         {
             this.states = states.ToArray();
-            this.current = 0;
+            current = 0;
         }
 
         public int Become(int which)
         {
             if (which < 0 || which >= states.Length)
             {
-                throw new ArgumentOutOfRangeException("Invalid state.");
+                throw new ArgumentOutOfRangeException(nameof(which), "Invalid state");
             }
             if (states[which] == null)
             {
                 throw new ArgumentOutOfRangeException($"The state {which} is null.");
             }
-            var previous = this.current;
-            this.current = which;
+            var previous = current;
+            current = which;
             return previous;
         }
 

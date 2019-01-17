@@ -134,16 +134,6 @@ namespace Vlingo.Actors
         private Definition(
             Type type,
             List<object> parameters,
-            Actor parent,
-            string actorName,
-            ILogger logger) :
-        this(type, parameters, parent, null, actorName, logger)
-        {
-        }
-
-        private Definition(
-            Type type,
-            List<object> parameters,
             string actorName,
             ILogger logger) :
         this(type, parameters, null, null, actorName, logger)

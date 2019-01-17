@@ -14,6 +14,7 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {
+        private IMailboxProvider mailboxProvider;
         private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
         internal static TestWorld Instance
         {
@@ -135,12 +136,10 @@ namespace Vlingo.Actors.TestKit
 
         public World World { get; }
 
-        public IMailboxProvider MailboxProvider { get; }
-
         private TestWorld(World world, string name)
         {
             World = world;
-            MailboxProvider = new TestMailboxPlugin(World);
+            mailboxProvider = new TestMailboxPlugin(World);
             actorMessages = new Dictionary<long, IList<IMessage>>();
             Instance = this;
         }

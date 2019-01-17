@@ -18,7 +18,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             var pluginConfiguration = (ConsoleLoggerPluginConfiguration)plugin.Configuration;
 
             var properties = new Properties();
-            properties.SetProperty($"plugin.{name}.defaulLogger", "true");
+            properties.SetProperty($"plugin.{name}.defaultLogger", "true");
 
             pluginConfiguration.BuildWith(registrar.World.Configuration, new PluginProperties(name, properties));
             plugin.Start(registrar);

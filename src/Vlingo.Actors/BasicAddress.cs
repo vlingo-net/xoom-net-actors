@@ -58,7 +58,7 @@ namespace Vlingo.Actors
 
         internal BasicAddress(long reservedId, string name, bool prefixName)
         {
-            this.id = reservedId;
+            id = reservedId;
             this.name = name == null ? null : (prefixName ? (name + id) : name);
         }
     }

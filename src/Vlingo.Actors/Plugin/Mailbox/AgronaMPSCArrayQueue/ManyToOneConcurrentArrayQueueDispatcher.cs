@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Threading;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
@@ -15,6 +16,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly Backoff backoff;
         private readonly int throttlingCount;
         private readonly AtomicBoolean closed;
+        private readonly CancellationTokenSource cancellationTokenSource;
+        private Task started;
 
         internal ManyToOneConcurrentArrayQueueDispatcher(
             int mailboxSize,
@@ -27,6 +30,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             Mailbox = new ManyToOneConcurrentArrayQueueMailbox(this, mailboxSize, totalSendRetries);
             this.throttlingCount = throttlingCount;
             closed = new AtomicBoolean(false);
+            cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void Close() => closed.Set(true);
@@ -35,10 +39,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Execute(IMailbox mailbox)
         {
-            if (_thread != null)
-            {
-                _thread.Interrupt();
-            }
+            cancellationTokenSource.Cancel();
         }
 
         public bool RequiresExecutionNotification { get; }
@@ -54,20 +55,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             }
         }
 
-        private Thread _thread;
-        private readonly object _threadMutex = new object();
         public void Start()
         {
-            lock (_threadMutex)
+            if (started != null)
             {
-                if(_thread != null)
-                {
-                    return;
-                }
-
-                _thread = new Thread(Run);
-                _thread.Start();
+                return;
             }
+            
+            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
         }
 
         internal IMailbox Mailbox { get; }
@@ -81,10 +76,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                 {
                     return idx > 0; // we delivered at least one message
                 }
-                else
-                {
-                    message.Deliver();
-                }
+
+                message.Deliver();
             }
             return true;
         }

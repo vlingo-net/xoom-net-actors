@@ -38,7 +38,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         {
             if(dispatcher == null)
             {
-                throw new ArgumentNullException("Dispatcher must not be null.");
+                throw new ArgumentNullException(nameof(dispatcher));
             }
 
             return new ConcurrentQueueMailbox(dispatcher, configuration.DispatcherThrottlingCount);
