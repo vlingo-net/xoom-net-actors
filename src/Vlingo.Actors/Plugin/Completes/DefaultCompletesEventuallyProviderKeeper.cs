@@ -13,16 +13,9 @@ namespace Vlingo.Actors.Plugin.Completes
     {
         private CompletesEventuallyProviderInfo completesEventuallyProviderInfo;
 
-        public DefaultCompletesEventuallyProviderKeeper()
-        {
-        }
-
         public void Close()
         {
-            if (completesEventuallyProviderInfo != null)
-            {
-                completesEventuallyProviderInfo.completesEventuallyProvider.Close();
-            }
+            completesEventuallyProviderInfo?.completesEventuallyProvider.Close();
         }
 
         public ICompletesEventuallyProvider FindDefault()
@@ -53,7 +46,7 @@ namespace Vlingo.Actors.Plugin.Completes
         private class CompletesEventuallyProviderInfo
         {
             public bool isDefault;
-            public ICompletesEventuallyProvider completesEventuallyProvider;
+            public readonly ICompletesEventuallyProvider completesEventuallyProvider;
             public string name;
             public CompletesEventuallyProviderInfo(string name, ICompletesEventuallyProvider completesEventuallyProvider, bool isDefault)
             {

@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
@@ -48,13 +49,13 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         {
             if (!queue.IsEmpty && TryIncreaseRunningThreadCount())
             {
-                ThreadPool.QueueUserWorkItem(new WaitCallback(_ => ThreadStartMethod()));
+                Task.Run(() => ThreadStartMethod());
             }
         }
 
         private void ThreadStartMethod()
         {
-            if(queue.TryDequeue(out IRunnable task))
+            if (queue.TryDequeue(out IRunnable task))
             {
                 try
                 {
@@ -68,24 +69,24 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             }
         }
 
-        private int _currentThreadCount = 0;
+        private int currentThreadCount;
         private bool TryIncreaseRunningThreadCount()
         {
-            int currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
+            int currentCountLocal = Interlocked.CompareExchange(ref currentThreadCount, 0, 0);
             while (currentCountLocal < maxConcurrentThreads)
             {
-                var valueAtTheTimeOfIncrement = Interlocked.CompareExchange(ref _currentThreadCount, currentCountLocal + 1, currentCountLocal);
+                var valueAtTheTimeOfIncrement = Interlocked.CompareExchange(ref currentThreadCount, currentCountLocal + 1, currentCountLocal);
                 if (valueAtTheTimeOfIncrement == currentCountLocal)
                 {
                     return true;
                 }
 
-                currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
+                currentCountLocal = Interlocked.CompareExchange(ref currentThreadCount, 0, 0);
             }
 
             return false;
         }
 
-        private void DecreaseRunningThreadCount() => Interlocked.Decrement(ref _currentThreadCount);
+        private void DecreaseRunningThreadCount() => Interlocked.Decrement(ref currentThreadCount);
     }
 }

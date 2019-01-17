@@ -6,12 +6,13 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Globalization;
 
 namespace Vlingo.Actors.Plugin
 {
     public class PluginProperties
     {
-        private Properties properties;
+        private readonly Properties properties;
 
         public PluginProperties(string name, Properties properties)
         {
@@ -29,8 +30,8 @@ namespace Vlingo.Actors.Plugin
 
         public float GetFloat(string key, float defaultValue)
         {
-            var value = GetString(key, defaultValue.ToString());
-            return float.Parse(value);
+            var value = GetString(key, defaultValue.ToString(CultureInfo.InvariantCulture));
+            return float.Parse(value, CultureInfo.InvariantCulture);
         }
 
         public int GetInteger(string key, int defaultValue)

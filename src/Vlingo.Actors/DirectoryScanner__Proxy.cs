@@ -40,10 +40,8 @@ namespace Vlingo.Actors
                 
                 return completes;
             }
-            else
-            {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation1));
-            }
+
+            actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation1));
             return null;
         }
     }

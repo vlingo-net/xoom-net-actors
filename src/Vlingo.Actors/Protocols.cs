@@ -9,16 +9,16 @@ namespace Vlingo.Actors
 {
     public class Protocols
     {
-        private readonly object[] _protocolActors;
+        private readonly object[] protocolActors;
 
         public T Get<T>(int index)
         {
-            return (T)_protocolActors[index];
+            return (T)protocolActors[index];
         }
 
         internal Protocols(object[] protocolActors)
         {
-            _protocolActors = protocolActors;
+            this.protocolActors = protocolActors;
         }
 
         public static Two<A, B> Two<A, B>(Protocols protocols)

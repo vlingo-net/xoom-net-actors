@@ -11,7 +11,7 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
-    public class ConcurrentQueueMailbox : IMailbox, IRunnable
+    public class ConcurrentQueueMailbox : IMailbox
     {
         private readonly IDispatcher dispatcher;
         private readonly AtomicBoolean delivering;

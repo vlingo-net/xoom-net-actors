@@ -19,7 +19,7 @@ namespace Vlingo.Actors
     {
         private readonly Random random;
 
-        public RandomRoutingStrategy() : base()
+        public RandomRoutingStrategy()
         {
             random = new Random();
         }

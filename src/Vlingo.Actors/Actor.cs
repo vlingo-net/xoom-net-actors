@@ -18,7 +18,7 @@ namespace Vlingo.Actors
     /// </summary>
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal ResultCompletes completes;
+        internal readonly ResultCompletes completes;
         internal LifeCycle LifeCycle { get; }
 
         /// <summary>
@@ -144,21 +144,17 @@ namespace Vlingo.Actors
                     definition.Supervisor,
                     Logger);
             }
-            else
+
+            if (this is ISupervisor)
             {
-                if (this is ISupervisor)
-                {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(
-                        definition,
-                        this,
-                        LifeCycle.LookUpProxy<ISupervisor>(),
-                        Logger);
-                }
-                else
-                {
-                    return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
-                }
+                return LifeCycle.Environment.Stage.ActorFor<T>(
+                    definition,
+                    this,
+                    LifeCycle.LookUpProxy<ISupervisor>(),
+                    Logger);
             }
+
+            return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
         }
 
         /// <summary>
@@ -169,14 +165,19 @@ namespace Vlingo.Actors
         /// <returns>A child <c>Actor</c> of type <paramref name="protocol"/> created by this parent <c>Actor</c>.</returns>
         protected internal virtual object ChildActorFor(Definition definition, Type protocol)
         {
-            var method = this.GetType().GetMethod(
+            var method = GetType().GetMethod(
                 "ChildActorFor",
                 BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod | BindingFlags.Public,
                 null,
                 new[] { typeof(Definition) },
                 null);
 
-            return method.MakeGenericMethod(protocol).Invoke(this, new[] { definition });
+            if (method == null)
+            {
+                throw new InvalidOperationException("Cannot find 'ChildActorFor' method on Actor");
+            }
+                
+            return method.MakeGenericMethod(protocol).Invoke(this, new object[] {definition});
         }
 
         /// <summary>

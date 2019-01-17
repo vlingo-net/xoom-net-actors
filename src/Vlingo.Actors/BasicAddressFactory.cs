@@ -11,14 +11,14 @@ namespace Vlingo.Actors
 {
     internal sealed class BasicAddressFactory : IAddressFactory
     {
-        internal readonly static IAddress None = new BasicAddress(0, "(none)");
+        private static readonly IAddress None = new BasicAddress(0, "(none)");
         private readonly AtomicLong highId;
         private readonly AtomicLong nextId;
 
         internal BasicAddressFactory()
         {
-            this.highId = new AtomicLong(World.HighRootId);
-            this.nextId = new AtomicLong(1);
+            highId = new AtomicLong(World.HighRootId);
+            nextId = new AtomicLong(1);
         }
 
         public IAddress FindableBy<T>(T id) => new BasicAddress(long.Parse(id.ToString()));

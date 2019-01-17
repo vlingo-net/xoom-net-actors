@@ -22,7 +22,7 @@ namespace Vlingo.Actors
                 .Select(x => new Routee(x))
                 .ToList();
 
-        internal Routee(Actor actor) : base()
+        internal Routee(Actor actor)
         {
             this.actor = actor;
         }
