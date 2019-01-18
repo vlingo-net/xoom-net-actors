@@ -16,8 +16,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly Backoff backoff;
         private readonly int throttlingCount;
         private readonly AtomicBoolean closed;
+
         private readonly CancellationTokenSource cancellationTokenSource;
         private Task started;
+        private readonly object mutex = new object();
 
         internal ManyToOneConcurrentArrayQueueDispatcher(
             int mailboxSize,
@@ -57,12 +59,15 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Start()
         {
-            if (started != null)
+            lock (mutex)
             {
-                return;
+                if (started != null)
+                {
+                    return;
+                }
+
+                started = Task.Run(() => Run(), cancellationTokenSource.Token);
             }
-            
-            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
         }
 
         internal IMailbox Mailbox { get; }

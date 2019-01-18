@@ -16,8 +16,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         private readonly Backoff backoff;
         private readonly AtomicBoolean closed;
         private readonly int throttlingCount;
+
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
         private Task started;
+        private readonly object mutex = new object();
 
         public bool IsClosed => closed.Get();
 
@@ -38,12 +40,15 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public void Start()
         {
-            if (started != null)
+            lock (mutex)
             {
-                return;
+                if (started != null)
+                {
+                    return;
+                }
+
+                started = Task.Run(() => Run(), cancellationTokenSource.Token);
             }
-            
-            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
         }
 
         public void Run()
@@ -75,10 +80,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 {
                     return idx > 0; // we delivered at least one message
                 }
-                else
-                {
-                    message.Deliver();
-                }
+
+                message.Deliver();
             }
             return true;
         }
