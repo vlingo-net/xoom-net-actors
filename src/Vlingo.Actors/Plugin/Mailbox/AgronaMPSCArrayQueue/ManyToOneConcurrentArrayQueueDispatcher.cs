@@ -48,7 +48,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Run()
         {
-            while (!IsClosed)
+            while (!IsClosed && !cancellationTokenSource.IsCancellationRequested)
             {
                 if (!Deliver())
                 {
