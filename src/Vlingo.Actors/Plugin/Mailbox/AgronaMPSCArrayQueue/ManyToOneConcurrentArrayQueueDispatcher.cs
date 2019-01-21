@@ -37,7 +37,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Close() => closed.Set(true);
 
-        public bool IsClosed => closed.Get();
+        public bool IsClosed => closed.Get() || cancellationTokenSource.IsCancellationRequested;
 
         public void Execute(IMailbox mailbox)
         {
@@ -48,7 +48,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Run()
         {
-            while (!IsClosed && !cancellationTokenSource.IsCancellationRequested)
+            while (!IsClosed)
             {
                 if (!Deliver())
                 {
@@ -82,7 +82,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                     return idx > 0; // we delivered at least one message
                 }
 
-                message.Deliver();
+                if (!IsClosed)
+                {
+                    message.Deliver();
+                }
             }
             return true;
         }
