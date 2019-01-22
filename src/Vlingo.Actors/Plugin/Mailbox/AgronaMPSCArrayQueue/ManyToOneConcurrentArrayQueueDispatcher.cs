@@ -17,7 +17,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly int throttlingCount;
         private readonly AtomicBoolean closed;
 
-        private readonly CancellationTokenSource cancellationTokenSource;
+        private CancellationTokenSource backoffTokenSource;
+        private readonly CancellationTokenSource dispatcherTokenSource;
         private Task started;
         private readonly object mutex = new object();
 
@@ -32,27 +33,30 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             Mailbox = new ManyToOneConcurrentArrayQueueMailbox(this, mailboxSize, totalSendRetries);
             this.throttlingCount = throttlingCount;
             closed = new AtomicBoolean(false);
-            cancellationTokenSource = new CancellationTokenSource();
+            dispatcherTokenSource = new CancellationTokenSource();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
         public void Close() => closed.Set(true);
 
-        public bool IsClosed => closed.Get() || cancellationTokenSource.IsCancellationRequested;
+        public bool IsClosed => closed.Get();
 
         public void Execute(IMailbox mailbox)
         {
-            cancellationTokenSource.Cancel();
+            backoffTokenSource.Cancel();
+            backoffTokenSource.Dispose();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
         public bool RequiresExecutionNotification { get; }
 
-        public void Run()
+        public async void Run()
         {
             while (!IsClosed)
             {
                 if (!Deliver())
                 {
-                    backoff.Now();
+                    await backoff.Now();
                 }
             }
         }
@@ -66,7 +70,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                     return;
                 }
 
-                started = Task.Run(() => Run(), cancellationTokenSource.Token);
+                started = Task.Run(() => Run(), dispatcherTokenSource.Token);
             }
         }
 
