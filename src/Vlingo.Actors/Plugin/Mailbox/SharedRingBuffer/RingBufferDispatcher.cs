@@ -17,11 +17,21 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         private readonly AtomicBoolean closed;
         private readonly int throttlingCount;
 
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private CancellationTokenSource backoffTokenSource;
+        private readonly CancellationTokenSource dispatcherTokenSource;
         private Task started;
         private readonly object mutex = new object();
-
-        public bool IsClosed => closed.Get() || cancellationTokenSource.IsCancellationRequested;
+        
+        internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)
+        {
+            closed = new AtomicBoolean(false);
+            backoff = fixedBackoff == 0L ? new Backoff() : new Backoff(fixedBackoff);
+            RequiresExecutionNotification = fixedBackoff == 0L;
+            Mailbox = new SharedRingBufferMailbox(this, mailboxSize);
+            this.throttlingCount = throttlingCount;
+            dispatcherTokenSource = new CancellationTokenSource();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
+        }
 
         internal IMailbox Mailbox { get; private set; }
 
@@ -29,13 +39,23 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public void Close()
         {
-            closed.Set(true);
-            Mailbox.Close();
+            if (!IsClosed)
+            {
+                closed.Set(true);
+                Mailbox.Close();
+                dispatcherTokenSource.Cancel();
+                dispatcherTokenSource.Dispose();
+                backoffTokenSource.Dispose();
+            }
         }
+        
+        public bool IsClosed => closed.Get();
 
         public void Execute(IMailbox mailbox)
         {
-            cancellationTokenSource.Cancel();
+            backoffTokenSource.Cancel();
+            backoffTokenSource.Dispose();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
         public void Start()
@@ -47,28 +67,19 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                     return;
                 }
 
-                started = Task.Run(() => Run(), cancellationTokenSource.Token);
+                started = Task.Run(() => Run(), dispatcherTokenSource.Token);
             }
         }
 
-        public void Run()
+        public async void Run()
         {
             while (!IsClosed)
             {
                 if (!Deliver())
                 {
-                    backoff.Now();
+                    await backoff.Now(backoffTokenSource.Token);
                 }
             }
-        }
-
-        internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)
-        {
-            closed = new AtomicBoolean(false);
-            backoff = fixedBackoff == 0L ? new Backoff() : new Backoff(fixedBackoff);
-            RequiresExecutionNotification = fixedBackoff == 0L;
-            Mailbox = new SharedRingBufferMailbox(this, mailboxSize);
-            this.throttlingCount = throttlingCount;
         }
 
         private bool Deliver()

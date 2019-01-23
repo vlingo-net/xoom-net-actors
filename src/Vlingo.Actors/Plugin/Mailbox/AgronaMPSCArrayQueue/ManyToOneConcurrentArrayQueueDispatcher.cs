@@ -37,7 +37,13 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
-        public void Close() => closed.Set(true);
+        public void Close()
+        {
+            closed.Set(true);
+            dispatcherTokenSource.Cancel();
+            dispatcherTokenSource.Dispose();
+            backoffTokenSource.Dispose();
+        }
 
         public bool IsClosed => closed.Get();
 
@@ -56,7 +62,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             {
                 if (!Deliver())
                 {
-                    await backoff.Now();
+                    await backoff.Now(backoffTokenSource.Token);
                 }
             }
         }
