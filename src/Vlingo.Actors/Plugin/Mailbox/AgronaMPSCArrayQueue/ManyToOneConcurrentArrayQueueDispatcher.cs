@@ -16,8 +16,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly Backoff backoff;
         private readonly int throttlingCount;
         private readonly AtomicBoolean closed;
-        private readonly CancellationTokenSource cancellationTokenSource;
+
+        private CancellationTokenSource backoffTokenSource;
+        private readonly CancellationTokenSource dispatcherTokenSource;
         private Task started;
+        private readonly object mutex = new object();
 
         internal ManyToOneConcurrentArrayQueueDispatcher(
             int mailboxSize,
@@ -30,39 +33,51 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             Mailbox = new ManyToOneConcurrentArrayQueueMailbox(this, mailboxSize, totalSendRetries);
             this.throttlingCount = throttlingCount;
             closed = new AtomicBoolean(false);
-            cancellationTokenSource = new CancellationTokenSource();
+            dispatcherTokenSource = new CancellationTokenSource();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
-        public void Close() => closed.Set(true);
+        public void Close()
+        {
+            closed.Set(true);
+            dispatcherTokenSource.Cancel();
+            dispatcherTokenSource.Dispose();
+            backoffTokenSource.Dispose();
+        }
 
         public bool IsClosed => closed.Get();
 
         public void Execute(IMailbox mailbox)
         {
-            cancellationTokenSource.Cancel();
+            backoffTokenSource.Cancel();
+            backoffTokenSource.Dispose();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
         }
 
         public bool RequiresExecutionNotification { get; }
 
-        public void Run()
+        public async void Run()
         {
             while (!IsClosed)
             {
                 if (!Deliver())
                 {
-                    backoff.Now();
+                    await backoff.Now(backoffTokenSource.Token);
                 }
             }
         }
 
         public void Start()
         {
-            if (started != null)
+            lock (mutex)
             {
-                return;
+                if (started != null)
+                {
+                    return;
+                }
+
+                started = Task.Run(() => Run(), dispatcherTokenSource.Token);
             }
-            
-            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
         }
 
         internal IMailbox Mailbox { get; }
@@ -77,7 +92,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                     return idx > 0; // we delivered at least one message
                 }
 
-                message.Deliver();
+                if (!IsClosed)
+                {
+                    message.Deliver();
+                }
             }
             return true;
         }

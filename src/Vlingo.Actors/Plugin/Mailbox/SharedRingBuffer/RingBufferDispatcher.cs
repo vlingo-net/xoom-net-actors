@@ -16,47 +16,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         private readonly Backoff backoff;
         private readonly AtomicBoolean closed;
         private readonly int throttlingCount;
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+        private CancellationTokenSource backoffTokenSource;
+        private readonly CancellationTokenSource dispatcherTokenSource;
         private Task started;
-
-        public bool IsClosed => closed.Get();
-
-        internal IMailbox Mailbox { get; private set; }
-
-        public bool RequiresExecutionNotification { get; private set; }
-
-        public void Close()
-        {
-            closed.Set(true);
-            Mailbox.Close();
-        }
-
-        public void Execute(IMailbox mailbox)
-        {
-            cancellationTokenSource.Cancel();
-        }
-
-        public void Start()
-        {
-            if (started != null)
-            {
-                return;
-            }
-            
-            started =  Task.Run(() => Run(), cancellationTokenSource.Token);
-        }
-
-        public void Run()
-        {
-            while (!closed.Get())
-            {
-                if (!Deliver())
-                {
-                    backoff.Now();
-                }
-            }
-        }
-
+        private readonly object mutex = new object();
+        
         internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)
         {
             closed = new AtomicBoolean(false);
@@ -64,6 +29,57 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             RequiresExecutionNotification = fixedBackoff == 0L;
             Mailbox = new SharedRingBufferMailbox(this, mailboxSize);
             this.throttlingCount = throttlingCount;
+            dispatcherTokenSource = new CancellationTokenSource();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
+        }
+
+        internal IMailbox Mailbox { get; private set; }
+
+        public bool RequiresExecutionNotification { get; private set; }
+
+        public void Close()
+        {
+            if (!IsClosed)
+            {
+                closed.Set(true);
+                Mailbox.Close();
+                dispatcherTokenSource.Cancel();
+                dispatcherTokenSource.Dispose();
+                backoffTokenSource.Dispose();
+            }
+        }
+        
+        public bool IsClosed => closed.Get();
+
+        public void Execute(IMailbox mailbox)
+        {
+            backoffTokenSource.Cancel();
+            backoffTokenSource.Dispose();
+            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
+        }
+
+        public void Start()
+        {
+            lock (mutex)
+            {
+                if (started != null)
+                {
+                    return;
+                }
+
+                started = Task.Run(() => Run(), dispatcherTokenSource.Token);
+            }
+        }
+
+        public async void Run()
+        {
+            while (!IsClosed)
+            {
+                if (!Deliver())
+                {
+                    await backoff.Now(backoffTokenSource.Token);
+                }
+            }
         }
 
         private bool Deliver()
@@ -75,7 +91,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 {
                     return idx > 0; // we delivered at least one message
                 }
-                else
+                
+                if (!IsClosed)
                 {
                     message.Deliver();
                 }

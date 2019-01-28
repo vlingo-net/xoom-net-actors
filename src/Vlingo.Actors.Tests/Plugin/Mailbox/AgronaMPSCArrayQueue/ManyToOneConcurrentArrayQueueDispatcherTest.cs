@@ -24,8 +24,9 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             dispatcher.Start();
             var mailbox = dispatcher.Mailbox;
             var actor = new CountTakerActor();
+            
             actor.Until = Until(MailboxSize);
-            for(var i = 1; i<=MailboxSize; ++i)
+            for (var i = 1; i <= MailboxSize; ++i)
             {
                 var countParam = i;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
@@ -36,15 +37,17 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             actor.Until.Completes();
             dispatcher.Close();
 
-            const int neverReceived = MailboxSize * 2;
-            for(var count = MailboxSize + 1; count <= neverReceived; ++count)
+            const int neverReviewed = MailboxSize * 2;
+            for (var count = MailboxSize + 1; count <= neverReviewed; ++count)
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
                 var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
                 mailbox.Send(message);
             }
-
+            
+            Until(0).Completes();
+            
             Assert.Equal(MailboxSize, actor.Highest.Get());
         }
 

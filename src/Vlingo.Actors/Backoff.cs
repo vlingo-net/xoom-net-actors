@@ -7,6 +7,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Vlingo.Actors
 {
@@ -31,7 +32,7 @@ namespace Vlingo.Actors
             isFixed = true;
         }
 
-        public void Now()
+        public async Task Now(CancellationToken token)
         {
             if (!isFixed)
             {
@@ -44,7 +45,12 @@ namespace Vlingo.Actors
                     backoff = backoff * 2;
                 }
             }
-            YieldFor(backoff);
+            await YieldFor(backoff, token);
+        }
+
+        public async Task Now()
+        {
+            await Now(CancellationToken.None);
         }
 
         public void Reset()
@@ -52,15 +58,15 @@ namespace Vlingo.Actors
             backoff = BACKOFF_RESET;
         }
 
-        private void YieldFor(long aMillis)
+        private async Task YieldFor(long aMillis, CancellationToken token)
         {
             try
             {
-                Thread.Sleep(TimeSpan.FromMilliseconds(aMillis));
+                await Task.Delay(TimeSpan.FromMilliseconds(aMillis), token);
             }
-            catch (Exception)
+            catch (OperationCanceledException)
             {
-                // ignore
+                // TODO: should ne logged
             }
         }
     }
