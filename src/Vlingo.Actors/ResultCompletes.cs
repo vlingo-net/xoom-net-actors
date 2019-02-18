@@ -104,22 +104,22 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenInto<F, O>(long timeout, F failedOutcomeValue, Func<T, O> function)
+        public virtual O AndThenTo<F, O>(long timeout, F failedOutcomeValue, Func<T, O> function)
         {
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenInto<F, O>(F failedOutcomeValue, Func<T, O> function)
+        public virtual O AndThenTo<F, O>(F failedOutcomeValue, Func<T, O> function)
         {
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenInto<O>(long timeout, Func<T, O> function)
+        public virtual O AndThenTo<O>(long timeout, Func<T, O> function)
         {
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenInto<O>(Func<T, O> function)
+        public virtual O AndThenTo<O>(Func<T, O> function)
         {
             throw new NotSupportedException();
         }
