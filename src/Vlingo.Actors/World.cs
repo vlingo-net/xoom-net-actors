@@ -30,7 +30,7 @@ namespace Vlingo.Actors
         internal const string DeadLettersName = "#deadLetters";
         public const long HighRootId = DeadLettersId - 1;
         internal const string DefaultStage = "__defaultStage";
-        
+
         private readonly IDictionary<string, object> dynamicDependencies;
         private readonly IDictionary<string, Stage> stages;
 
@@ -442,11 +442,6 @@ namespace Vlingo.Actors
         /// Answers this <c>World</c> instance.
         /// </summary>
         World IRegistrar.World => this;
-
-        /// <summary>
-        /// Cache <c>DynaClassLoader</c> in World.
-        /// </summary>
-        internal DynaClassLoader ClassLoader { get; set; }
 
         /// <summary>
         /// Answers the <c>IMailbox</c> instance by <paramref name="mailboxName"/> and <paramref name="hashCode"/>. (INTERNAL ONLY)
