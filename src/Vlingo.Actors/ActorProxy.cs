@@ -21,17 +21,17 @@ namespace Vlingo.Actors
 
         public static object CreateFor(Type protocol, Actor actor, IMailbox mailbox)
         {
+            var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
+
+            if (maybeProxy != null)
+            {
+                return maybeProxy;
+            }
+            
             lock (_createForMutex)
             {
                 var proxyClassName = FullyQualifiedClassNameFor(protocol, "__Proxy");
-
-                var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
-
-                if (maybeProxy != null)
-                {
-                    return maybeProxy;
-                }
-
+                
                 object newProxy;
                 try
                 {
