@@ -13,7 +13,6 @@ namespace Vlingo.Actors
 {
     internal static class ActorProxy
     {
-        private static readonly DynaCompiler proxyCompiler = new DynaCompiler();
         private static readonly object _createForMutex = new object();
 
         public static T CreateFor<T>(Actor actor, IMailbox mailbox)
@@ -30,30 +29,22 @@ namespace Vlingo.Actors
 
             var proxyClassname = FullyQualifiedClassNameFor(protocol, "__Proxy");
 
-            var maybeProxy = TryProxyFor(proxyClassname, actor, mailbox);
-
-            if (maybeProxy != null)
+            object newProxy;
+            try
             {
-                actor.LifeCycle.Environment.CacheProxy(maybeProxy);
-                return maybeProxy;
+                newProxy = TryCreate(actor, mailbox, proxyClassname);
             }
-            
-            lock (_createForMutex)
-            {   
-                object newProxy;
-                try
-                {
-                    newProxy = TryCreate(actor, mailbox, proxyClassname);
-                }
-                catch (Exception)
+            catch (Exception)
+            {
+                lock (_createForMutex)
                 {
                     newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassname);
                 }
-
-                actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
-
-                return newProxy; 
             }
+
+            actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
+
+            return newProxy; 
         }
 
         private static Type LoadProxyClassFor(string targetClassname, Actor actor)
@@ -63,24 +54,6 @@ namespace Vlingo.Actors
         {
             var proxyClass = LoadProxyClassFor(targetClassname, actor);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
-        }
-
-        private static object TryProxyFor(string targetClassname, Actor actor, IMailbox mailbox)
-        {
-            try
-            {
-                var maybeProxyClass = ClassLoaderFor(actor).LoadClass(targetClassname);
-                if (maybeProxyClass != null)
-                {
-                    return TryCreateWithProxyClass(maybeProxyClass, actor, mailbox);
-                }
-            }
-            catch
-            {
-                // fall through
-            }
-
-            return null;
         }
 
         private static object TryCreateWithProxyClass(Type proxyClass, Actor actor, IMailbox mailbox)
@@ -121,6 +94,7 @@ namespace Vlingo.Actors
                     generator.Type,
                     true);
 
+                var proxyCompiler = new DynaCompiler();
                 var proxyClass = proxyCompiler.Compile(input);
                 return TryCreateWithProxyClass(proxyClass, actor, mailbox);
             }
