@@ -13,8 +13,6 @@ namespace Vlingo.Actors
 {
     internal static class ActorProxy
     {
-        private static readonly DynaClassLoader classLoader = new DynaClassLoader();
-        private static readonly DynaCompiler proxyCompiler = new DynaCompiler();
         private static readonly object _createForMutex = new object();
 
         public static T CreateFor<T>(Actor actor, IMailbox mailbox)
@@ -22,36 +20,39 @@ namespace Vlingo.Actors
 
         public static object CreateFor(Type protocol, Actor actor, IMailbox mailbox)
         {
-            lock (_createForMutex)
+            var maybeCachedProxy  = actor.LifeCycle.Environment.LookUpProxy(protocol);
+
+            if (maybeCachedProxy  != null)
             {
-                var proxyClassName = FullyQualifiedClassNameFor(protocol, "__Proxy");
-
-                var maybeProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
-
-                if (maybeProxy != null)
-                {
-                    return maybeProxy;
-                }
-
-                object newProxy;
-                try
-                {
-                    newProxy = TryCreate(actor, mailbox, proxyClassName);
-                }
-                catch (Exception)
-                {
-                    newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassName);
-                }
-
-                actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
-
-                return newProxy; 
+                return maybeCachedProxy ;
             }
+
+            var proxyClassname = FullyQualifiedClassNameFor(protocol, "__Proxy");
+
+            object newProxy;
+            try
+            {
+                newProxy = TryCreate(actor, mailbox, proxyClassname);
+            }
+            catch (Exception)
+            {
+                lock (_createForMutex)
+                {
+                    newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassname);
+                }
+            }
+
+            actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
+
+            return newProxy; 
         }
 
-        private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassName)
+        private static Type LoadProxyClassFor(string targetClassname, Actor actor)
+            => ClassLoaderFor(actor).LoadClass(targetClassname);
+        
+        private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassname)
         {
-            var proxyClass = classLoader.LoadClass(targetClassName);
+            var proxyClass = LoadProxyClassFor(targetClassname, actor);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
@@ -89,10 +90,11 @@ namespace Vlingo.Actors
                     targetClassName,
                     result.Source,
                     result.SourceFile,
-                    classLoader,
+                    ClassLoaderFor(actor),
                     generator.Type,
                     true);
 
+                var proxyCompiler = new DynaCompiler();
                 var proxyClass = proxyCompiler.Compile(input);
                 return TryCreateWithProxyClass(proxyClass, actor, mailbox);
             }
@@ -100,6 +102,18 @@ namespace Vlingo.Actors
             {
                 throw new ArgumentException($"Actor proxy {protocol.Name} not created because: {e.Message}", e);
             }
+        }
+
+        private static DynaClassLoader ClassLoaderFor(Actor actor)
+        {
+            var classLoader = actor.LifeCycle.Environment.Stage.World.ClassLoader;
+            if (classLoader == null)
+            {
+                classLoader = new DynaClassLoader();
+                actor.Stage.World.ClassLoader = classLoader;
+            }
+
+            return classLoader;
         }
     }
 }

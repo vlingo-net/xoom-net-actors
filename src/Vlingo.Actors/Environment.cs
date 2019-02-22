@@ -73,12 +73,12 @@ namespace Vlingo.Actors
 
         internal void CacheProxy<T>(T proxy)
         {
-            ProxyCache.Add(proxy.GetType(), proxy);
+            ProxyCache[proxy.GetType()] = proxy;
         }
 
         internal void CacheProxy(Type proxyType, object proxy)
         {
-            ProxyCache.Add(proxyType, proxy);
+            ProxyCache[proxyType] = proxy;
         }
 
         internal T LookUpProxy<T>() => (T)LookUpProxy(typeof(T));

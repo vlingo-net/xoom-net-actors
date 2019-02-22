@@ -444,6 +444,11 @@ namespace Vlingo.Actors
         World IRegistrar.World => this;
 
         /// <summary>
+        /// Local cache for <c>DynaClassLoader</c>.
+        /// </summary>
+        internal DynaClassLoader ClassLoader { get; set; }
+
+        /// <summary>
         /// Answers the <c>IMailbox</c> instance by <paramref name="mailboxName"/> and <paramref name="hashCode"/>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="mailboxName">The <c>string</c> name of the <c>IMailbox</c> type to use.</param>
