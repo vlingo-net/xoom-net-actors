@@ -56,12 +56,12 @@ namespace Vlingo.Actors
             }
         }
 
-        private static Type LoadProxyClassFor(Actor actor, string targetClassname)
+        private static Type LoadProxyClassFor(string targetClassname, Actor actor)
             => ClassLoaderFor(actor).LoadClass(targetClassname);
         
         private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassname)
         {
-            var proxyClass = LoadProxyClassFor(actor, targetClassname);
+            var proxyClass = LoadProxyClassFor(targetClassname, actor);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
