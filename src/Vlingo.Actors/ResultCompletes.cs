@@ -64,7 +64,7 @@ namespace Vlingo.Actors
 
         public virtual T Outcome => throw new NotSupportedException();
 
-        public virtual ICompletes<T> AndThen(long timeout, T failedOutcomeValue, Func<T, T> function)
+        public virtual ICompletes<T> AndThen(TimeSpan timeout, T failedOutcomeValue, Func<T, T> function)
         {
             throw new NotSupportedException();
         }
@@ -74,7 +74,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual ICompletes<T> AndThen(long timeout, Func<T, T> function)
+        public virtual ICompletes<T> AndThen(TimeSpan timeout, Func<T, T> function)
         {
             throw new NotSupportedException();
         }
@@ -84,7 +84,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual ICompletes<T> AndThenConsume(long timeout, T failedOutcomeValue, Action<T> consumer)
+        public virtual ICompletes<T> AndThenConsume(TimeSpan timeout, T failedOutcomeValue, Action<T> consumer)
         {
             throw new NotSupportedException();
         }
@@ -94,7 +94,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual ICompletes<T> AndThenConsume(long timeout, Action<T> consumer)
+        public virtual ICompletes<T> AndThenConsume(TimeSpan timeout, Action<T> consumer)
         {
             throw new NotSupportedException();
         }
@@ -104,7 +104,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenTo<F, O>(long timeout, F failedOutcomeValue, Func<T, O> function)
+        public virtual O AndThenTo<F, O>(TimeSpan timeout, F failedOutcomeValue, Func<T, O> function)
         {
             throw new NotSupportedException();
         }
@@ -114,7 +114,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual O AndThenTo<O>(long timeout, Func<T, O> function)
+        public virtual O AndThenTo<O>(TimeSpan timeout, Func<T, O> function)
         {
             throw new NotSupportedException();
         }
@@ -129,7 +129,7 @@ namespace Vlingo.Actors
             throw new NotSupportedException();
         }
 
-        public virtual T Await(long timeout)
+        public virtual T Await(TimeSpan timeout)
         {
             throw new NotSupportedException();
         }

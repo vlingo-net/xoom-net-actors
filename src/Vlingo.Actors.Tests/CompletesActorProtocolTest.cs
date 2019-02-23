@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
@@ -82,7 +83,7 @@ namespace Vlingo.Actors.Tests
         {
             var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesCausesTimeoutActor>(Definition.NoParameters));
             var helloCompletes = uc.GetHello()
-                .AndThenConsume(2, new Hello(HelloNot), hello => SetHello(hello.greeting))
+                .AndThenConsume(TimeSpan.FromMilliseconds(2), new Hello(HelloNot), hello => SetHello(hello.greeting))
                 .Otherwise(failedHello =>
                 {
                     SetHello(failedHello.greeting);
@@ -95,7 +96,7 @@ namespace Vlingo.Actors.Tests
             Assert.Equal(HelloNot, helloCompletes.Outcome.greeting);
 
             var oneCompletes = uc.GetOne()
-                .AndThenConsume(2, 0, value => SetValue(value))
+                .AndThenConsume(TimeSpan.FromMilliseconds(2), 0, value => SetValue(value))
                 .Otherwise(value =>
                 {
                     untilOne.Happened();
