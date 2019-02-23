@@ -32,7 +32,7 @@ namespace Vlingo.Actors
             object newProxy;
             try
             {
-                newProxy = TryCreate(actor, mailbox, proxyClassname);
+                newProxy = TryCreate(actor, mailbox, protocol, proxyClassname);
             }
             catch (Exception)
             {
@@ -47,12 +47,12 @@ namespace Vlingo.Actors
             return newProxy; 
         }
 
-        private static Type LoadProxyClassFor(string targetClassname, Actor actor)
-            => ClassLoaderFor(actor).LoadClass(targetClassname);
+        private static Type LoadProxyClassFor(Type protocol, string targetClassname, Actor actor)
+            => ClassLoaderFor(actor).LoadClass(targetClassname, protocol);
         
-        private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassname)
+        private static object TryCreate(Actor actor, IMailbox mailbox, Type protocol, string targetClassname)
         {
-            var proxyClass = LoadProxyClassFor(targetClassname, actor);
+            var proxyClass = LoadProxyClassFor(protocol, targetClassname, actor);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
