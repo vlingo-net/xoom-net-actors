@@ -130,6 +130,23 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
+        /// Answers the <typeparamref name="T"/> protocol of the newly created <code>Actor</code> that implements the <code>protocol</code>.
+        /// </summary>
+        /// <typeparam name="T">The protocol.</typeparam>
+        /// <param name="type">The type of the <code>Actor</code>.</param>
+        /// <param name="parameters">Constructor parameters for the <code>Actor</code>.</param>
+        /// <returns></returns>
+        public T ActorFor<T>(Type type, params object[] parameters)
+        {
+            if (IsTerminated)
+            {
+                throw new InvalidOperationException("vlingo/actors: Stopped.");
+            }
+
+            return Stage.ActorFor<T>(type, parameters);
+        }
+
+        /// <summary>
         /// Answers a new concrete <c>Actor</c> that is defined by the parameters of <paramref name="definition"/>
         /// and supports the protocol defined by <typeparamref name="T"/> protocol.
         /// </summary>
@@ -140,7 +157,7 @@ namespace Vlingo.Actors
         {
             if (IsTerminated)
             {
-                throw new InvalidOperationException("vlingo/actors: Stopped.");
+                throw new InvalidOperationException("vlingo-net/actors: Stopped.");
             }
 
             return Stage.ActorFor<T>(definition);
@@ -150,17 +167,35 @@ namespace Vlingo.Actors
         /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
         /// newly created <c>Actor</c> according to <paramref name="definition"/>.
         /// </summary>
-        /// <param name="definition">The <c>Definition</c> providing parameters to the<c>Actor</c>.</param>
         /// <param name="protocols">The array of protocols that the <c>Actor</c> supports.</param>
+        /// <param name="type">The type of the <code>Actor</code> to be created.</param>
+        /// <param name="parameters">The constructor parameters for the <code>Actor</code>.</param>
         /// <returns></returns>
-        public Protocols ActorFor(Definition definition, Type[] protocols)
+        public Protocols ActorFor(Type[] protocols, Type type, params object[] parameters)
         {
             if (IsTerminated)
             {
-                throw new InvalidOperationException("vlingo/actors: Stopped.");
+                throw new InvalidOperationException("vlingo-net/actors: Stopped.");
             }
 
-            return Stage.ActorFor(definition, protocols);
+            return Stage.ActorFor(protocols, type, parameters);
+        }
+
+        /// <summary>
+        /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
+        /// newly created <c>Actor</c> according to <paramref name="definition"/>.
+        /// </summary>
+        /// <param name="protocols">The array of protocols that the <c>Actor</c> supports.</param>
+        /// <param name="definition">The <c>Definition</c> providing parameters to the<c>Actor</c>.</param>
+        /// <returns></returns>
+        public Protocols ActorFor(Type[] protocols, Definition definition)
+        {
+            if (IsTerminated)
+            {
+                throw new InvalidOperationException("vlingo-net/actors: Stopped.");
+            }
+
+            return Stage.ActorFor(protocols, definition);
         }
 
         /// <summary>
@@ -172,12 +207,22 @@ namespace Vlingo.Actors
 
         /// <summary>
         /// Answers a new <see cref="ICompletesEventually"/> instance that backs the <paramref name="clientCompletes"/>.
-        /// This manages the <c>ICompletes</c> using the <c>CompletesEventually</c> plugin <c>Actor</c> pool.
+        /// This manages the <c>ICompletes</c> using the <code>ICompletesEventually</code> plugin <c>Actor</c> pool.
         /// </summary>
-        /// <param name="clientCompletes">The <see cref="ICompletesEventually"/> allocated for eventual completion of <c>clientCompletes</c></param>
+        /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <c>clientCompletes</c></param>
         /// <returns></returns>
         public ICompletesEventually CompletesFor(ICompletes clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(clientCompletes);
+
+        /// <summary>
+        /// Answers a <see cref="ICompletesEventually"/> instance identified by <paramref name="address"/> that backs the <paramref name="clientCompletes"/>.
+        /// This manages the <code>ICompletes</code> using the <code>ICompletesEventually</code> plugin <code>Actor</code> pool.
+        /// </summary>
+        /// <param name="address">The address of the ICompletesEventually actor to reuse.</param>
+        /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <code>clientCompletes</code></param>
+        /// <returns></returns>
+        public ICompletesEventually CompletesFor(IAddress address, ICompletes clientCompletes)
+            => completesProviderKeeper.FindDefault().ProvideCompletesFor(address, clientCompletes);
 
         /// <summary>
         /// Gets the default <c>ILogger</c> that is registered with this <c>World</c>. The

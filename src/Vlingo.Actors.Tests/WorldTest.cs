@@ -33,13 +33,39 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void TestWorldActorFor()
+        public void TestWorldActorForDefintion()
         {
             var testResults = new TestResults();
             var simple = World.ActorFor<ISimpleWorld>(Definition.Has<SimpleActor>(Definition.Parameters(testResults)));
             testResults.UntilSimple = Until(1);
 
-            simple.SimplySay();
+            simple.SimpleSay();
+            testResults.UntilSimple.Completes();
+
+            Assert.True(testResults.Invoked.Get());
+        }
+
+        [Fact]
+        public void TestWorldActorForFlat()
+        {
+            var testResults = new TestResults();
+            var simple = World.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
+            testResults.UntilSimple = Until(1);
+
+            simple.SimpleSay();
+            testResults.UntilSimple.Completes();
+
+            Assert.True(testResults.Invoked.Get());
+        }
+
+        [Fact]
+        public void TestWorldNoDefintionActorFor()
+        {
+            var testResults = new TestResults();
+            var simple = World.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
+            testResults.UntilSimple = Until(1);
+
+            simple.SimpleSay();
             testResults.UntilSimple.Completes();
 
             Assert.True(testResults.Invoked.Get());
@@ -64,7 +90,7 @@ namespace Vlingo.Actors.Tests
             Assert.True(World.IsTerminated);
         }
 
-        private class SimpleActor : Actor, ISimpleWorld
+        internal class SimpleActor : Actor, ISimpleWorld
         {
             private readonly TestResults testResults;
 
@@ -73,24 +99,24 @@ namespace Vlingo.Actors.Tests
                 this.testResults = testResults;
             }
 
-            public void SimplySay()
+            public void SimpleSay()
             {
                 testResults.Invoked.Set(true);
                 testResults.UntilSimple.Happened();
             }
         }
 
-        private class TestResults
+        internal class TestResults
         {
             public AtomicBoolean Invoked { get; set; } = new AtomicBoolean(false);
             public TestUntil UntilSimple { get; set; } = TestUntil.Happenings(0);
         }
 
-        public interface IAnyDependecy {}
+        public interface IAnyDependecy { }
     }
 
     public interface ISimpleWorld
     {
-        void SimplySay();
+        void SimpleSay();
     }
 }

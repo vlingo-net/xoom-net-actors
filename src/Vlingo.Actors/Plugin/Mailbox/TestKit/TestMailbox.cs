@@ -44,15 +44,22 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public void Send(IMessage message)
         {
-            if (!message.Actor.IsStopped)
+            try
             {
-                if (!IsLifecycleMessage(message))
+                if (!message.Actor.IsStopped)
                 {
-                    world.Track(message);
+                    if (!IsLifecycleMessage(message))
+                    {
+                        world.Track(message);
+                    }
                 }
+                message.Actor.ViewTestStateInitialization(null);
+                message.Deliver();
             }
-
-            message.Deliver();
+            catch (Exception ex)
+            {
+                throw new ApplicationException(ex.Message, ex);
+            }
         }
 
         public IMessage Receive() => throw new NotSupportedException("TestMailbox does not support this operation.");

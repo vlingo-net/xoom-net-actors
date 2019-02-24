@@ -27,6 +27,8 @@ namespace Vlingo.Actors.Tests.Supervision
             failureControlTestResults.UntilFailNow.Completes();
             Assert.Equal(1, failureControlTestResults.FailNowCount.Get());
 
+            failureControlTestResults.UntilAfterRestart.Completes();
+
             failureControlTestResults.UntilAfterFail = Until(1);
             Assert.Equal(0, failureControlTestResults.AfterFailureCount.Get());
             failure.AfterFailure();
@@ -104,7 +106,7 @@ namespace Vlingo.Actors.Tests.Supervision
 
             public void Inform(Exception error, ISupervised supervised)
             {
-                Logger.Log($"StoppingSupervisorActor informed of failure in: {supervised.Address.Name} because: {error.Message}", error);
+                // Logger.Log($"StoppingSupervisorActor informed of failure in: {supervised.Address.Name} because: {error.Message}", error);
                 supervised.Stop(SupervisionStrategy.Scope);
             }
 
@@ -133,7 +135,7 @@ namespace Vlingo.Actors.Tests.Supervision
 
             public void Inform(Exception error, ISupervised supervised)
             {
-                Logger.Log($"RestartSupervisorActor informed of failure in: {supervised.Address.Name} because: {error.Message}", error);
+                // Logger.Log($"RestartSupervisorActor informed of failure in: {supervised.Address.Name} because: {error.Message}", error);
                 supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
                 testResults.InformedCount.IncrementAndGet();
             }

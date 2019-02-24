@@ -33,5 +33,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
             completesEventuallyProvider = new MockCompletesEventuallyProvider(completesResults);
             registrar.Register("mock-completes-eventually", completesEventuallyProvider);
         }
+
+        public IPlugin With(IPluginConfiguration overrideConfiguration) => null;
     }
 }

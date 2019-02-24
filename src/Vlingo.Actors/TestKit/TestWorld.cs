@@ -67,9 +67,19 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
+        public TestActor<T> ActorFor<T>(Type type, params object[] parameters)
+        {
+            if (IsTerminated)
+            {
+                throw new InvalidOperationException("vlingo-net/actors: TestWorld has stopped.");
+            }
+
+            return World.Stage.TestActorFor<T>(type, parameters);
+        }
+
         public TestActor<T> ActorFor<T>(Definition definition)
         {
-            if (World.IsTerminated)
+            if (IsTerminated)
             {
                 throw new InvalidOperationException("vlingo-net/actors: TestWorld has stopped.");
             }
@@ -77,15 +87,16 @@ namespace Vlingo.Actors.TestKit
             return World.Stage.TestActorFor<T>(definition);
         }
         
-        public Protocols ActorFor(Definition definition, Type[] protocols)
+        public Protocols ActorFor(Type[] protocols, Definition definition)
         {
-            if (World.IsTerminated)
+            if (IsTerminated)
             {
                 throw new InvalidOperationException("vlingo-net/actors: TestWorld has stopped.");
             }
 
-            return World.Stage.TestActorFor(definition, protocols);
+            return World.Stage.TestActorFor(protocols, definition);
         }
+
         public IList<IMessage> AllMessagesFor(IAddress address)
         {
             if(actorMessages.TryGetValue(address.Id, out var all))

@@ -13,20 +13,8 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Completes
 {
-    public class PooledCompletesProviderTest : IDisposable
+    public class PooledCompletesProviderTest : ActorsTest
     {
-        private World world;
-
-        public PooledCompletesProviderTest()
-        {
-            world = World.Start("test-completes");
-        }
-
-        public void Dispose()
-        {
-            world.Terminate();
-        }
-
         [Fact]
         public void TestActuallyCompletes()
         {
@@ -38,18 +26,51 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
             var pluginProperties = new PluginProperties("pooledCompletes", properties);
 
             var plugin = new PooledCompletesPlugin();
-            plugin.Configuration.BuildWith(world.Configuration, pluginProperties);
+            plugin.Configuration.BuildWith(World.Configuration, pluginProperties);
 
-            plugin.Start(world);
+            plugin.Start(World);
 
             var clientCompletes = new MockCompletes<object>();
             clientCompletes.UntilWith = TestUntil.Happenings(1);
-            var asyncCompletes = world.CompletesFor(clientCompletes);
+            var asyncCompletes = World.CompletesFor(clientCompletes);
             asyncCompletes.With(5);
             clientCompletes.UntilWith.Completes();
 
             Assert.Equal(1, clientCompletes.WithCount);
             Assert.Equal(5, clientCompletes.Outcome);
+        }
+
+        [Fact]
+        public void TestCompletesAddressMatches()
+        {
+            var properties = new Properties();
+            properties.SetProperty("plugin.name.pooledCompletes", "true");
+            properties.SetProperty("plugin.pooledCompletes.classname", "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin");
+            properties.SetProperty("plugin.pooledCompletes.pool", "10");
+
+            var pluginProperties = new PluginProperties("pooledCompletes", properties);
+            var plugin = new PooledCompletesPlugin();
+            plugin.Configuration.BuildWith(World.Configuration, pluginProperties);
+
+            plugin.Start(World);
+
+            var clientCompletes1 = new MockCompletes<int>();
+            var clientCompletes2 = new MockCompletes<int>();
+            clientCompletes1.UntilWith = TestUntil.Happenings(1);
+            var completes1 = World.CompletesFor(clientCompletes1);
+            completes1.With(5);
+            clientCompletes1.UntilWith.Completes();
+
+            clientCompletes2.UntilWith = TestUntil.Happenings(1);
+            var completes2 = World.CompletesFor(completes1.Address, clientCompletes2);
+            completes2.With(10);
+            clientCompletes2.UntilWith.Completes();
+
+            Assert.Equal(1, clientCompletes1.WithCount);
+            Assert.Equal(5, clientCompletes1.Outcome);
+            Assert.Equal(1, clientCompletes2.WithCount);
+            Assert.Equal(10, clientCompletes2.Outcome);
+            Assert.Equal(completes1, completes2);
         }
     }
 }

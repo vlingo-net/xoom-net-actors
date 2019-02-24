@@ -20,6 +20,12 @@ namespace Vlingo.Actors.Plugin.Mailbox
             this.configuration = configuration;
         }
 
+        private DefaultMailboxProviderKeeperPlugin(IPluginConfiguration configuration, DefaultMailboxProviderKeeperPlugin plugin)
+        {
+            keeper = plugin.keeper;
+            this.configuration = (DefaultMailboxProviderKeeperPluginConfiguration)configuration;
+        }
+
         public string Name => configuration.Name;
 
         public int Pass => 0;
@@ -31,5 +37,8 @@ namespace Vlingo.Actors.Plugin.Mailbox
         }
 
         public void Start(IRegistrar registrar) => registrar.RegisterMailboxProviderKeeper(keeper);
+
+        public IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new DefaultMailboxProviderKeeperPlugin(overrideConfiguration, this);
     }
 }

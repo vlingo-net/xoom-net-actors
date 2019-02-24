@@ -41,28 +41,47 @@ namespace Vlingo.Actors
             public FileInfo SourceFile { get; }
         }
 
-        private readonly string rootOfGenerated;
+        private readonly ILogger logger;
         private readonly bool persist;
-        private readonly FileInfo targetClassPath;
+        private readonly DirectoryInfo rootOfGenerated;
 
         internal DynaType Type { get; }
 
+        public static ProxyGenerator ForClasPath(
+            IList<FileInfo> classPath,
+            DirectoryInfo destinationDirectory,
+            DynaType type,
+            bool persist,
+            ILogger logger)
+            => new ProxyGenerator(classPath, destinationDirectory, type, persist, logger);
 
-        public static ProxyGenerator ForMain(bool persist)
+        public static ProxyGenerator ForMain(bool persist, ILogger logger)
         {
-            var root = Properties.Instance.GetProperty("proxy.generated.classes.main", RootOfMainClasses);
-            return new ProxyGenerator(root, DynaType.Main, persist);
+            var classPath = new List<FileInfo>
+            {
+                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.main", RootOfMainClasses))
+            };
+            var type = DynaType.Main;
+            var rootOfGenerated = RootOfGeneratedSources(type);
+
+            return new ProxyGenerator(classPath, rootOfGenerated, type, persist, logger);
         }
 
-        public static ProxyGenerator ForTest(bool persist)
+        public static ProxyGenerator ForTest(bool persist, ILogger logger)
         {
-            var root = Properties.Instance.GetProperty("proxy.generated.classes.test", RootOfTestClasses);
-            return new ProxyGenerator(root, DynaType.Test, persist);
+            var classPath = new List<FileInfo>
+            {
+                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.test", RootOfTestClasses))
+            };
+            var type = DynaType.Test;
+            var rootOfGenerated = RootOfGeneratedSources(type);
+
+            return new ProxyGenerator(classPath, rootOfGenerated, type, persist, logger);
         }
 
         public Result GenerateFor(Type actorProtocol)
         {
-            Console.WriteLine("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
+            logger.Log("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
             try
             {
                 var proxyClassSource = ProxyClassSource(actorProtocol);
@@ -80,17 +99,17 @@ namespace Vlingo.Actors
             }
         }
 
-        private static string RootOfGeneratedSources(DynaType type)
+        private static DirectoryInfo RootOfGeneratedSources(DynaType type)
             => type == DynaType.Main ?
-                Properties.Instance.GetProperty("proxy.generated.sources.main", GeneratedSources) :
-                Properties.Instance.GetProperty("proxy.generated.sources.test", GeneratedTestSources);
+                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.main", GeneratedSources)) :
+                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.test", GeneratedTestSources));
 
-        private ProxyGenerator(string rootOfClasses, DynaType type, bool persist)
+        private ProxyGenerator(IList<FileInfo> rootOfClasses, DirectoryInfo rootOfGenerated, DynaType type, bool persist, ILogger logger)
         {
+            this.rootOfGenerated = rootOfGenerated;
             Type = type;
-            rootOfGenerated = RootOfGeneratedSources(type);
             this.persist = persist;
-            targetClassPath = new FileInfo(rootOfClasses);
+            this.logger = logger;
         }
 
         private string ClassStatement(Type protocolInterface)

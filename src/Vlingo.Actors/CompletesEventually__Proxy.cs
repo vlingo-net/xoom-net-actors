@@ -23,6 +23,8 @@ namespace Vlingo.Actors
             this.mailbox = mailbox;
         }
 
+        public IAddress Address => actor.Address;
+
         public bool IsStopped => actor.IsStopped;
 
         public void Stop()

@@ -20,7 +20,7 @@ namespace Vlingo.Actors.TestKit
                 TestWorld.Instance.World.DefaultParent,
                 new TestMailbox(),
                 TestWorld.Instance.World.DefaultSupervisor,
-                ConsoleLogger.TestInstance())
+                TestWorld.Instance.World.DefaultLogger)
         {
         }
     }

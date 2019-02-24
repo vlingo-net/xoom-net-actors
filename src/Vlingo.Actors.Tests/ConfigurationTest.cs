@@ -112,6 +112,7 @@ namespace Vlingo.Actors.Tests
         public void TestThatConfigurationDefaults()
         {
             var configuration = Configuration.Define();
+            configuration.Load(0);
 
             Assert.NotNull(configuration);
             Assert.NotNull(configuration.PooledCompletesPluginConfiguration);
@@ -137,7 +138,7 @@ namespace Vlingo.Actors.Tests
 
             Assert.NotNull(configuration.ConsoleLoggerPluginConfiguration);
             Assert.True(configuration.ConsoleLoggerPluginConfiguration.IsDefaultLogger);
-            Assert.Equal("vlingo-net/actors(test)", configuration.ConsoleLoggerPluginConfiguration.Name);
+            Assert.Equal("vlingo-net/actors", configuration.ConsoleLoggerPluginConfiguration.Name);
 
             Assert.NotNull(configuration.DefaultSupervisorOverridePluginConfiguration);
             Assert.Equal(1, configuration.DefaultSupervisorOverridePluginConfiguration.Count);

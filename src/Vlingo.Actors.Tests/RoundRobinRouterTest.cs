@@ -5,85 +5,70 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System.Linq;
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class RoundRobinRouterTest
+    public class RoundRobinRouterTest : ActorsTest
     {
         [Fact]
-        public void TestThatItRoutes()
+        public void TestTwoArgConsumerProtocol()
         {
-            var world = World.StartWithDefault("RoundRobinRouterTest");
-            const int poolSize = 4, messagesToSend = 8;
+            var poolSize = 4;
+            var rounds = 2;
+            var messagesToSend = poolSize * rounds;
             var until = TestUntil.Happenings(messagesToSend);
-            var orderRouter = world.ActorFor<IRoundRobinOrderRouter>(
-                Definition.Has<OrderRouterActor>(Definition.Parameters(poolSize, until)));
 
-            for(var i=0; i<messagesToSend; ++i)
+            var testRouter = TestWorld.ActorFor<ITwoArgSupplierProtocol>(typeof(TestRouterActor), poolSize);
+
+            var answers = new int[messagesToSend];
+            for (var i = 0; i < messagesToSend; i++)
             {
-                orderRouter.RouteOrder(new RoundRobinOrder(i));
+                var round = i;
+                testRouter.Actor
+                  .ProductOf(round, round)
+                  .AndThenConsume(answer => answers[round] = answer)
+                  .AndThenConsume(_ => until.Happened());
             }
 
             until.Completes();
-        }
 
-        private class OrderRouterWorker : Actor, IRoundRobinOrderRouter
-        {
-            private readonly TestUntil testUntil;
-
-            public OrderRouterWorker(TestUntil testUntil)
+            for (var round = 0; round < messagesToSend; round++)
             {
-                this.testUntil = testUntil;
-            }
-
-            public void RouteOrder(RoundRobinOrder order)
-            {
-                Logger.Log($"{ToString()} is routing {order}");
-                testUntil.Happened();
+                int expected = round * round;
+                int actual = answers[round];
+                Assert.Equal(expected, actual);
             }
         }
 
-        private class OrderRouterActor : Router, IRoundRobinOrderRouter
+        private class TestRouterActor : RoundRobinRouter<ITwoArgSupplierProtocol>, ITwoArgSupplierProtocol
         {
-            public OrderRouterActor(int poolSize, TestUntil testUntil)
-                : base(
-                      new RouterSpecification(
-                          poolSize,
-                          Definition.Has<OrderRouterWorker>(Definition.Parameters(testUntil)),
-                          typeof(IRoundRobinOrderRouter)),
-                      new RoundRobinRoutingStrategy())
+            public TestRouterActor(int poolSize) :
+                base(new RouterSpecification(
+                    poolSize,
+                    Definition.Has<TestRouteeActor>(Definition.NoParameters),
+                    typeof(ITwoArgSupplierProtocol)))
             {
             }
 
-            public void RouteOrder(RoundRobinOrder order)
-            {
-                ComputeRouting(order)
-                    .RouteesAs<IRoundRobinOrderRouter>()
-                    .ToList()
-                    .ForEach(orderRoutee => orderRoutee.RouteOrder(order));
-            }
+            public ICompletes<int> ProductOf(int arg1, int arg2)
+                => DispatchQuery(
+                    (actor, x, y) => actor.ProductOf(x, y),
+                    arg1,
+                    arg2);
+        }
+
+        private class TestRouteeActor : Actor, ITwoArgSupplierProtocol
+        {
+            public ICompletes<int> ProductOf(int arg1, int arg2)
+                => Completes().With(arg1 * arg2);
         }
     }
 
-    public class RoundRobinOrder
+    public interface ITwoArgSupplierProtocol
     {
-        private readonly int orderId;
-
-        public RoundRobinOrder(int orderId)
-        {
-            this.orderId = orderId;
-        }
-
-        public int OrderId => orderId;
-
-        public override string ToString() => "Order[orderId=" + orderId + "]";
-    }
-
-    public interface IRoundRobinOrderRouter
-    {
-        void RouteOrder(RoundRobinOrder order);
+        ICompletes<int> ProductOf(int arg1, int arg2);
     }
 }

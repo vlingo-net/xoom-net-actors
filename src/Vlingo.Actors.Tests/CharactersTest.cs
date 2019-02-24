@@ -12,23 +12,14 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class CharactersTest : IDisposable
+    public class CharactersTest : ActorsTest
     {
-        private readonly World world;
-
-        public CharactersTest()
-        {
-            world = World.StartWithDefault("become-test");
-        }
-
-        public void Dispose() => world.Terminate();
 
         [Fact]
         public void TestBecomeWithThreeCharacters()
         {
             var results = new Results(30);
-            var threeBehaviors = world.ActorFor<IThreeBehaviors>(
-                Definition.Has<ThreeBehaviorsActor>(Definition.Parameters(results)));
+            var threeBehaviors = World.ActorFor<IThreeBehaviors>(typeof(ThreeBehaviorsActor), results);
 
             for (var count = 0; count < 10; ++count)
             {

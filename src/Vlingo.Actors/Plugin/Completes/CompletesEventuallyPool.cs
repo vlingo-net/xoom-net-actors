@@ -56,8 +56,27 @@ namespace Vlingo.Actors.Plugin.Completes
         }
 
         public ICompletesEventually ProvideCompletesFor(ICompletes clientCompletes)
-            => new PooledCompletes(completesEventuallyId.GetAndIncrement(),
+            => new PooledCompletes(
+                completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventually);
+
+        public ICompletesEventually ProvideCompletesFor(IAddress address, ICompletes clientCompletes)
+            => new PooledCompletes(
+                completesEventuallyId.GetAndIncrement(),
+                clientCompletes,
+                CompletesEventuallyOf(address));
+
+        private ICompletesEventually CompletesEventuallyOf(IAddress address)
+        {
+            foreach (var completesEventually in pool)
+            {
+                if (completesEventually.Address.Equals(address))
+                {
+                    return completesEventually;
+                }
+            }
+            return CompletesEventually;
+        }
     }
 }

@@ -5,6 +5,8 @@
 
 Type safe Actor Model toolkit for reactive concurrency and resiliency using C# and other .NET languages.
 
+The vlingo-actors toolkit is nearly full featured, so don't be fooled by the seemingly low version number.
+
 
 License (See LICENSE file for full license)
 -------------------------------------------

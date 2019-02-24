@@ -10,6 +10,7 @@ using System.Threading;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
+using System;
 
 namespace Vlingo.Actors.Tests
 {
@@ -40,7 +41,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestReturnsCompletesForSideEffects()
         {
-            var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesActor>(Definition.NoParameters));
+            var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesActor));
 
             uc.GetHello().AndThenConsume(hello => SetHello(hello.greeting));
             untilHello.Completes();
@@ -54,7 +55,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestAfterAndThenCompletesForSideEffects()
         {
-            var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesActor>(Definition.NoParameters));
+            var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesActor));
             var helloCompletes = uc.GetHello();
             helloCompletes
                 .AndThen(hello => new Hello(Prefix + helloCompletes.Outcome.greeting))
@@ -81,7 +82,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestThatTimeOutOccursForSideEffects()
         {
-            var uc = World.ActorFor<IUsesCompletes>(Definition.Has<UsesCompletesCausesTimeoutActor>(Definition.NoParameters));
+            var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesCausesTimeoutActor));
             var helloCompletes = uc.GetHello()
                 .AndThenConsume(TimeSpan.FromMilliseconds(2), new Hello(HelloNot), hello => SetHello(hello.greeting))
                 .Otherwise(failedHello =>

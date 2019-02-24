@@ -63,14 +63,14 @@ namespace Vlingo.Actors
         {
             try
             {
-                var generator = ProxyGenerator.ForMain(true);
+                var generator = ProxyGenerator.ForMain(true, actor.Logger);
                 return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
             }
             catch (Exception)
             {
                 try
                 {
-                    var generator = ProxyGenerator.ForTest(true);
+                    var generator = ProxyGenerator.ForTest(true, actor.Logger);
                     return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
                 }
                 catch (Exception etest)

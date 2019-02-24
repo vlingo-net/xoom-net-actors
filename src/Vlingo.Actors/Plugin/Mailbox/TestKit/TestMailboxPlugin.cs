@@ -29,5 +29,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher) => new TestMailbox();
 
         public override void Start(IRegistrar registrar) => registrar.Register(Name, false, this);
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration) => null;
     }
 }

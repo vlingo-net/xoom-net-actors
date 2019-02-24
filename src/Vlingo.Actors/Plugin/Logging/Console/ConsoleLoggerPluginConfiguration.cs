@@ -36,7 +36,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
         {
             configuration.With(
                 WithDefaultLogger()
-                .WithName("vlingo-net/actors(test)")
+                .WithName("vlingo-net/actors")
             );
         }
 

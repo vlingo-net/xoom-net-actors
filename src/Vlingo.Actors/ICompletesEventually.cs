@@ -9,6 +9,7 @@ namespace Vlingo.Actors
 {
     public interface ICompletesEventually : IStoppable
     {
+        IAddress Address { get; }
         void With(object outcome);
     }
 }
