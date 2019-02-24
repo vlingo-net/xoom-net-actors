@@ -11,6 +11,8 @@ namespace Vlingo.Actors
     {
         public virtual bool IsStopped => false;
 
+        public abstract IAddress Address { get; }
+
         public virtual void Stop()
         {
         }

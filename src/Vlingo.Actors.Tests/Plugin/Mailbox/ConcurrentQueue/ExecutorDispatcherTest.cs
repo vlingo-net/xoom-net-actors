@@ -36,8 +36,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         {
             var testResults = new TestResults();
             testResults.Log.Set(true);
-            var mailbox = new TestMailbox(testResults);
-            var actor = new CountTakerActor(testResults);
+            var mailbox = new TestMailbox(testResults, World.DefaultLogger);
+            var actor = new CountTakerActor(testResults, World.DefaultLogger);
             testResults.Until = Until(3);
 
             for (var count = 0; count < 3; ++count)
@@ -69,8 +69,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         {
             var testResults = new TestResults();
             testResults.Log.Set(true);
-            var mailbox = new TestMailbox(testResults);
-            var actor = new CountTakerActor(testResults);
+            var mailbox = new TestMailbox(testResults, World.DefaultLogger);
+            var actor = new CountTakerActor(testResults, World.DefaultLogger);
             testResults.Until = Until(Total);
 
             for (var count = 0; count < Total; ++count)
@@ -99,11 +99,13 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         private class TestMailbox : IMailbox
         {
             private readonly TestResults testResults;
+            private readonly ILogger logger;
             private readonly ConcurrentQueue<IMessage> queue;
 
-            public TestMailbox(TestResults testResults)
+            public TestMailbox(TestResults testResults, ILogger logger)
             {
                 this.testResults = testResults;
+                this.logger = logger;
                 queue = new ConcurrentQueue<IMessage>();
             }
 
@@ -134,7 +136,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 var message = Receive();
                 if (testResults.Log.Get())
                 {
-                    Console.WriteLine($"TestMailBox: Run: received: {message}");
+                    logger.Log($"TestMailBox: Run: received: {message}");
                 }
 
                 if (message != null)
@@ -142,7 +144,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                     message.Deliver();
                     if (testResults.Log.Get())
                     {
-                        Console.WriteLine($"TestMailBox: Run: adding: {testResults.Highest.Get()}");
+                        logger.Log($"TestMailBox: Run: adding: {testResults.Highest.Get()}");
                     }
                 }
             }
@@ -158,24 +160,26 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         private class CountTakerActor : Actor, ICountTaker
         {
             private readonly TestResults testResults;
+            private readonly ILogger logger;
 
-            public CountTakerActor(TestResults testResults)
+            public CountTakerActor(TestResults testResults, ILogger logger)
             {
                 this.testResults = testResults;
+                this.logger = logger;
             }
 
             public void Take(int count)
             {
                 if (testResults.Log.Get())
                 {
-                    Console.WriteLine($"CountTakerActor: Take: count: {count}");
+                    logger.Log($"CountTakerActor: Take: count: {count}");
                 }
 
                 if (count > testResults.Highest.Get())
                 {
                     if (testResults.Log.Get())
                     {
-                        Console.WriteLine($"CountTakerActor: Run: received: {count} > {testResults.Highest.Get()}");
+                        logger.Log($"CountTakerActor: Run: received: {count} > {testResults.Highest.Get()}");
                     }
 
                     testResults.Highest.Set(count);

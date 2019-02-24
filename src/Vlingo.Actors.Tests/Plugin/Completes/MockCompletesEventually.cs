@@ -20,6 +20,8 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
         public bool IsStopped => false;
 
+        public IAddress Address => null;
+
         public void Stop()
         {
         }

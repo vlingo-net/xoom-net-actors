@@ -16,6 +16,11 @@ namespace Vlingo.Actors.Plugin.Supervision
             configuration = CommonSupervisorsPluginConfiguration.Define();
         }
 
+        private CommonSupervisorsPlugin(IPluginConfiguration configuration)
+        {
+            this.configuration = (CommonSupervisorsPluginConfiguration)configuration;
+        }
+
         public override string Name => "common_supervisors";
 
         public override int Pass => 2;
@@ -37,5 +42,8 @@ namespace Vlingo.Actors.Plugin.Supervision
                     supervisor.SupervisorClass);
             }
         }
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new CommonSupervisorsPlugin(overrideConfiguration);
     }
 }

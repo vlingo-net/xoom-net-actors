@@ -5,63 +5,157 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     /// <summary>
     /// Router is a kind of <see cref="Actor"/> that forwards a message
-    /// to zero or more other <c><see cref="Actor"/> actors</c> according to a
-    /// <see cref="Routing"/> that is computed by a <see cref="IRoutingStrategy"/>.
+    /// to one or more other <c><see cref="Actor"/> actors</c> according to a
+    /// computed <see cref="Routing"/>.
     /// </summary>
-    public abstract class Router : Actor
+    public abstract class Router<P> : Actor
     {
-        private readonly IList<Routee> routees;
-        private readonly IRoutingStrategy routingStrategy;
+        protected readonly IList<Routee<P>> routees;
 
-        protected internal Router(RouterSpecification specification, IRoutingStrategy routingStrategy)
+        public Router(RouterSpecification specification)
         {
-            for (int i = 0; i < specification.PoolSize; i++)
+            routees = new List<Routee<P>>();
+            InitRoutees(specification);
+        }
+
+        protected internal virtual void InitRoutees(RouterSpecification specification)
+        {
+            for (var i = 0; i < specification.InitialPoolSize; ++i)
             {
-                ChildActorFor(specification.RouterDefinition, specification.RouterProtocol);
+                var child = ChildActorFor(specification.RouterProtocol, specification.RouterDefinition);
+                Subscribe(Routee<P>.Of((P)child));
             }
-            this.routees = Routee.ForAll(LifeCycle.Environment.Children);
-            this.routingStrategy = routingStrategy;
         }
 
-        protected internal virtual Routing ComputeRouting<T1>(T1 routable1)
+        protected internal virtual IList<Routee<P>> Routees => new ArraySegment<Routee<P>>(routees.ToArray());
+
+        public virtual Routee<P> RouteeAt(int index) => (index < 0 || index >= routees.Count) ? null : routees.ElementAt(index);
+
+        protected internal virtual void Subscribe(Routee<P> routee)
         {
-            var routing = routingStrategy.ChooseRouteFor(routable1, routees);
-            routing.Validate();
-            return routing;
+            if (!routees.Contains(routee))
+            {
+                routees.Add(routee);
+            }
         }
 
-        protected internal virtual Routing ComputeRouting<T1, T2>(T1 routable1, T2 routable2)
+        protected internal virtual void Subscribe(IList<Routee<P>> toSubscribe)
         {
-            var routing = routingStrategy.ChooseRouteFor(routable1, routable2, routees);
-            routing.Validate();
-            return routing;
+            foreach(var routee in toSubscribe)
+            {
+                Subscribe(routee);
+            }
         }
 
-        protected internal virtual Routing ComputeRouting<T1, T2, T3>(T1 routable1, T2 routable2, T3 routable3)
+        protected internal virtual void Unsubscribe(Routee<P> routee) => routees.Remove(routee);
+
+        protected internal virtual void Unsubscribe(IList<Routee<P>> toUnsubscribe)
         {
-            var routing = routingStrategy.ChooseRouteFor(routable1, routable2, routable3, routees);
-            routing.Validate();
-            return routing;
+            foreach(var routee in toUnsubscribe)
+            {
+                Unsubscribe(routee);
+            }
         }
 
-        protected internal virtual Routing ComputeRouting<T1, T2, T3, T4>(T1 routable1, T2 routable2, T3 routable3, T4 routable4)
+        protected internal abstract Routing<P> ComputeRouting();
+
+        protected internal virtual Routing<P> RoutingFor<T1>(T1 routable1) => ComputeRouting();
+
+        protected internal virtual Routing<P> RoutingFor<T1, T2>(T1 routable1, T2 routable2) => ComputeRouting();
+
+        protected internal virtual Routing<P> RoutingFor<T1, T2, T3>(T1 routable1, T2 routable2, T3 routable3) => ComputeRouting();
+
+        protected internal virtual Routing<P> RoutingFor<T1, T2, T3, T4>(T1 routable1, T2 routable2, T3 routable3, T4 routable4)
+            => ComputeRouting();
+
+        protected internal virtual void DispatchCommand<T1>(Action<P, T1> action, T1 routable1)
+            => RoutingFor(routable1).Routees.ToList().ForEach(routee => routee.ReceiveCommand(action, routable1));
+
+        protected internal virtual void DispatchCommand<T1, T2>(Action<P, T1, T2> action, T1 routable1, T2 routable2)
+            => RoutingFor(routable1, routable2).Routees.ToList().ForEach(routee => routee.ReceiveCommand(action, routable1, routable2));
+
+        protected internal virtual void DispatchCommand<T1, T2, T3>(Action<P, T1, T2, T3> action, T1 routable1, T2 routable2, T3 routable3)
+            => RoutingFor(routable1, routable2, routable3)
+                .Routees
+                .ToList()
+                .ForEach(routee => routee.ReceiveCommand(action, routable1, routable2, routable3));
+
+        protected internal virtual void DispatchCommand<T1, T2, T3, T4>(
+            Action<P, T1, T2, T3, T4> action, 
+            T1 routable1, 
+            T2 routable2, 
+            T3 routable3,
+            T4 routable4)
+            => RoutingFor(routable1, routable2, routable3, routable4)
+                .Routees
+                .ToList()
+                .ForEach(routee => routee.ReceiveCommand(action, routable1, routable2, routable3, routable4));
+
+        protected internal virtual ICompletes<R> DispatchQuery<T1, R>(
+            Func<P, T1, ICompletes<R>> query, 
+            T1 routable1)
         {
-            var routing = routingStrategy.ChooseRouteFor(routable1, routable2, routable3, routable4, routees);
-            routing.Validate();
-            return routing;
+            var completesEventually = CompletesEventually();
+            RoutingFor(routable1)
+                .First
+                .ReceiveQuery(query, routable1)
+                .AndThenConsume(outcome => completesEventually.With(outcome));
+
+            return (ICompletes<R>)Completes();
         }
 
-        protected internal virtual Routing ComputeRouting<T1, T2, T3, T4, T5>(T1 routable1, T2 routable2, T3 routable3, T4 routable4, T5 routable5)
+        protected internal virtual ICompletes<R> DispatchQuery<T1, T2, R>(
+            Func<P, T1, T2, ICompletes<R>> query,
+            T1 routable1,
+            T2 routable2)
         {
-            var routing = routingStrategy.ChooseRouteFor(routable1, routable2, routable3, routable4, routable5, routees);
-            routing.Validate();
-            return routing;
+            var completesEventually = CompletesEventually();
+            RoutingFor(routable1, routable2)
+                .First
+                .ReceiveQuery(query, routable1, routable2)
+                .AndThenConsume(outcome => completesEventually.With(outcome));
+
+            return (ICompletes<R>)Completes();
+        }
+
+        protected internal virtual ICompletes<R> DispatchQuery<T1, T2, T3, R>(
+            Func<P, T1, T2, T3, ICompletes<R>> query,
+            T1 routable1,
+            T2 routable2,
+            T3 routable3)
+        {
+            var completesEventually = CompletesEventually();
+            RoutingFor(routable1, routable2, routable3)
+                .First
+                .ReceiveQuery(query, routable1, routable2, routable3)
+                .AndThenConsume(outcome => completesEventually.With(outcome));
+
+            return (ICompletes<R>)Completes();
+        }
+
+        protected internal virtual ICompletes<R> DispatchQuery<T1, T2, T3, T4, R>(
+            Func<P, T1, T2, T3, T4, ICompletes<R>> query,
+            T1 routable1,
+            T2 routable2,
+            T3 routable3,
+            T4 routable4)
+        {
+            var completesEventually = CompletesEventually();
+            RoutingFor(routable1, routable2, routable3, routable4)
+                .First
+                .ReceiveQuery(query, routable1, routable2, routable3, routable4)
+                .AndThenConsume(outcome => completesEventually.With(outcome));
+
+            return (ICompletes<R>)Completes();
         }
     }
 }

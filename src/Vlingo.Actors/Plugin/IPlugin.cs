@@ -14,5 +14,6 @@ namespace Vlingo.Actors.Plugin
         int Pass { get; }
         IPluginConfiguration Configuration { get; }
         void Start(IRegistrar registrar);
+        IPlugin With(IPluginConfiguration overrideConfiguration);
     }
 }

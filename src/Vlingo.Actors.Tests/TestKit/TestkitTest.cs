@@ -11,30 +11,25 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests.TestKit
 {
-    public class TestkitTest : IDisposable
+    public class TestkitTest : ActorsTest
     {
-        private readonly TestWorld world;
-
-        public TestkitTest() => world = TestWorld.Start("test-world");
-        public void Dispose() => world.Dispose();
-
         [Fact]
         public void TestTesterWorldPing()
         {
-            var pingCounter = world.ActorFor<IPingCounter>(Definition.Has<PingCounterActor>(Definition.NoParameters));
+            var pingCounter = TestWorld.ActorFor<IPingCounter>(Definition.Has<PingCounterActor>(Definition.NoParameters));
             pingCounter.Actor.Ping();
             pingCounter.Actor.Ping();
             pingCounter.Actor.Ping();
 
-            Assert.Equal(3, world.AllMessagesFor(pingCounter.Address).Count);
+            Assert.Equal(3, TestWorld.AllMessagesFor(pingCounter.Address).Count);
             Assert.Equal(3, pingCounter.ViewTestState().ValueOf<int>("count"));
         }
 
         [Fact]
         public void TestTesterPingPong()
         {
-            var pongCounter = world.ActorFor<IPongCounter>(Definition.Has<PongCounterActor>(Definition.NoParameters));
-            var pingCounter = world.ActorFor<IPingCounter>(
+            var pongCounter = TestWorld.ActorFor<IPongCounter>(Definition.Has<PongCounterActor>(Definition.NoParameters));
+            var pingCounter = TestWorld.ActorFor<IPingCounter>(
                 Definition.Has<PingPongCounterActor>(
                     Definition.Parameters(pongCounter.Actor)));
 
@@ -42,8 +37,8 @@ namespace Vlingo.Actors.Tests.TestKit
             pingCounter.Actor.Ping();
             pingCounter.Actor.Ping();
 
-            Assert.Equal(3, world.AllMessagesFor(pingCounter.Address).Count);
-            Assert.Equal(3, world.AllMessagesFor(pongCounter.Address).Count);
+            Assert.Equal(3, TestWorld.AllMessagesFor(pingCounter.Address).Count);
+            Assert.Equal(3, TestWorld.AllMessagesFor(pongCounter.Address).Count);
             Assert.Equal(3, pingCounter.ViewTestState().ValueOf<int>("count"));
             Assert.Equal(3, pongCounter.ViewTestState().ValueOf<int>("count"));
         }

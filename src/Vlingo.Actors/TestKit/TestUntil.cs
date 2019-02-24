@@ -13,7 +13,6 @@ namespace Vlingo.Actors.TestKit
     public class TestUntil : IDisposable
     {
         private readonly CountdownEvent countDownEvent;
-        private readonly bool zero;
 
         public static TestUntil Happenings(int times) => new TestUntil(count: times);
 
@@ -27,62 +26,26 @@ namespace Vlingo.Actors.TestKit
 
         public void Completes()
         {
-            if (zero)
+            try
             {
-                try
-                {
-                    Thread.Sleep(10);
-                }
-                catch (Exception)
-                {
-                    // Ignore !
-                }
+                countDownEvent.Wait();
             }
-            else
+            catch (Exception)
             {
-                try
-                {
-                    countDownEvent.Wait();
-                }
-                catch (Exception)
-                {
-                    // Ignore !
-                }
+                // Ignore !
             }
         }
 
         public bool CompletesWithin(long timeout)
         {
-            var countDown = timeout;
-            while (true)
+            try
             {
-                if (countDownEvent.IsSet)
-                {
-                    return true;
-                }
-
-                try
-                {
-                    Thread.Sleep(TimeSpan.FromMilliseconds((countDown >= 0 && countDown < 100) ? countDown : 100));
-                }
-                catch (Exception)
-                {
-                    // ignored
-                }
-
-                if (countDownEvent.IsSet)
-                {
-                    return true;
-                }
-
-                if (timeout >= 0)
-                {
-                    countDown -= 100;
-                    if (countDown <= 0)
-                    {
-                        return false;
-                    }
-                }
+                countDownEvent.Wait(TimeSpan.FromMilliseconds(timeout));
+                return countDownEvent.CurrentCount == 0;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
@@ -98,15 +61,15 @@ namespace Vlingo.Actors.TestKit
 
         public int Remaining => countDownEvent.CurrentCount;
 
-        public override string ToString() => $"TestUntil[count={countDownEvent.CurrentCount} , zero={zero}]";
+        public void ResetHappeningsTo(int times) => countDownEvent.Reset(times);
+
+        public override string ToString() => $"TestUntil[count={countDownEvent.CurrentCount}]";
         
         public void Dispose() => countDownEvent.Dispose();
 
         private TestUntil(int count)
         {
             countDownEvent = new CountdownEvent(initialCount: count);
-
-            zero = (count == 0);
         }
     }
 }

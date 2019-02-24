@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Actors.Plugin.Logging.Console;
 using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests
@@ -14,9 +15,15 @@ namespace Vlingo.Actors.Tests
     {
         protected ActorsTest() 
         {
-            TestWorld = TestWorld.Start($"{GetType().Name}-world");
+            var configuration = Configuration
+                .Define()
+                .With(ConsoleLoggerPluginConfiguration
+                    .Define()
+                    .WithDefaultLogger()
+                    .WithName("vlingo-net/actors"));
+
+            TestWorld = TestWorld.Start($"{GetType().Name}-world", configuration);
             World = TestWorld.World;
-            //ActorFactory.ThreadLocalEnvironment.Value = new TestEnvironment();
         }
 
         protected World World { get; set; }

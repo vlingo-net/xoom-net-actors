@@ -8,6 +8,7 @@
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
+using System;
 
 namespace Vlingo.Actors.Tests
 {
@@ -34,7 +35,7 @@ namespace Vlingo.Actors.Tests
             var holder = new CounterHolder();
             holder.Until = Until(1);
 
-            scheduler.ScheduleOnce(scheduled, holder, 0, 1);
+            scheduler.ScheduleOnce(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
             holder.Until.Completes();
 
             Assert.Equal(1, holder.Counter);
@@ -46,7 +47,7 @@ namespace Vlingo.Actors.Tests
             var holder = new CounterHolder();
             holder.Until = Until(505);
 
-            scheduler.Schedule(scheduled, holder, 0, 1);
+            scheduler.Schedule(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
             holder.Until.Completes();
 
             Assert.True(holder.Counter > 500);

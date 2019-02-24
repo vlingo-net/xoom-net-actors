@@ -17,8 +17,9 @@ namespace Vlingo.Actors.Tests
         public void TestTwoProtocols()
         {
             var protocols = TestWorld.ActorFor(
-                Definition.Has<TwoProtocolsActor>(
-                    Definition.NoParameters), new[] { typeof(P1), typeof(P2) });
+                new[] { typeof(P1), typeof(P2) },
+                Definition.Has<TwoProtocolsActor>(Definition.NoParameters));
+
             var two = Protocols.Two<TestActor<P1>, TestActor<P2>>(protocols);
 
             two._1.Actor.Do1();
@@ -33,8 +34,7 @@ namespace Vlingo.Actors.Tests
         public void TestThreeProtocols()
         {
             var protocols = TestWorld.ActorFor(
-                Definition.Has<ThreeProtocolsActor>(
-                    Definition.NoParameters), new[] { typeof(P1), typeof(P2), typeof(P3) });
+                new[] { typeof(P1), typeof(P2), typeof(P3) }, Definition.Has<ThreeProtocolsActor>(Definition.NoParameters));
             var three = Protocols.Three<TestActor<P1>, TestActor<P2>, TestActor<P3>>(protocols);
 
             three._1.Actor.Do1();
@@ -54,8 +54,7 @@ namespace Vlingo.Actors.Tests
         public void TestFourProtocols()
         {
             var protocols = TestWorld.ActorFor(
-                Definition.Has<FourProtocolsActor>(
-                    Definition.NoParameters), new[] { typeof(P1), typeof(P2), typeof(P3), typeof(P4) });
+                new[] { typeof(P1), typeof(P2), typeof(P3), typeof(P4) }, Definition.Has<FourProtocolsActor>(Definition.NoParameters));
             var four = Protocols.Four<TestActor<P1>, TestActor<P2>, TestActor<P3>, TestActor<P4>>(protocols);
 
             four._1.Actor.Do1();
@@ -81,8 +80,8 @@ namespace Vlingo.Actors.Tests
         public void TestFiveProtocols()
         {
             var protocols = TestWorld.ActorFor(
-                Definition.Has<FiveProtocolsActor>(
-                    Definition.NoParameters), new[] { typeof(P1), typeof(P2), typeof(P3), typeof(P4), typeof(P5) });
+                new[] { typeof(P1), typeof(P2), typeof(P3), typeof(P4), typeof(P5) },
+                Definition.Has<FiveProtocolsActor>(Definition.NoParameters));
             var four = Protocols.Five<TestActor<P1>, TestActor<P2>, TestActor<P3>, TestActor<P4>, TestActor<P5>>(protocols);
 
             four._1.Actor.Do1();

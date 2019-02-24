@@ -14,6 +14,7 @@ namespace Vlingo.Actors.TestKit
             ActorInside = actor;
             Actor = protocol;
             Address = address;
+            Context = new TestContext();
         }
 
         public virtual T Actor { get; }
@@ -26,5 +27,7 @@ namespace Vlingo.Actors.TestKit
         public virtual Actor ActorInside { get; }
 
         public virtual TestState ViewTestState() => ActorInside.ViewTestState();
+
+        public virtual TestContext Context { get; }
     }
 }

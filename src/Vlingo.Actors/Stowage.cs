@@ -14,8 +14,8 @@ namespace Vlingo.Actors
     internal class Stowage
     {
         private Queue<IMessage> stowedMessages;
-        private bool dispersing;
-        private bool stowing;
+        private volatile bool dispersing;
+        private volatile bool stowing;
 
         public Stowage()
         {

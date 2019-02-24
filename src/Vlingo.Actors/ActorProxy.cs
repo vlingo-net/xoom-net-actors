@@ -13,7 +13,6 @@ namespace Vlingo.Actors
 {
     internal static class ActorProxy
     {
-        private static readonly DynaClassLoader classLoader = new DynaClassLoader();
         private static readonly DynaCompiler proxyCompiler = new DynaCompiler();
         private static readonly object _createForMutex = new object();
 
@@ -49,8 +48,21 @@ namespace Vlingo.Actors
             }
         }
 
+        private static DynaClassLoader ClassLoaderFor(Actor actor)
+        {
+            var classLoader = actor.LifeCycle.Environment.Stage.World.ClassLoader;
+            if(classLoader == null)
+            {
+                classLoader = new DynaClassLoader();
+                actor.Stage.World.ClassLoader = classLoader;
+            }
+
+            return classLoader;
+        }
+
         private static object TryCreate(Actor actor, IMailbox mailbox, string targetClassName)
         {
+            var classLoader = ClassLoaderFor(actor);
             var proxyClass = classLoader.LoadClass(targetClassName);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
@@ -62,14 +74,14 @@ namespace Vlingo.Actors
         {
             try
             {
-                var generator = ProxyGenerator.ForMain(true);
+                var generator = ProxyGenerator.ForMain(true, actor.Logger);
                 return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
             }
             catch (Exception)
             {
                 try
                 {
-                    var generator = ProxyGenerator.ForTest(true);
+                    var generator = ProxyGenerator.ForTest(true, actor.Logger);
                     return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName);
                 }
                 catch (Exception etest)
@@ -89,7 +101,7 @@ namespace Vlingo.Actors
                     targetClassName,
                     result.Source,
                     result.SourceFile,
-                    classLoader,
+                    ClassLoaderFor(actor),
                     generator.Type,
                     true);
 

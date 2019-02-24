@@ -43,6 +43,14 @@ namespace Vlingo.Actors
 
     internal class ResultCompletes<T> : ResultCompletes, ICompletes<T>
     {
+        public bool IsCompleted => throw new NotImplementedException();
+
+        public bool HasFailed => throw new NotImplementedException();
+
+        public bool HasOutcome => throw new NotImplementedException();
+
+        public T Outcome => throw new NotImplementedException();
+
         public ResultCompletes()
             : this(null, null, false)
         {
@@ -54,109 +62,6 @@ namespace Vlingo.Actors
             InternalClientCompletes = clientCompletes;
             InternalOutcome = internalOutcome;
             HasInternalOutcomeSet = hasOutcomeSet;
-        }
-
-        public virtual bool IsCompleted => throw new NotSupportedException();
-
-        public virtual bool HasFailed => throw new NotSupportedException();
-
-        public virtual bool HasOutcome => throw new NotSupportedException();
-
-        public virtual T Outcome => throw new NotSupportedException();
-
-        public virtual ICompletes<T> AndThen(long timeout, T failedOutcomeValue, Func<T, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThen(T failedOutcomeValue, Func<T, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThen(long timeout, Func<T, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThen(Func<T, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThenConsume(long timeout, T failedOutcomeValue, Action<T> consumer)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThenConsume(T failedOutcomeValue, Action<T> consumer)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThenConsume(long timeout, Action<T> consumer)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> AndThenConsume(Action<T> consumer)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual O AndThenInto<F, O>(long timeout, F failedOutcomeValue, Func<T, O> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual O AndThenInto<F, O>(F failedOutcomeValue, Func<T, O> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual O AndThenInto<O>(long timeout, Func<T, O> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual O AndThenInto<O>(Func<T, O> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual T Await()
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual T Await(long timeout)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual void Failed()
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> Otherwise(Func<T, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> OtherwiseConsume(Action<T> consumer)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> RecoverFrom(Func<Exception, T> function)
-        {
-            throw new NotSupportedException();
-        }
-
-        public virtual ICompletes<T> Repeat()
-        {
-            throw new NotSupportedException();
         }
 
         public override ICompletes<O> With<O>(O outcome)
@@ -186,5 +91,100 @@ namespace Vlingo.Actors
 
         public override bool IsOfSameGenericType<TOtherType>()
             => typeof(T) == typeof(TOtherType);
+
+        public ICompletes<T> AndThen(TimeSpan timeout, T failedOutcomeValue, Func<T, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThen(T failedOutcomeValue, Func<T, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThen(TimeSpan timeout, Func<T, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThen(Func<T, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThenConsume(TimeSpan timeout, T failedOutcomeValue, Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThenConsume(T failedOutcomeValue, Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThenConsume(TimeSpan timeout, Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThenConsume(Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public O AndThenTo<F, O>(TimeSpan timeout, F failedOutcomeValue, Func<T, O> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public O AndThenTo<F, O>(F failedOutcomeValue, Func<T, O> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public O AndThenTo<O>(TimeSpan timeout, Func<T, O> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public O AndThenTo<O>(Func<T, O> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> Otherwise(Func<T, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> OtherwiseConsume(Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> RecoverFrom(Func<Exception, T> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T Await()
+        {
+            throw new NotImplementedException();
+        }
+
+        public T Await(TimeSpan timeout)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Failed()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> Repeat()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -21,6 +21,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
         }
 
+        private SharedRingBufferMailboxPlugin(IPluginConfiguration configuration)
+        {
+            this.configuration = (SharedRingBufferMailboxPluginConfiguration)configuration;
+            dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
+        }
+
         public override string Name => configuration.Name;
 
         public override int Pass => 1;
@@ -65,5 +71,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
             return maybeDispatcher.Mailbox;
         }
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new SharedRingBufferMailboxPlugin(overrideConfiguration);
     }
 }

@@ -16,6 +16,7 @@ namespace Vlingo.Actors
     {
         internal IAddress Address { get; }
         internal List<Actor> Children { get; }
+        internal IAddress CompletesEventuallyAddress { get; private set; }
         internal Definition Definition { get; }
         internal FailureMark FailureMark { get; }
 
@@ -69,6 +70,18 @@ namespace Vlingo.Actors
         internal void AddChild(Actor child)
         {
             Children.Add(child);
+        }
+
+        internal ICompletesEventually CompletesEventually(ResultCompletes completes)
+        {
+            if (CompletesEventuallyAddress == null)
+            {
+                var completesEventually = Stage.World.CompletesFor(completes.ClientCompletes());
+                CompletesEventuallyAddress = completesEventually.Address;
+                return completesEventually;
+            }
+
+            return Stage.World.CompletesFor(CompletesEventuallyAddress, completes.ClientCompletes());
         }
 
         internal void CacheProxy<T>(T proxy)

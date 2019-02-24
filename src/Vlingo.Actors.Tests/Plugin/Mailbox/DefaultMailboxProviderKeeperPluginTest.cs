@@ -6,7 +6,6 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using NSubstitute;
-using System;
 using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Mailbox;
 using Xunit;

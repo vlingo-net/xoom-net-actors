@@ -37,8 +37,24 @@ namespace Vlingo.Actors
 
         public virtual bool IsStopped => CompletesEventually.IsStopped;
 
+        public virtual IAddress Address => CompletesEventually.Address;
+
         public virtual void Stop()
         {
         }
+
+        public override int GetHashCode() => 31 * Address.GetHashCode();
+
+        public override bool Equals(object other)
+        {
+            if (other == null || other.GetType() != GetType())
+            {
+                return false;
+            }
+
+            return Address.Equals(((PooledCompletes)other).Address);
+        }
+
+        public override string ToString() => $"PooledCompletes[Id={Id} Address={Address}]";
     }
 }

@@ -15,129 +15,165 @@ namespace Vlingo.Actors.Tests
     public class ActorStopTest : ActorsTest
     {
         [Fact]
-        public void TestWorldTerminateToStopAllActors()
-        {
-            var testSpecs = new TestResults();
-            testSpecs.untilStart = TestUntil.Happenings(12);
-
-            var stoppables = SetUpActors(World, testSpecs);
-
-            for (int idx = 0; idx < stoppables.Length; ++idx)
-            {
-                stoppables[idx].CreateChildren();
-            }
-
-            testSpecs.untilStart.CompletesWithin(2000);
-            testSpecs.untilTerminatingStop = TestUntil.Happenings(12);
-            testSpecs.terminating.Set(true);
-
-            World.Terminate();
-
-            testSpecs.untilTerminatingStop.CompletesWithin(2000);
-
-            Assert.Equal(12, testSpecs.terminatingStopCount.Get());
-        }
-
-        [Fact]
         public void TestStopActors()
         {
-            var testResults = new TestResults();
-            testResults.untilStart = TestUntil.Happenings(12);
+            var results = new TestResults();
+            var beforeStartCountAccess = results.BeforeStartCountAccessCompletes(12);
+            World.DefaultLogger.Log("Test: TestStopActors: starting actors");
 
-            var stoppables = SetUpActors(World, testResults);
+            var stoppables = SetUpActors(World, results);
             for (int idx = 0; idx < stoppables.Length; ++idx)
             {
                 stoppables[idx].CreateChildren();
             }
 
-            testResults.untilStart.CompletesWithin(2000);
+            var beforeStartCount = beforeStartCountAccess.ReadFrom<int>("value");
+            Assert.Equal(12, beforeStartCount);
 
-            testResults.untilStop = TestUntil.Happenings(12);
+            World.DefaultLogger.Log("Test: TestStopActors: stopping actors");
 
+            var terminatingAccess = results.TerminatingAccessCompletes(1);
+            terminatingAccess.WriteUsing("value", false);
+            var stopCountAccess = results.StopCountAccessCompletes(12);
             for (int idx = 0; idx < stoppables.Length; ++idx)
             {
                 stoppables[idx].Stop();
             }
 
-            testResults.untilStop.CompletesWithin(2000);
+            var stopCount = stopCountAccess.ReadFrom<int>("value");
+            Assert.Equal(12, stopCount);
 
-            Assert.Equal(12, testResults.stopCount.Get());
+            World.DefaultLogger.Log("Test: TestStopActors: stopped actors");
+            World.DefaultLogger.Log("Test: TestStopActors: terminating world");
 
-            testResults.untilTerminatingStop = TestUntil.Happenings(0);
-
-            testResults.terminating.Set(true);
+            var terminatingStopCountAccess = results.TerminatingStopCountAccessCompletes(0);
+            results.TerminatingAccessCompletes(0).WriteUsing("value", true);
             World.Terminate();
 
-            testResults.untilTerminatingStop.CompletesWithin(2000);
-
-            Assert.Equal(0, testResults.terminatingStopCount.Get());
+            var terminatingStopCount = terminatingStopCountAccess.ReadFrom<int>("value");
+            Assert.Equal(0, terminatingStopCount);
         }
 
-        private IChildCreatingStoppable[] SetUpActors(World world, TestResults testResults)
+        [Fact]
+        public void TestWorldTerminateToStopAllActors()
+        {
+            var results = new TestResults();
+            var beforeStartCountAccess = results.BeforeStartCountAccessCompletes(12);
+
+            var stoppables = SetUpActors(World, results);
+
+            for (int idx = 0; idx < stoppables.Length; ++idx)
+            {
+                stoppables[idx].CreateChildren();
+            }
+
+            beforeStartCountAccess.ReadFrom<int>("value");
+            var terminatingStopAccess = results.TerminatingStopCountAccessCompletes(12);
+            results.TerminatingAccessCompletes(1).WriteUsing("value", true);
+            World.Terminate();
+            
+            var terminatingStopCount = terminatingStopAccess.ReadFrom<int>("value");
+            Assert.Equal(12, terminatingStopCount);
+        }
+
+        private IChildCreatingStoppable[] SetUpActors(World world, TestResults results)
         {
             var stoppables = new IChildCreatingStoppable[3];
-            stoppables[0] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), "p1"));
-            stoppables[1] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), "p2"));
-            stoppables[2] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), "p3"));
+            stoppables[0] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), "p1"));
+            stoppables[1] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), "p2"));
+            stoppables[2] = world.ActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), "p3"));
             return stoppables;
         }
 
         private class ChildCreatingStoppableActor : Actor, IChildCreatingStoppable
         {
-            private readonly TestResults testResults;
+            private readonly TestResults results;
 
-            public ChildCreatingStoppableActor(TestResults testSpecs)
+            public ChildCreatingStoppableActor(TestResults results)
             {
-                testResults = testSpecs;
+                this.results = results;
             }
 
             public void CreateChildren()
             {
                 var pre = Address.Name;
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), $"{pre}.1"));
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), $"{pre}.2"));
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(testResults), $"{pre}.3"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.1"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.2"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.3"));
             }
 
             protected internal override void BeforeStart()
             {
                 base.BeforeStart();
-                if (testResults.untilStart != null)
-                {
-                    testResults.untilStart.Happened();
-                }
+                results.beforeStartCountAccess.WriteUsing("value", 1);
             }
 
-            private static readonly object afterStopMutex = new object();
             protected internal override void AfterStop()
             {
-                lock (afterStopMutex)
+                if (results.terminatingAccess.ReadFromNow<bool>("value"))
                 {
-                    if (testResults.terminating.Get())
-                    {
-                        var count = testResults.terminatingStopCount.IncrementAndGet();
-                        Console.WriteLine("TERMINATING AND STOPPED: " + count + " ");
-                        testResults.untilTerminatingStop.Happened();
-                    }
-                    else
-                    {
-                        var count = testResults.stopCount.IncrementAndGet();
-                        Console.WriteLine("STOPPED: " + count + " ");
-                        //testResults.stopCount.incrementAndGet();
-                        testResults.untilStop.Happened();
-                    }
+                    results.terminatingStopCountAccess.WriteUsing("value", 1);
+                }
+                else
+                {
+                    results.stopCountAccess.WriteUsing("value", 1);
                 }
             }
         }
 
         private class TestResults
         {
-            public AtomicInteger stopCount = new AtomicInteger(0);
-            public AtomicBoolean terminating = new AtomicBoolean(false);
-            public AtomicInteger terminatingStopCount = new AtomicInteger(0);
-            public TestUntil untilStart = TestUntil.Happenings(0);
-            public TestUntil untilStop = TestUntil.Happenings(0);
-            public TestUntil untilTerminatingStop = TestUntil.Happenings(0);
+            internal AccessSafely beforeStartCountAccess = AccessSafely.AfterCompleting(1);
+            internal AtomicInteger beforeStartCount = new AtomicInteger(0);
+
+            internal AccessSafely stopCountAccess = AccessSafely.AfterCompleting(1);
+            internal AtomicInteger stopCount = new AtomicInteger(0);
+
+            internal AccessSafely terminatingAccess = AccessSafely.AfterCompleting(1);
+            internal AtomicBoolean terminating = new AtomicBoolean(false);
+
+            internal AccessSafely terminatingStopCountAccess = AccessSafely.AfterCompleting(1);
+            internal AtomicInteger terminatingStopCount = new AtomicInteger(0);
+
+            public AccessSafely BeforeStartCountAccessCompletes(int times)
+            {
+                beforeStartCountAccess = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("value", (int value) => beforeStartCount.Set(beforeStartCount.Get() + value))
+                    .ReadingWith("value", () => beforeStartCount.Get());
+
+                return beforeStartCountAccess;
+            }
+
+            public AccessSafely StopCountAccessCompletes(int times)
+            {
+                stopCountAccess = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("value", (int value) => stopCount.Set(stopCount.Get() + value))
+                    .ReadingWith("value", () => stopCount.Get());
+
+                return stopCountAccess;
+            }
+
+            public AccessSafely TerminatingAccessCompletes(int times)
+            {
+                terminatingAccess = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("value", (bool flag) => terminating.Set(flag))
+                    .ReadingWith("value", () => terminating.Get());
+
+                return terminatingAccess;
+            }
+
+            public AccessSafely TerminatingStopCountAccessCompletes(int times)
+            {
+                terminatingStopCountAccess = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("value", (int value) => terminatingStopCount.Set(terminatingStopCount.Get() + value))
+                    .ReadingWith("value", () => terminatingStopCount.Get());
+
+                return terminatingStopCountAccess;
+            }
         }
     }
 

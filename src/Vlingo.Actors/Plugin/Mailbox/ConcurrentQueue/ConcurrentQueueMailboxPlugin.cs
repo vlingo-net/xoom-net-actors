@@ -19,6 +19,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             configuration = ConcurrentQueueMailboxPluginConfiguration.Define();
         }
 
+        private ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration)
+        {
+            this.configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
+        }
+
         public override string Name => configuration.Name;
 
         public override int Pass => 1;
@@ -45,5 +50,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         }
 
         public override void Close() => executorDispatcher.Close();
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new ConcurrentQueueMailboxPlugin(overrideConfiguration);
     }
 }

@@ -10,6 +10,9 @@ using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Vlingo.Common;
 using Xunit;
+using TestResults = Vlingo.Actors.Tests.WorldTest.TestResults;
+using SimpleActor = Vlingo.Actors.Tests.WorldTest.SimpleActor;
+using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests
 {
@@ -18,9 +21,24 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestActorForDefinitionAndProtocol()
         {
-            var definition = Definition.Has<TestInterfaceActor>(Definition.NoParameters);
-            var test = World.ActorFor<INoProtocol>(definition);
+            var test = World.Stage.ActorFor<INoProtocol>(typeof(TestInterfaceActor));
 
+            Assert.NotNull(test);
+            Assert.NotNull(TestInterfaceActor.Instance.Value);
+            Assert.Equal(World.DefaultParent, TestInterfaceActor.Instance.Value.LifeCycle.Environment.Parent);
+        }
+
+        [Fact]
+        public void TestActorForNoDefinitionAndProtocol()
+        {
+            var testResults = new TestResults();
+            var simple = World.Stage.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
+            testResults.UntilSimple = TestUntil.Happenings(1);
+            simple.SimpleSay();
+            testResults.UntilSimple.Completes();
+            Assert.True(testResults.Invoked.Get());
+
+            var test = World.Stage.ActorFor<INoProtocol>(typeof(TestInterfaceActor));
             Assert.NotNull(test);
             Assert.NotNull(TestInterfaceActor.Instance.Value);
             Assert.Equal(World.DefaultParent, TestInterfaceActor.Instance.Value.LifeCycle.Environment.Parent);
@@ -29,12 +47,14 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestActorForAll()
         {
-            World.ActorFor<INoProtocol>(Definition.Has<ParentInterfaceActor>(Definition.NoParameters));
+            World.ActorFor<INoProtocol>(typeof(ParentInterfaceActor));
+
             var definition = Definition.Has<TestInterfaceActor>(
                 Definition.NoParameters,
                 ParentInterfaceActor.Instance.Value,
                 TestMailbox.Name,
                 "test-actor");
+
             var test = World.Stage.ActorFor<INoProtocol>(definition);
 
             Assert.NotNull(test);
@@ -101,6 +121,31 @@ namespace Vlingo.Actors.Tests
 
             until.Completes();
             Assert.Equal(5, scanFound.Get());
+        }
+
+        [Fact]
+        public void TestThatProtocolIsInterface()
+        {
+            World.Stage.ActorFor<INoProtocol>(typeof(ParentInterfaceActor));
+        }
+
+        [Fact]
+        public void TestThatProtocolIsNotInterface()
+        {
+            Assert.Throws<ArgumentException>(() => World.Stage.ActorFor<ParentInterfaceActor>(typeof(ParentInterfaceActor)));
+        }
+
+        [Fact]
+        public void TestThatProtocolsAreInterfaces()
+        {
+            World.Stage.ActorFor(new[] { typeof(INoProtocol), typeof(INoProtocol) }, typeof(ParentInterfaceActor));
+        }
+
+        [Fact]
+        public void TestThatProtocolsAreNotInterfaces()
+        {
+            Assert.Throws<ArgumentException>(()
+                => World.Stage.ActorFor(new[] { typeof(INoProtocol), typeof(ParentInterfaceActor) }, typeof(ParentInterfaceActor)));
         }
 
         private class ParentInterfaceActor : Actor, INoProtocol

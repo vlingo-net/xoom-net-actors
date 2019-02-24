@@ -62,10 +62,21 @@ namespace Vlingo.Actors
                 if (LifeCycle.Address.Id != World.DeadLettersId)
                 {
                     // TODO: remove this actor as a child on parent
+                    LifeCycle.Suspend();
                     LifeCycle.Stop(this);
                 }
             }
         }
+
+        /// <summary>
+        /// Received from the surrounding <see cref="TestActor{T}"/> to indicate
+        /// that it is in use, enabling any special test initialization as
+        /// eded. This is received (1) with a <code>TestContext</code> when the
+        /// <code>TestActor</code> is first constructed, and (2) with <code>null</code>
+        /// before each <code>TestMailbox</code> delivery.
+        /// </summary>
+        /// <param name="context">The TestContext.</param>
+        public virtual void ViewTestStateInitialization(TestContext context) { }
 
         /// <summary>
         /// Answers the <c>TestState</c> for this <c>Actor</c>. Override to provide a snapshot of the current <c>Actor</c> state.
@@ -160,10 +171,10 @@ namespace Vlingo.Actors
         /// <summary>
         /// Answers the protocol for the child <c>Actor</c> to be created by this parent <c>Actor</c>.
         /// </summary>
-        /// <param name="definition">The <c>Definition</c> of the child <c>Actor</c> to be created by this parent <c>Actor</c></param>
         /// <param name="protocol">The type of the child <c>Actor</c> to be created.</param>
+        /// <param name="definition">The <c>Definition</c> of the child <c>Actor</c> to be created by this parent <c>Actor</c></param>
         /// <returns>A child <c>Actor</c> of type <paramref name="protocol"/> created by this parent <c>Actor</c>.</returns>
-        protected internal virtual object ChildActorFor(Definition definition, Type protocol)
+        protected internal virtual object ChildActorFor(Type protocol, Definition definition)
         {
             var method = GetType().GetMethod(
                 "ChildActorFor",
@@ -192,7 +203,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Completes is not available for this protocol behavior");
             }
 
-            return completes;
+            return completes.ClientCompletes();
         }
 
         /// <summary>
@@ -202,7 +213,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <returns>A <c>ICompletesEventually</c> instance.</returns>
         protected internal virtual ICompletesEventually CompletesEventually()
-            => LifeCycle.Environment.Stage.World.CompletesFor(completes.ClientCompletes());
+            => LifeCycle.Environment.CompletesEventually(completes);
 
         /// <summary>
         /// Answers the <c>Definition</c> of this <c>Actor</c>.

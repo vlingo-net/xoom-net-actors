@@ -6,28 +6,27 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Collections.Generic;
 
 namespace Vlingo.Actors
 {
     /// <summary>
-    /// RandomRoutingStrategy is a <see cref="IRoutingStrategy"/> that
-    /// includes a random one of the pooled <c>IList&lt;<see cref="Routee"/>&gt; routees</c>
-    /// in the <see cref="Routing"/>
+    /// RandomRouter
     /// </summary>
-    public class RandomRoutingStrategy : RoutingStrategyAdapter
+    public class RandomRouter<P> : Router<P>
     {
         private readonly Random random;
 
-        public RandomRoutingStrategy()
+        public RandomRouter(RouterSpecification specification) : base(specification)
         {
             random = new Random();
         }
 
-        protected override Routing ChooseRouteFor(IList<Routee> routees)
+        protected internal override Routing<P> ComputeRouting() => Routing.With(NextRoutee());
+
+        protected internal virtual Routee<P> NextRoutee()
         {
             int index = random.Next(routees.Count);
-            return Routing.With(routees[index]);
+            return RouteeAt(index);
         }
     }
 }

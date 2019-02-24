@@ -40,5 +40,11 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
             ++provideCompletesForCount;
             return completesEventually;
         }
+
+        public ICompletesEventually ProvideCompletesFor(IAddress address, ICompletes clientCompletes)
+        {
+            ++provideCompletesForCount;
+            return completesEventually;
+        }
     }
 }

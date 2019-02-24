@@ -18,6 +18,11 @@ namespace Vlingo.Actors.Plugin.Completes
             pooledCompletesPluginConfiguration = PooledCompletesPluginConfiguration.Define();
         }
 
+        private PooledCompletesPlugin(IPluginConfiguration configuration)
+        {
+            pooledCompletesPluginConfiguration = (PooledCompletesPluginConfiguration)configuration;
+        }
+
         public override string Name => Configuration.Name;
 
         public override int Pass => 2;
@@ -34,5 +39,8 @@ namespace Vlingo.Actors.Plugin.Completes
             completesEventuallyProvider = new CompletesEventuallyPool(pooledCompletesPluginConfiguration.PoolSize, pooledCompletesPluginConfiguration.Mailbox);
             registrar.Register(pooledCompletesPluginConfiguration.Name, completesEventuallyProvider);
         }
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new PooledCompletesPlugin(overrideConfiguration);
     }
 }

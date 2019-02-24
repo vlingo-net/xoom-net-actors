@@ -8,43 +8,52 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     /// <summary>
+    /// See <see cref="Routing{P}"/>
+    /// </summary>
+    public static class Routing
+    {
+        public static Routing<T> With<T>(Routee<T> routee)
+            => new Routing<T>(new List<Routee<T>> {
+                routee ?? throw new ArgumentNullException(nameof(routee), "Routee may not be null")
+            });
+
+        public static Routing<T> With<T>(ICollection<Routee<T>> routees)
+        {
+            if (routees == null || routees.Count == 0)
+            {
+                throw new ArgumentNullException(nameof(routees), "routees may not be null or empty");
+            }
+
+            return new Routing<T>(routees);
+        }
+    }
+
+    /// <summary>
     /// Routing is an ordered sequence of <see cref="Routee"/> that
-    /// was computed by a <see cref="IRoutingStrategy"/> and whose elements
+    /// was computed by way of some routing strategy and whose elements
     /// will be the target of a message forwarded by a <see cref="Router"/>.
     /// </summary>
-    public class Routing
+    public class Routing<P>
     {
-        public static Routing Empty() => new Routing();
-        public static Routing With(Routee routee) => new Routing(new List<Routee> { routee });
-
-        public static Routing With(Optional<Routee> routeeOrNull)
-            => routeeOrNull.IsPresent ?
-                With(routeeOrNull.Get()) :
-                Empty();
-
-        public static Routing With(IList<Routee> routees) => new Routing(routees);
-
-        private readonly ArraySegment<Routee> routees;
+        private readonly ArraySegment<Routee<P>> routees;
 
         internal Routing() : this(null)
         {
         }
 
-        internal Routing(IList<Routee> routees)
+        internal Routing(ICollection<Routee<P>> routees)
         {
-            var routeesCollection = routees ?? new List<Routee>();
-            this.routees = new ArraySegment<Routee>(routeesCollection.ToArray());
+            var routeesCollection = routees ?? new List<Routee<P>>();
+            this.routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());
         }
 
-        public virtual IReadOnlyList<Routee> Routees => routees;
+        public virtual Routee<P> First => routees.ElementAt(0);
 
-        public virtual IList<TProtocol> RouteesAs<TProtocol>()
-            => routees.Select(r => r.As<TProtocol>()).ToList();
+        public virtual IReadOnlyList<Routee<P>> Routees => routees;
 
         public virtual bool IsEmpty => routees.Count == 0;
 

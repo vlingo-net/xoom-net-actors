@@ -19,8 +19,8 @@ namespace Vlingo.Actors.Tests
             var results = new Results(1, 10);
             var protocols = Protocols.Two<IStowThese, IOverrideStowage>(
                 World.ActorFor(
-                    Definition.Has<StowTestActor>(Definition.Parameters(results), "stow-override"),
-                    new[] { typeof(IStowThese), typeof(IOverrideStowage) }));
+                    new[] { typeof(IStowThese), typeof(IOverrideStowage) },
+                    Definition.Has<StowTestActor>(Definition.Parameters(results), "stow-override")));
 
             for(var idx=0; idx<10; ++idx)
             {
@@ -42,8 +42,8 @@ namespace Vlingo.Actors.Tests
             var results = new Results(1, 10);
             var protocols = Protocols.Two<IStowThese, IOverrideStowage>(
                 World.ActorFor(
-                    Definition.Has<StowTestActor>(Definition.Parameters(results), "stow-override"),
-                    new[] { typeof(IStowThese), typeof(IOverrideStowage) }));
+                    new[] { typeof(IStowThese), typeof(IOverrideStowage) },
+                    Definition.Has<StowTestActor>(Definition.Parameters(results), "stow-override")));
 
             for (var idx = 0; idx < 10; ++idx)
             {
