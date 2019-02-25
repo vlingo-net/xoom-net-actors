@@ -105,7 +105,7 @@ namespace Vlingo.Actors
 
             if (actor == null)
             {
-                throw new ArgumentException("No constructor matches the given number of parameters.");
+                throw new MissingMethodException("No constructor matches the given number of parameters.");
             }
 
             if (parent != null)
@@ -159,7 +159,7 @@ namespace Vlingo.Actors
                                 + "constructor for possible failures in dependencies that it creates.",
                                 cause);
 
-                throw new ApplicationException($"ActorFactory failed actor creation for: {address}");
+                throw new ArgumentException($"ActorFactory failed actor creation for: {address}");
             }
 
             return actor;

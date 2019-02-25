@@ -100,7 +100,7 @@ namespace Vlingo.Actors.Tests
                 address.Name);
             var mailbox = new TestMailbox();
 
-            Assert.Throws<ApplicationException>(() => ActorFactory.ActorFor(
+            Assert.Throws<ArgumentException>(() => ActorFactory.ActorFor(
                 World.Stage,
                 definition.Parent,
                 definition,
