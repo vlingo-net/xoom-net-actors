@@ -173,9 +173,15 @@ namespace Vlingo.Actors
                 .Select(m => m.ReturnType)
                 .Concat(properties.Select(p => p.PropertyType));
 
+            var allParameterTypes = methods
+                .SelectMany(m => m.GetParameters().Select(p => p.ParameterType))
+                .Distinct();
+
             return GetInnerAndOuterTypes(type)
                 .Concat(allReturnTypes)
                 .Concat(allReturnTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
+                .Concat(allParameterTypes)
+                .Concat(allParameterTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
                 .Distinct();
         }
 
