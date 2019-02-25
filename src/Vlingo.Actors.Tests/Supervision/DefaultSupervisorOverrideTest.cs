@@ -5,12 +5,28 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Actors.Plugin.Logging.Console;
+using Vlingo.Actors.Plugin.Supervision;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
     public class DefaultSupervisorOverrideTest : ActorsTest
     {
+        public DefaultSupervisorOverrideTest()
+        {
+            var configuration = Configuration.Define()
+                .With(ConsoleLoggerPluginConfiguration.Define()
+                    .WithDefaultLogger()
+                    .WithName("vlingo-net/actors"))
+                .With(DefaultSupervisorOverridePluginConfiguration.Define()
+                    .WithSupervisor("default", "overrideSupervisor", typeof(DefaultSupervisorOverride)));
+
+            TestWorld.Terminate();
+            TestWorld = Actors.TestKit.TestWorld.Start($"{typeof(DefaultSupervisorOverrideTest).Name}-world", configuration);
+            World = TestWorld.World;
+        }
+
         [Fact]
         public void TestOverride()
         {

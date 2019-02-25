@@ -10,14 +10,13 @@ using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 {
-    public class PropertiesFileConfigRingBufferMailboxActorTest
+    public class PropertiesFileConfigRingBufferMailboxActorTest : ActorsTest
     {
         [Fact]
         public void TestThatRingBufferIsUsed()
         {
-            var world = World.Start("ring-mailbox-test");
             var results = new TestResults();
-            var one = world.ActorFor<IOneBehavior>(
+            var one = World.ActorFor<IOneBehavior>(
                 Definition.Has<OneBehaviorActor>(Definition.Parameters(results), "ringMailbox", "one-behavior"));
 
             one.DoSomething();

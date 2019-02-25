@@ -5,7 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
 using Xunit;
@@ -13,26 +12,17 @@ using static Vlingo.Actors.Tests.DeadLettersTest;
 
 namespace Vlingo.Actors.Tests
 {
-    public class DeadLettersTest : IDisposable
+    public class DeadLettersTest : ActorsTest
     {
-        private readonly TestWorld world;
-
-        public DeadLettersTest()
-        {
-            world = TestWorld.Start("test-dead-letters");
-        }
-
-        public void Dispose() => world.Terminate();
-
         [Fact]
         public void TestStoppedActorToDeadLetters()
         {
             var result = new TestResult(3);
-            var nothing = world.ActorFor<INothing>(Definition.Has<NothingActor>(Definition.NoParameters, "nothing"));
-            var listener = world.ActorFor<IDeadLettersListener>(
+            var nothing = TestWorld.ActorFor<INothing>(Definition.Has<NothingActor>(Definition.NoParameters, "nothing"));
+            var listener = TestWorld.ActorFor<IDeadLettersListener>(
                 Definition.Has<DeadLettersListenerActor>(
                     Definition.Parameters(result), "deadletters-listener"));
-            world.World.DeadLetters.RegisterListener(listener.Actor);
+            World.DeadLetters.RegisterListener(listener.Actor);
 
             nothing.Actor.Stop();
             nothing.Actor.DoNothing(1);

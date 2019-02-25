@@ -20,6 +20,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             configuration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
             dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);
         }
+        private ManyToOneConcurrentArrayQueuePlugin(IPluginConfiguration configuration)
+        {
+            this.configuration = (ManyToOneConcurrentArrayQueuePluginConfiguration)configuration;
+            dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);
+        }
 
         public override void Close() => dispatchers.Values.ToList().ForEach(x => x.Close());
 
@@ -62,5 +67,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             }
             return maybeDispatcher.Mailbox;
         }
+
+        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+            => overrideConfiguration == null ? this : new ManyToOneConcurrentArrayQueuePlugin(overrideConfiguration);
     }
 }

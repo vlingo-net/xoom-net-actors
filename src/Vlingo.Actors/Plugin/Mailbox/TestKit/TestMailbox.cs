@@ -51,7 +51,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
                     world.Track(message);
                 }
             }
-
+            message.Actor.ViewTestStateInitialization(null);
             message.Deliver();
         }
 

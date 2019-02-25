@@ -16,22 +16,23 @@ namespace Vlingo.Actors
     /// </summary>
     public class RouterSpecification
     {
-        private readonly int poolSize; //TODO: refactor towards resizable pool
+        private readonly int initialPoolSize;
         private readonly Definition routerDefinition;
         private readonly Type routerProtocol;
 
         public RouterSpecification(int poolSize, Definition routerDefinition, Type routerProtocol)
         {
-            if (poolSize <= 0)
+            if (poolSize < 0)
             {
                 throw new ArgumentException("poolSize must be 1 or greater");
             }
-            this.poolSize = poolSize;
+
+            initialPoolSize = poolSize;
             this.routerDefinition = routerDefinition;
             this.routerProtocol = routerProtocol;
         }
 
-        public virtual int PoolSize => poolSize;
+        public virtual int InitialPoolSize => initialPoolSize;
 
         public virtual Definition RouterDefinition => routerDefinition;
 

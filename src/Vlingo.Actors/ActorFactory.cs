@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Reflection;
 using System.Threading;
 
 namespace Vlingo.Actors
@@ -93,31 +94,18 @@ namespace Vlingo.Actors
                     if (ctor.GetParameters().Length != definitionParameterCount)
                         continue;
 
-                    try
+                    actor = Start(ctor, address, definition, logger);
+
+                    if(actor != null)
                     {
-                        actor = (Actor)ctor.Invoke(definition.InternalParameters().ToArray());
-                        actor.LifeCycle.SendStart(actor);
+                        break;
                     }
-                    catch (Exception ex)
-                    {
-                        var cause = ex.InnerException ?? ex;
-                        logger.Log("ActorFactory: failed actor creation. "
-                                    + "This is sometimes cause be the constructor parameter types not matching "
-                                    + "the types in the Definition.parameters(). Often it is caused by a "
-                                    + "failure in the actor constructor. We have attempted to uncover "
-                                    + "the root cause here, but that may not be available in some cases.\n"
-                                    + "The root cause may be: " + cause.Message + "\n"
-                                    + "See stacktrace for more information. We strongly recommend reviewing your "
-                                    + "constructor for possible failures in dependencies that it creates.",
-                                    cause);
-                    }
-                    break;
                 }
             }
 
             if (actor == null)
             {
-                throw new ArgumentException("No constructor matches the given number of parameters.");
+                throw new MissingMethodException("No constructor matches the given number of parameters.");
             }
 
             if (parent != null)
@@ -126,6 +114,74 @@ namespace Vlingo.Actors
             }
 
             return actor;
+        }
+
+        private static Actor Start(ConstructorInfo ctor, IAddress address, Definition definition, ILogger logger)
+        {
+            Actor actor = null;
+            object[] args = null;
+            Exception cause = null;
+
+            for (var times = 1; times <= 2; ++times)
+            {
+                try
+                {
+                    if (times == 1)
+                    {
+                        args = definition.InternalParameters().ToArray();
+                    }
+
+
+                    actor = (Actor)ctor.Invoke(definition.InternalParameters().ToArray());
+                    actor.LifeCycle.SendStart(actor);
+                    cause = null;
+                    return actor;
+                }
+                catch (Exception ex)
+                {
+                    cause = ex.InnerException ?? ex;
+                    if(times == 1)
+                    {
+                        args = Unfold(args);
+                    }
+                }
+            }
+
+            if(cause != null)
+            {
+                logger.Log("ActorFactory: failed actor creation. "
+                                + "This is sometimes cause by the constructor parameter types not matching "
+                                + "the types in the Definition.parameters(). Often it is caused by a "
+                                + "failure in the actor constructor. We have attempted to uncover "
+                                + "the root cause here, but that may not be available in some cases.\n"
+                                + "The root cause may be: " + cause.Message + "\n"
+                                + "See stacktrace for more information. We strongly recommend reviewing your "
+                                + "constructor for possible failures in dependencies that it creates.",
+                                cause);
+
+                throw new ArgumentException($"ActorFactory failed actor creation for: {address}");
+            }
+
+            return actor;
+        }
+
+        private static object[] Unfold(object[] args)
+        {
+            var unfolded = new object[args.Length];
+            for (var i = 0; i < args.Length; ++i)
+            {
+                var currentArg = args[i];
+                if (currentArg.GetType().IsArray)
+                {
+                    unfolded[i] = ((object[])currentArg)[0];
+                }
+                else
+                {
+                    unfolded[i] = args[i];
+                }
+            }
+
+            return unfolded;
         }
 
         internal static IMailbox ActorMailbox(

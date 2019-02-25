@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Actors.Plugin.Logging.Console;
+using Vlingo.Actors.Plugin.Supervision;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Supervision
@@ -13,14 +15,19 @@ namespace Vlingo.Actors.Tests.Supervision
     {
         public CommonSupervisionTest()
         {
-            var properties = new Properties();
-            properties.SetProperty("plugin.name.common_supervisors", "true");
-            properties.SetProperty("plugin.common_supervisors.classname", "Vlingo.Actors.Plugin.Supervision.CommonSupervisorsPlugin");
-            properties.SetProperty("plugin.common_supervisors.types",
-                      "[stage=default name=pingSupervisor protocol=Vlingo.Actors.Tests.Supervision.IPing supervisor=Vlingo.Actors.Tests.Supervision.PingSupervisorActor] " +
-                      "[stage=default name=pongSupervisor protocol=Vlingo.Actors.Tests.Supervision.IPong supervisor=Vlingo.Actors.Tests.Supervision.PongSupervisorActor]");
+            var configuration = Configuration.Define()
+                .With(
+                    ConsoleLoggerPluginConfiguration.Define()
+                    .WithDefaultLogger()
+                    .WithName("vlingo-net/actors"))
+                .With(
+                    CommonSupervisorsPluginConfiguration.Define()
+                    .WithSupervisor("default", "pingSupervisor", typeof(IPing), typeof(PingSupervisorActor))
+                    .WithSupervisor("default", "pongSupervisor", typeof(IPong), typeof(PongSupervisorActor))
+                );
+
             TestWorld.Terminate();
-            TestWorld = Actors.TestKit.TestWorld.Start($"{typeof(CommonSupervisionTest).Name}-world", Configuration.DefineAlongWith(properties));
+            TestWorld = Actors.TestKit.TestWorld.Start($"{typeof(CommonSupervisionTest).Name}-world", configuration);
             World = TestWorld.World;
         }
 
@@ -35,6 +42,10 @@ namespace Vlingo.Actors.Tests.Supervision
 
             for (var idx = 0; idx < 5; ++idx)
             {
+                World.DefaultLogger.Log("PingSupervisorActor instance: " + PingSupervisorActor.Instance.Value);
+                World.DefaultLogger.Log("PingSupervisorActor testResults: " + PingSupervisorActor.Instance.Value.TestResults);
+                World.DefaultLogger.Log("PingSupervisorActor testResults untilInform: " + PingSupervisorActor.Instance.Value.TestResults.UntilInform);
+
                 PingSupervisorActor.Instance.Value.TestResults.UntilInform = Until(1);
                 ping.Actor.Ping();
                 PingSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();

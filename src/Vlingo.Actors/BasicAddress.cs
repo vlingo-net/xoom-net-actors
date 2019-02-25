@@ -48,6 +48,8 @@ namespace Vlingo.Actors
 
         public override int GetHashCode() => id.GetHashCode();
 
+        public override string ToString() => $"Address[Id={id}, Name={name ?? "(none)"}]";
+
         internal BasicAddress(long reservedId) : this(reservedId, null)
         {
         }
