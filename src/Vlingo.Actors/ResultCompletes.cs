@@ -112,6 +112,26 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public ICompletes<TO> AndThen<TO>(TimeSpan timeout, TO failedOutcomeValue, Func<T, TO> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TO> AndThen<TO>(TO failedOutcomeValue, Func<T, TO> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TO> AndThen<TO>(TimeSpan timeout, Func<T, TO> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TO> AndThen<TO>(Func<T, TO> function)
+        {
+            throw new NotImplementedException();
+        }
+
         public ICompletes<T> AndThenConsume(TimeSpan timeout, T failedOutcomeValue, Action<T> consumer)
         {
             throw new NotImplementedException();
