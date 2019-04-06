@@ -9,13 +9,12 @@ using System;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
-using System;
 
 namespace Vlingo.Actors.Tests
 {
     public class SchedulerTest : ActorsTest
     {
-        private readonly IScheduled scheduled;
+        private readonly IScheduled<object> scheduled;
         private readonly Scheduler scheduler;
 
         public SchedulerTest()
@@ -55,9 +54,9 @@ namespace Vlingo.Actors.Tests
         }
 
 
-        private class Scheduled : IScheduled
+        private class Scheduled : IScheduled<object>
         {
-            public void IntervalSignal(IScheduled scheduled, object data)
+            public void IntervalSignal(IScheduled<object> scheduled, object data)
             {
                 ((CounterHolder)data).Increment();
             }
