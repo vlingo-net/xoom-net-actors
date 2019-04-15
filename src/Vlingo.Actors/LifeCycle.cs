@@ -150,7 +150,7 @@ namespace Vlingo.Actors
 
         internal bool IsSuspended => Environment.Mailbox.IsSuspended;
 
-        internal void Suspend() => Environment.Mailbox.SuspendExceptFor<IStoppable>(Exceptional)
+        internal void Suspend() => Environment.Mailbox.SuspendExceptFor(Exceptional, typeof(IStoppable))
 
         internal ISupervisor Supervisor<T>()
         {
