@@ -12,5 +12,6 @@ namespace Vlingo.Actors
     public interface IDirectoryScanner
     {
         ICompletes<T> ActorOf<T>(IAddress address);
+        ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address);
     }
 }
