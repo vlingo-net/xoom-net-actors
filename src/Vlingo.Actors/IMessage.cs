@@ -14,6 +14,7 @@ namespace Vlingo.Actors
     {
         Actor Actor { get; }
         void Deliver();
+        Type Protocol { get; }
         string Representation { get; }
         bool IsStowed { get; }
         void Set<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation);
