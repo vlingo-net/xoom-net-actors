@@ -20,39 +20,40 @@ namespace Vlingo.Actors
 
         public static object CreateFor(Type protocol, Actor actor, IMailbox mailbox)
         {
-            var maybeCachedProxy  = actor.LifeCycle.Environment.LookUpProxy(protocol);
+            var maybeCachedProxy = actor.LifeCycle.Environment.LookUpProxy(protocol);
 
-            if (maybeCachedProxy  != null)
+            if (maybeCachedProxy != null)
             {
-                return maybeCachedProxy ;
+                return maybeCachedProxy;
             }
-
-            var proxyClassname = FullyQualifiedClassNameFor(protocol, "__Proxy");
 
             object newProxy;
-            try
+
+            lock (_createForMutex)
             {
-                newProxy = TryCreate(actor, mailbox, protocol, proxyClassname);
-            }
-            catch (Exception)
-            {
-                lock (_createForMutex)
+                var proxyClassname = FullyQualifiedClassNameFor(protocol, "__Proxy");
+
+                try
+                {
+                    newProxy = TryCreate(actor, mailbox, protocol, proxyClassname);
+                }
+                catch (Exception)
                 {
                     newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassname);
                 }
+
+                actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
             }
 
-            actor.LifeCycle.Environment.CacheProxy(protocol, newProxy);
-
-            return newProxy; 
+            return newProxy;
         }
 
-        private static Type LoadProxyClassFor(Type protocol, string targetClassname, Actor actor)
-            => ClassLoaderFor(actor).LoadClass(targetClassname, protocol);
-        
+        private static Type LoadProxyClassFor(string targetClassname, Actor actor)
+            => ClassLoaderFor(actor).LoadClass(targetClassname);
+
         private static object TryCreate(Actor actor, IMailbox mailbox, Type protocol, string targetClassname)
         {
-            var proxyClass = LoadProxyClassFor(protocol, targetClassname, actor);
+            var proxyClass = LoadProxyClassFor(targetClassname, actor);
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
