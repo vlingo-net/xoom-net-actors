@@ -16,24 +16,30 @@ namespace Vlingo.Actors
     public class Routee<P>
     {
         private readonly P @delegate;
+        private readonly IAddressable addressable;
         private long messageCount;
 
-        internal static Routee<T> Of<T>(T actor)
-            => new Routee<T>(actor);
+        internal static Routee<T> Of<T>(T actor, IAddressable addressable)
+            => new Routee<T>(actor, addressable);
 
-        internal Routee(P actor)
+        internal static Routee<T> Of<T>(T actor)
+            => new Routee<T>(actor, null);
+
+        internal Routee(P actor, IAddressable addressable)
         {
             @delegate = actor;
+            this.addressable = addressable;
+            messageCount = 0;
         }
 
         public virtual P Delegate => @delegate;
 
-        public virtual Actor DelegateActor => (Actor)(object)@delegate;
+        internal virtual LifeCycle DelegateLifeCycle => addressable.LifeCycle;
 
-        public virtual IAddress Address => DelegateActor.Address;
+        public virtual IAddress Address => addressable.Address;
 
         public virtual int PendingMessages
-            => DelegateActor.LifeCycle.Environment.Mailbox.PendingMessages;
+            => DelegateLifeCycle.Environment.Mailbox.PendingMessages;
 
         public virtual long MessageCount => messageCount;
 
