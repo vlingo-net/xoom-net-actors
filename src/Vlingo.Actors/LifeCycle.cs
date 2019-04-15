@@ -11,6 +11,8 @@ namespace Vlingo.Actors
 {
     internal sealed class LifeCycle
     {
+        private const string Exceptional = "#exceptional";
+
         internal Environment Environment { get; set; }
 
         internal LifeCycle(Environment environment)
@@ -142,72 +144,13 @@ namespace Vlingo.Actors
 
         #endregion
 
-        #region Stowing/Dispersing
-
-        internal bool IsDispersing => Environment.Stowage.IsDispersing;
-
-        internal void DisperseStowedMessages()
-        {
-            Environment.Stowage.DispersingMode();
-            SendFirstIn(Environment.Stowage);
-        }
-
-        internal void NextDispersing()
-        {
-            if (IsDispersing)
-            {
-                if (!SendFirstIn(Environment.Stowage))
-                {
-                    Environment.Stowage.Reset();
-                }
-            }
-        }
-
-        internal bool SendFirstIn(Stowage stowage)
-        {
-            var maybeMessage = stowage.Head;
-            if (maybeMessage != null)
-            {
-                Environment.Mailbox.Send(maybeMessage);
-                return true;
-            }
-            return false;
-        }
-
-        internal bool IsStowing => Environment.Stowage.IsStowing;
-
-        internal void StowMessages()
-        {
-            Environment.Stowage.StowingMode();
-        }
-
-        #endregion
-
         #region supervisor/suspending/resuming
 
-        internal bool IsResuming => Environment.Suspended.IsDispersing;
+        internal void Resume() => Environment.Mailbox.Resume(Exceptional);
 
-        internal void NextResuming()
-        {
-            if (IsResuming)
-            {
-                SendFirstIn(Environment.Suspended);
-            }
-        }
+        internal bool IsSuspended => Environment.Mailbox.IsSuspended;
 
-        internal void Resume()
-        {
-            Environment.Suspended.DispersingMode();
-            SendFirstIn(Environment.Suspended);
-        }
-
-        internal bool IsSuspended => Environment.Suspended.IsStowing;
-
-        internal void Suspend()
-        {
-            Environment.Suspended.StowingMode();
-            Environment.Stowage.Restow(Environment.Suspended);
-        }
+        internal void Suspend() => Environment.Mailbox.SuspendExceptFor<IStoppable>(Exceptional)
 
         internal ISupervisor Supervisor<T>()
         {
