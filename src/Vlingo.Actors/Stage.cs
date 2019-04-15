@@ -135,6 +135,22 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
+        /// Answers a <code>Protocols</code> that provides one or more supported <paramref name="protocols"/> for the
+        /// newly created <code>Actor</code> according to <paramref name="definition"/>.
+        /// </summary>
+        /// <param name="protocols">Array of protocols that the <code>Actor</code> supports.</param>
+        /// <param name="definition">The definition providing parameters to the <code>Actor</code>.</param>
+        /// <param name="parent">The actor that is this actor's parent.</param>
+        /// <param name="maybeSupervisor">The possible supervisor of this actor.</param>
+        /// <param name="logger">The logger of this actor.</param>
+        /// <returns></returns>
+        public Protocols ActorFor(Type[] protocols, Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
+        {
+            var all = ActorProtocolFor(protocols, definition, parent, maybeSupervisor, logger);
+            return new Protocols(ActorProtocolActor<object>.ToActors(all));
+        }
+
+        /// <summary>
         /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
         /// newly created <c>Actor</c> according to <paramref name="definition"/>.
         /// </summary>
@@ -171,7 +187,19 @@ namespace Vlingo.Actors
         /// <typeparam name="T">The protocol supported by the backing <c>Actor</c>.</typeparam>
         /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
-        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner.ActorOf<T>(address);
+        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner.ActorOf<T>(address).AndThen(default(T), proxy => proxy);
+
+        /// <summary>
+        /// Answer the protocol reference of the actor with <paramref name="address"/> as a non-empty
+        /// <code>ICompletes&lt;Optional&lt;T&gt;&gt;</code> eventual outcome, or an empty <code>ICompletes&lt;Optional&lt;T&gt;&gt;</code>
+        /// if not found.
+        /// </summary>
+        /// <typeparam name="T">The protocol that the actor must support.</typeparam>
+        /// <param name="address">The address of the actor to find.</param>
+        /// <returns></returns>
+        public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
+            => directoryScanner.MaybeActorOf<T>(address).AndThen(proxy => proxy);
+
 
         /// <summary>
         /// Answers the <c>TestActor&lt;T&gt;</c>, <typeparamref name="T"/> being the protocol, of the new created <c>Actor</c> that implements the protocol.
