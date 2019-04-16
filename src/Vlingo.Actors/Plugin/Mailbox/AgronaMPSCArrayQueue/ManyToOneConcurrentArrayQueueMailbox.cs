@@ -45,7 +45,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         public int PendingMessages 
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
-        public bool Delivering(bool flag) 
+        public bool IsSuspended => false;
+
+        public void Resume(string name) 
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
         public void Run()
@@ -69,7 +71,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         {
             throw new NotSupportedException("Not a preallocated mailbox.");
         }
-        
+
+        public void SuspendExceptFor(string name, params Type[] overrides)
+            => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
+
         public void Dispose()
         {
             Dispose(true);
@@ -95,5 +100,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
       
             disposed = true;
         }
+
+        
     }
 }
