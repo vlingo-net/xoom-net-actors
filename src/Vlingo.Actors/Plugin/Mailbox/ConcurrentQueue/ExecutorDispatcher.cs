@@ -34,12 +34,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public void Execute(IMailbox mailbox)
         {
-            if (IsClosed)
-            {
-                return;
-            }
-
-            if (mailbox.Delivering(true))
+            if (!IsClosed)
             {
                 executor.Execute(mailbox);
             }
