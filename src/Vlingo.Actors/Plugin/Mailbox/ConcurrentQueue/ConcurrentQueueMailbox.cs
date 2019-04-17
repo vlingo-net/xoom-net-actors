@@ -203,8 +203,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                                         if (overrides[possiblyObsolete].Obsolete)
                                         {
                                             overrides.RemoveAt(possiblyObsolete);
-                                            --possiblyObsolete;
-                                            --elements;
+                                            //--possiblyObsolete;
+                                            //--elements;
                                         }
                                         else
                                         {
