@@ -23,18 +23,15 @@ namespace Vlingo.Actors.Tests
                     new[] { typeof(IStowThese), typeof(IOverrideStowage) },
                     Definition.Has<StowTestActor>(Definition.Parameters(results), "stow-override")));
 
-            for(var idx=0; idx<10; ++idx)
+            for (var idx = 0; idx < 10; ++idx)
             {
                 protocols._1.Stow();
             }
 
             protocols._2.Override();
 
-            results.overrideReceived.Completes();
-            results.stowReceived.Completes();
-
-            Assert.Equal(1, results.overrideReceivedCount);
-            Assert.Equal(10, results.stowReceivedCount);
+            Assert.Equal(1, results.overrideAccess.ReadFrom<int>("overrideReceivedCount"));
+            Assert.Equal(10, results.stowedAccess.ReadFrom<int>("stowReceivedCount"));
         }
 
         [Fact]
@@ -53,11 +50,8 @@ namespace Vlingo.Actors.Tests
 
             protocols._2.Crash();
 
-            results.overrideReceived.Completes();
-            results.stowReceived.Completes();
-
-            Assert.Equal(1, results.overrideReceivedCount);
-            Assert.Equal(10, results.stowReceivedCount);
+            Assert.Equal(1, results.overrideAccess.ReadFrom<int>("overrideReceivedCount"));
+            Assert.Equal(10, results.stowedAccess.ReadFrom<int>("stowReceivedCount"));
         }
 
         private class Results

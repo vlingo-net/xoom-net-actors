@@ -328,20 +328,13 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
-        /// Answers whether this <c>Actor</c> is currently stowing messages.
-        /// </summary>
-        protected internal virtual bool IsStowing =>
-            LifeCycle.IsStowing;
-
-        /// <summary>
         /// Starts the process of stowing messages for this <c>Actor</c>, and registers <paramref name="stowageOverrides"/> as
         /// the protocol that will trigger dispersal.
         /// </summary>
         /// <param name="stowageOverrides">The protocol <c>Type</c>(s) that will trigger dispersal</param>
         protected internal virtual void StowMessages(params Type[] stowageOverrides)
         {
-            LifeCycle.StowMessages();
-            LifeCycle.Environment.StowageOverrides(stowageOverrides);
+            LifeCycle.Environment.Mailbox.SuspendExceptFor(Paused, stowageOverrides);
         }
 
         //=======================================

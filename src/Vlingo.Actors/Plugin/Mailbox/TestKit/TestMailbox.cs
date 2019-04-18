@@ -48,7 +48,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public bool IsSuspended => suspendedOverrides.Get().Count > 0;
 
-        public void Resume()
+        public void Resume(string name)
         {
             if (suspendedOverrides.Get().Count > 0)
             {
