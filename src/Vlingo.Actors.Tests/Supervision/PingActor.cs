@@ -26,15 +26,14 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Ping()
         {
-            testResults.PingCount.IncrementAndGet();
-            testResults.UntilPinged.Happened();
+            testResults.Access.WriteUsing("pingCount", 1);
             throw new ApplicationException("Intended Ping failure.");
         }
 
         public override void Stop()
         {
             base.Stop();
-            testResults.UntilStopped.Happened();
+            testResults.Access.WriteUsing("stopCount", 1);
         }
 
         public class PingTestResults

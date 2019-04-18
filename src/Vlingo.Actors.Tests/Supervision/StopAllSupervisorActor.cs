@@ -7,6 +7,7 @@
 
 using System;
 using System.Threading;
+using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests.Supervision
@@ -14,12 +15,12 @@ namespace Vlingo.Actors.Tests.Supervision
     public class StopAllSupervisorActor : Actor, ISupervisor
     {
         public static readonly ThreadLocal<StopAllSupervisorActor> Instance = new ThreadLocal<StopAllSupervisorActor>();
-        public AtomicInteger InformedCount { get; }
+        private readonly StopAllSupervisorResult result;
 
-        public StopAllSupervisorActor()
+        public StopAllSupervisorActor(StopAllSupervisorResult result)
         {
             Instance.Value = this;
-            InformedCount = new AtomicInteger(0);
+            this.result = result;
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
@@ -28,8 +29,8 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            InformedCount.IncrementAndGet();
             supervised.Stop(SupervisionStrategy.Scope);
+            result.Access.WriteUsing("informedCount", 1);
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy
@@ -39,6 +40,26 @@ namespace Vlingo.Actors.Tests.Supervision
             public long Period => 1000;
 
             public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.All;
+        }
+
+        public class StopAllSupervisorResult
+        {
+            public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
+            public AccessSafely Access { get; private set; }
+            public StopAllSupervisorResult()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("informedCount", (int increment) => InformedCount.Set(InformedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => InformedCount.Get());
+
+                return Access;
+            }
         }
     }
 }

@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 using Xunit;
 
@@ -20,20 +21,19 @@ namespace Vlingo.Actors.Tests.Supervision
             var failure = World.ActorFor<IFailureControl>(
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), World.DefaultParent, "failure-for-default"));
-            failureControlTestResults.UntilFailNow = Until(1);
-            Assert.Equal(0, failureControlTestResults.FailNowCount.Get());
+
+            var access = failureControlTestResults.AfterCompleting(3);
 
             failure.FailNow();
-            failureControlTestResults.UntilFailNow.Completes();
-            Assert.Equal(1, failureControlTestResults.FailNowCount.Get());
 
-            failureControlTestResults.UntilAfterRestart.Completes();
+            Assert.Equal(1, access.ReadFrom<int>("failNowCount"));
+            Assert.Equal(1, access.ReadFrom<int>("afterRestartCount"));
 
-            failureControlTestResults.UntilAfterFail = Until(1);
-            Assert.Equal(0, failureControlTestResults.AfterFailureCount.Get());
+            access = failureControlTestResults.AfterCompleting(1);
+
             failure.AfterFailure();
-            failureControlTestResults.UntilAfterFail.Completes();
-            Assert.Equal(1, failureControlTestResults.AfterFailureCount.Get());
+
+            Assert.Equal(1, access.ReadFrom<int>("afterFailureCount"));
         }
 
         [Fact]
@@ -46,15 +46,17 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure-for-stop"));
 
-            Assert.Equal(0, failureControlTestResults.FailNowCount.Get());
+            var access = failureControlTestResults.AfterCompleting(2);
+
             failure.Actor.FailNow();
-            Assert.Equal(1, failureControlTestResults.FailNowCount.Get());
 
-            Assert.Equal(0, failureControlTestResults.AfterFailureCount.Get());
+            Assert.Equal(1, access.ReadFrom<int>("failNowCount"));
+
             failure.Actor.AfterFailure();
-            Assert.Equal(0, failureControlTestResults.AfterFailureCount.Get());
 
-            Assert.Equal(1, failureControlTestResults.AfterStopCount.Get());
+            Assert.Equal(1, access.ReadFrom<int>("stoppedCount"));
+
+            Assert.Equal(0, access.ReadFrom<int>("afterFailureCount"));
         }
 
         [Fact]
@@ -69,33 +71,46 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure-for-restart"));
 
-            Assert.Equal(0, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(0, restartSupervisorTestResults.InformedCount.Get());
-            Assert.Equal(0, failureControlTestResults.AfterRestartCount.Get());
-            Assert.Equal(0, failureControlTestResults.AfterStopCount.Get());
-            Assert.Equal(0, failureControlTestResults.BeforeRestartCount.Get());
-            Assert.Equal(1, failureControlTestResults.BeforeStartCount.Get());
+            var failureAccess = failureControlTestResults.AfterCompleting(6);
+            var restartAccess = restartSupervisorTestResults.AfterCompleting(1);
 
             failure.Actor.FailNow();
 
-            Assert.Equal(1, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(1, restartSupervisorTestResults.InformedCount.Get());
-            Assert.Equal(1, failureControlTestResults.AfterRestartCount.Get());
-            Assert.Equal(1, failureControlTestResults.AfterStopCount.Get());
-            Assert.Equal(1, failureControlTestResults.BeforeRestartCount.Get());
-            Assert.Equal(2, failureControlTestResults.BeforeStartCount.Get());
+            Assert.Equal(1, restartAccess.ReadFrom<int>("informedCount"));
+            Assert.Equal(2, failureAccess.ReadFrom<int>("beforeStartCount"));
+            Assert.Equal(1, failureAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(1, failureAccess.ReadFrom<int>("afterRestartCount"));
+            Assert.Equal(1, failureAccess.ReadFrom<int>("afterStopCount"));
+            Assert.Equal(1, failureAccess.ReadFrom<int>("beforeRestartCount"));
 
-            Assert.Equal(0, failureControlTestResults.AfterFailureCount.Get());
+            var afterFailureAccess = failureControlTestResults.AfterCompleting(1);
+
             failure.Actor.AfterFailure();
-            Assert.Equal(1, failureControlTestResults.AfterFailureCount.Get());
 
-            Assert.Equal(0, failureControlTestResults.StoppedCount.Get());
+            Assert.Equal(1, afterFailureAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(0, afterFailureAccess.ReadFrom<int>("stoppedCount"));
         }
 
 
         private class RestartSupervisorTestResults
         {
             public AtomicInteger InformedCount { get; } = new AtomicInteger(0);
+            public AccessSafely Access { get; private set; }
+
+            public RestartSupervisorTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("informedCount", (int increment) => InformedCount.Set(InformedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => InformedCount.Get());
+
+                return Access;
+            }
         }
 
         private class StoppingSupervisorActor : Actor, ISupervisor
@@ -137,7 +152,7 @@ namespace Vlingo.Actors.Tests.Supervision
             {
                 // Logger.Log($"RestartSupervisorActor informed of failure in: {supervised.Address.Name} because: {error.Message}", error);
                 supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-                testResults.InformedCount.IncrementAndGet();
+                testResults.Access.WriteUsing("informedCount", 1);
             }
 
             private class SupervisionStrategyImpl : ISupervisionStrategy

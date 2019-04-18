@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Xunit;
+using StopAllSupervisorResult = Vlingo.Actors.Tests.Supervision.StopAllSupervisorActor.StopAllSupervisorResult;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
@@ -23,33 +24,31 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure-for-stop"));
 
-            failureControlTestResults.UntilFailNow = Until(20);
-            failureControlTestResults.UntilAfterFail = Until(20);
-            for(var idx=1; idx<=20; ++idx)
-            {
-                resumeForeverSupervisorTestResults.UntilInform = Until(1);
-                failure.Actor.FailNow();
-                resumeForeverSupervisorTestResults.UntilInform.Completes();
-                failure.Actor.AfterFailure();
-            }
-            failureControlTestResults.UntilFailNow.Completes();
-            failureControlTestResults.UntilAfterFail.Completes();
+            var failureAccess = failureControlTestResults.AfterCompleting(0);
+            var resumeAccess = resumeForeverSupervisorTestResults.AfterCompleting(1);
 
-            failureControlTestResults.UntilFailNow = Until(20);
-            failureControlTestResults.UntilAfterFail = Until(20);
             for (var idx = 1; idx <= 20; ++idx)
             {
-                resumeForeverSupervisorTestResults.UntilInform = Until(1);
+                failureAccess = failureControlTestResults.AfterCompleting(1);
                 failure.Actor.FailNow();
-                resumeForeverSupervisorTestResults.UntilInform.Completes();
                 failure.Actor.AfterFailure();
             }
-            failureControlTestResults.UntilFailNow.Completes();
-            failureControlTestResults.UntilAfterFail.Completes();
 
-            Assert.Equal(40, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(40, failureControlTestResults.AfterFailureCount.Get());
-            Assert.True(40 <= resumeForeverSupervisorTestResults.InformedCount.Get());
+            Assert.Equal(20, failureAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(20, failureAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(20, resumeAccess.ReadFrom<int>("informedCount"));
+
+            failureAccess = failureControlTestResults.AfterCompleting(20);
+
+            for (var idx = 1; idx <= 20; ++idx)
+            {
+                failure.Actor.FailNow();
+                failure.Actor.AfterFailure();
+            }
+
+            Assert.Equal(40, failureAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(40, failureAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.True(40 <= resumeAccess.ReadFrom<int>("informedCount"));
         }
 
         [Fact]
@@ -64,33 +63,32 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure-for-stop"));
 
-            failureControlTestResults.UntilFailNow = Until(20);
-            failureControlTestResults.UntilAfterFail = Until(20);
+            var failedAccess = failureControlTestResults.AfterCompleting(40);
+            var restartAccess = restartForeverSupervisorTestResults.AfterCompleting(40);
+
             for (var idx = 1; idx <= 20; ++idx)
             {
-                restartForeverSupervisorTestResults.UntilInform = Until(1);
                 failure.Actor.FailNow();
-                restartForeverSupervisorTestResults.UntilInform.Completes();
                 failure.Actor.AfterFailure();
             }
+
+            Assert.Equal(20, failedAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(20, failedAccess.ReadFrom<int>("afterFailureCount"));
+
+            failedAccess = failureControlTestResults.AfterCompleting(40);
+
+            for (var idx = 1; idx <= 20; ++idx)
+            {
+                failure.Actor.FailNow();
+                failure.Actor.AfterFailure();
+            }
+
             failureControlTestResults.UntilFailNow.Completes();
             failureControlTestResults.UntilAfterFail.Completes();
 
-            failureControlTestResults.UntilFailNow = Until(20);
-            failureControlTestResults.UntilAfterFail = Until(20);
-            for (var idx = 1; idx <= 20; ++idx)
-            {
-                restartForeverSupervisorTestResults.UntilInform = Until(1);
-                failure.Actor.FailNow();
-                restartForeverSupervisorTestResults.UntilInform.Completes();
-                failure.Actor.AfterFailure();
-            }
-            failureControlTestResults.UntilFailNow.Completes();
-            failureControlTestResults.UntilAfterFail.Completes();
-
-            Assert.Equal(40, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(40, failureControlTestResults.AfterFailureCount.Get());
-            Assert.True(40 <= restartForeverSupervisorTestResults.InformedCount.Get());
+            Assert.Equal(20, failedAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(20, failedAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.True(40 <= restartAccess.ReadFrom<int>("informedCount"));
         }
 
         [Fact]
@@ -105,37 +103,29 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure-for-stop"));
 
-            failureControlTestResults.UntilFailNow = Until(5);
-            failureControlTestResults.UntilAfterFail = Until(5);
+            var failureAccess = failureControlTestResults.AfterCompleting(0);
+            var restartAccess = restartFiveInOneSupervisorTestResults.AfterCompleting(5);
 
-            for(var idx=1; idx <= 5; ++idx)
+            for (var idx = 1; idx <= 5; ++idx)
             {
-                restartFiveInOneSupervisorTestResults.UntilInform = Until(1);
+                failureAccess = failureControlTestResults.AfterCompleting(1);
                 failure.Actor.FailNow();
-                restartFiveInOneSupervisorTestResults.UntilInform.Completes();
                 failure.Actor.AfterFailure();
             }
-            failureControlTestResults.UntilFailNow.Completes();
-            failureControlTestResults.UntilAfterFail.Completes();
 
-            Assert.Equal(5, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(5, failureControlTestResults.AfterFailureCount.Get());
+            Assert.Equal(5, failureAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(5, failureAccess.ReadFrom<int>("afterFailureCount"));
 
-            failureControlTestResults.UntilFailNow = Until(1);
-            failureControlTestResults.UntilAfterFail = Until(0);
-            restartFiveInOneSupervisorTestResults.UntilInform = Until(1);
+            failureAccess = failureControlTestResults.AfterCompleting(1);
+            restartAccess = restartFiveInOneSupervisorTestResults.AfterCompleting(1);
 
             failure.Actor.FailNow();
             failure.Actor.AfterFailure();
 
-            failureControlTestResults.UntilFailNow.Completes();
-            restartFiveInOneSupervisorTestResults.UntilInform.Completes();
-            failureControlTestResults.UntilAfterFail.Completes();
-
             Assert.True(failure.ActorInside.IsStopped);
-            Assert.Equal(6, failureControlTestResults.FailNowCount.Get());
-            Assert.Equal(6, restartFiveInOneSupervisorTestResults.InformedCount.Get());
-            Assert.Equal(5, failureControlTestResults.AfterFailureCount.Get());
+            Assert.Equal(6, failureAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(5, failureAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(5, restartAccess.ReadFrom<int>("afterFailureCount"));
         }
 
         [Fact]
@@ -150,25 +140,21 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), supervisor.ActorInside, "failure"));
 
-            failureControlTestResults.UntilFailNow = Until(1);
-            failureControlTestResults.UntilAfterFail = Until(1);
-
-            Assert.Equal(0, escalateSupervisorTestResults.InformedCount.Get());
-            Assert.Equal(0, failureControlTestResults.StoppedCount.Get());
+            var escalateAccess = escalateSupervisorTestResults.AfterCompleting(1);
+            var failureAccess = failureControlTestResults.AfterCompleting(1);
 
             failure.Actor.FailNow();
 
-            failureControlTestResults.UntilFailNow.Completes();
-            failureControlTestResults.UntilStopped.Completes();
-
-            Assert.Equal(1, escalateSupervisorTestResults.InformedCount.Get());
-            Assert.Equal(1, failureControlTestResults.StoppedCount.Get());
+            Assert.Equal(1, escalateAccess.ReadFrom<int>("informedCount"));
+            Assert.Equal(1, failureAccess.ReadFrom<int>("stoppedCount"));
         }
 
         [Fact]
         public void TestStopAll()
         {
-            World.ActorFor<ISupervisor>(Definition.Has<StopAllSupervisorActor>(Definition.NoParameters, "stop-all"));
+            var stopResults = new StopAllSupervisorResult();
+
+            World.ActorFor<ISupervisor>(Definition.Has<StopAllSupervisorActor>(Definition.Parameters(stopResults), "stop-all"));
 
             var pingTestResults = new PingActor.PingTestResults();
             var ping = World.ActorFor<IPing>(
@@ -178,18 +164,16 @@ namespace Vlingo.Actors.Tests.Supervision
             var pong = World.ActorFor<IPong>(
                 Definition.Has<PongActor>(
                     Definition.Parameters(pongTestResults), StopAllSupervisorActor.Instance.Value, "pong"));
-            pingTestResults.UntilStopped = Until(1);
-            pongTestResults.UntilStopped = Until(1);
 
-            Assert.False(PingActor.Instance.Value.IsStopped);
-            Assert.False(PongActor.Instance.Value.IsStopped);
+            var pingAccess = pingTestResults.AfterCompleting(1);
+            var pongAccess = pongTestResults.AfterCompleting(1);
+            var stopAccess = stopResults.AfterCompleting(1);
 
             ping.Ping();
-            pingTestResults.UntilStopped.Completes();
-            pongTestResults.UntilStopped.Completes();
 
-            Assert.True(PingActor.Instance.Value.IsStopped);
-            Assert.True(PongActor.Instance.Value.IsStopped);
+            Assert.Equal(1, stopAccess.ReadFrom<int>("informedCount"));
+            Assert.Equal(1, pingAccess.ReadFrom<int>("stopCount"));
+            Assert.Equal(1, pongAccess.ReadFrom<int>("stopCount"));
         }
     }
 }

@@ -26,15 +26,14 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Pong()
         {
-            testResults.PongCount.IncrementAndGet();
-            testResults.UntilPonged.Happened();
+            testResults.Access.WriteUsing("pongCount", 1);
             throw new ApplicationException("Intended Pong failure.");
         }
 
         public override void Stop()
         {
             base.Stop();
-            testResults.UntilStopped.Happened();
+            testResults.Access.WriteUsing("stopCount", 1);
         }
 
         public class PongTestResults

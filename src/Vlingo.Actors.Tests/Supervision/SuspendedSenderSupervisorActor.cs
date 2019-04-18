@@ -15,17 +15,14 @@ namespace Vlingo.Actors.Tests.Supervision
     public class SuspendedSenderSupervisorActor : Actor, ISupervisor, IFailureControlSender
     {
         public static readonly ThreadLocal<SuspendedSenderSupervisorActor> Instance = new ThreadLocal<SuspendedSenderSupervisorActor>();
-
+        private readonly SuspendedSenderSupervisorResults results;
         private IFailureControl failureControl;
         private int times;
 
-        public AtomicInteger InformedCount { get; }
-        public TestUntil UntilInformed { get; set; }
-
-        public SuspendedSenderSupervisorActor()
+        public SuspendedSenderSupervisorActor(SuspendedSenderSupervisorResults results)
         {
             Instance.Value = this;
-            InformedCount = new AtomicInteger(0);
+            this.results = results;
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
@@ -35,13 +32,12 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            InformedCount.IncrementAndGet();
-            for(var idx=1; idx <= times; ++idx)
+            for (var idx = 1; idx <= times; ++idx)
             {
                 failureControl.AfterFailureCount(idx);
             }
             supervised.Resume();
-            UntilInformed.Happened();
+            results.Access.WriteUsing("informedCount", 1);
         }
 
         public void SendUsing(IFailureControl failureControl, int times)
@@ -59,23 +55,23 @@ namespace Vlingo.Actors.Tests.Supervision
             public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
         }
 
-        internal class SuspendedSenderSupervisorResults
+        public class SuspendedSenderSupervisorResults
         {
-            public AccessSafely access;
+            public AccessSafely Access { get; private set; }
             public AtomicInteger informedCount = new AtomicInteger(0);
 
             public SuspendedSenderSupervisorResults()
             {
-                access = AfterCompleting(0);
+                Access = AfterCompleting(0);
             }
 
             public AccessSafely AfterCompleting(int times)
             {
-                access = AccessSafely
+                Access = AccessSafely
                     .AfterCompleting(times)
                     .WritingWith("informedCount", (int increment) => informedCount.Set(informedCount.Get() + increment))
                     .ReadingWith("informedCount", () => informedCount.Get());
-                return access;
+                return Access;
             }
         }
     }
