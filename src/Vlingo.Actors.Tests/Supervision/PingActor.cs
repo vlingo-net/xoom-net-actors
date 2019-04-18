@@ -39,9 +39,26 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public class PingTestResults
         {
-            public AtomicInteger PingCount = new AtomicInteger(0);
-            public TestUntil UntilPinged = TestUntil.Happenings(0);
-            public TestUntil UntilStopped = TestUntil.Happenings(0);
+            public readonly AtomicInteger PingCount = new AtomicInteger(0);
+            public readonly AtomicInteger StopCount = new AtomicInteger(0);
+
+            public AccessSafely Access { get; private set; }
+
+            public PingTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("pingCount", (int increment) => PingCount.Set(PingCount.Get() + increment))
+                    .ReadingWith("pingCount", () => PingCount.Get())
+                    .WritingWith("stopCount", (int increment) => StopCount.Set(StopCount.Get() + increment))
+                    .ReadingWith("stopCount", () => StopCount.Get());
+                return Access;
+            }
         }
     }
 }

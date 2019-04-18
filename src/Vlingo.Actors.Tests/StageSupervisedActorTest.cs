@@ -39,9 +39,11 @@ namespace Vlingo.Actors.Tests
             var exception = new ApplicationException("Failed");
             var supervised = new StageSupervisedActor<IFailureControl>(failure.ActorInside, exception);
 
+            var access = failureControlTestResults.AfterCompleting(1);
+
             supervised.Escalate();
 
-            Assert.Equal(1, failureControlTestResults.StoppedCount.Get());
+            Assert.Equal(1, access.ReadFrom<int>("stoppedCount"));
         }
 
         [Fact]
@@ -54,11 +56,13 @@ namespace Vlingo.Actors.Tests
             var exception = new ApplicationException("Failed");
             var supervised = new StageSupervisedActor<IFailureControl>(failure.ActorInside, exception);
 
+            var access = failureControlTestResults.AfterCompleting(4);
+
             supervised.RestartWithin(1000, 5, SupervisionStrategyConstants.Scope.One);
 
-            Assert.Equal(2, failureControlTestResults.BeforeStartCount.Get());
-            Assert.Equal(1, failureControlTestResults.BeforeRestartCount.Get());
-            Assert.Equal(1, failureControlTestResults.AfterRestartCount.Get());
+            Assert.Equal(2, access.ReadFrom<int>("beforeStartCount"));
+            Assert.Equal(1, access.ReadFrom<int>("beforeRestartCount"));
+            Assert.Equal(1, access.ReadFrom<int>("afterRestartCount"));
         }
 
         [Fact]
@@ -68,18 +72,19 @@ namespace Vlingo.Actors.Tests
             var failure = World.ActorFor<IFailureControl>(
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(failureControlTestResults), "failure"));
-            failureControlTestResults.UntilAfterFail = Until(1);
+
             var exception = new ApplicationException("Failed");
             var supervised = new StageSupervisedActor<IFailureControl>(FailureControlActor.Instance.Value, exception);
+
+            var access = failureControlTestResults.AfterCompleting(1);
 
             supervised.Suspend();
             Assert.True(IsSuspended(FailureControlActor.Instance.Value));
 
             failure.AfterFailure(); // into suspended stowage
             supervised.Resume(); // sent
-            failureControlTestResults.UntilAfterFail.Completes(); // delivered
 
-            Assert.Equal(1, failureControlTestResults.AfterFailureCount.Get());
+            Assert.Equal(1, access.ReadFromExpecting("afterFailureCount", 1));
         }
 
         [Fact]
@@ -91,12 +96,12 @@ namespace Vlingo.Actors.Tests
                     Definition.Parameters(failureControlTestResults), "failure"));
             var exception = new ApplicationException("Failed");
             var supervised = new StageSupervisedActor<IFailureControl>(FailureControlActor.Instance.Value, exception);
-            failureControlTestResults.UntilStopped = Until(1);
+
+            var access = failureControlTestResults.AfterCompleting(1);
 
             supervised.Stop(SupervisionStrategyConstants.Scope.One);
-            failureControlTestResults.UntilStopped.Completes();
 
-            Assert.True(FailureControlActor.Instance.Value.IsStopped);
+            Assert.Equal(1, access.ReadFromExpecting("stoppedCount", 1));
         }
 
         [Fact]
@@ -108,17 +113,14 @@ namespace Vlingo.Actors.Tests
             var pongTestResults = new PongActor.PongTestResults();
             World.ActorFor<IPong>(Definition.Has<PongActor>(Definition.Parameters(pongTestResults), "pong"));
 
-            pingTestResults.UntilStopped = Until(1);
-            pongTestResults.UntilStopped = Until(1);
+            var pingAccess = pingTestResults.AfterCompleting(1);
+            var pongAccess = pongTestResults.AfterCompleting(1);
 
             var supervised = new StageSupervisedActor<IPing>(PingActor.Instance.Value, new ApplicationException("Failed"));
             supervised.Stop(SupervisionStrategyConstants.Scope.All);
 
-            pingTestResults.UntilStopped.Completes();
-            pongTestResults.UntilStopped.Completes();
-
-            Assert.True(PingActor.Instance.Value.IsStopped);
-            Assert.True(PongActor.Instance.Value.IsStopped);
+            Assert.Equal(1, pingAccess.ReadFromExpecting("stopCount", 1));
+            Assert.Equal(1, pongAccess.ReadFromExpecting("stopCount", 1));
         }
     }
 }
