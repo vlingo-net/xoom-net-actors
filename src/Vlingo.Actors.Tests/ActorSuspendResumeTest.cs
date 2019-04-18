@@ -7,6 +7,7 @@
 
 using Vlingo.Actors.Tests.Supervision;
 using Xunit;
+using SuspendedSenderSupervisorResults = Vlingo.Actors.Tests.Supervision.SuspendedSenderSupervisorActor.SuspendedSenderSupervisorResults;
 
 namespace Vlingo.Actors.Tests
 {
@@ -15,8 +16,11 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestSuspendResume()
         {
-            var supervisor = World.ActorFor<IFailureControlSender>(
-                Definition.Has<SuspendedSenderSupervisorActor>(Definition.NoParameters, "suspended-sender-supervisor"));
+            var testResults = new SuspendedSenderSupervisorResults();
+
+            var failureControlSender = World.ActorFor<IFailureControlSender>(
+                Definition.Has<SuspendedSenderSupervisorActor>(Definition.Parameters(testResults), "suspended-sender-supervisor"));
+
             var failureControlTestResults = new FailureControlActor.FailureControlTestResults();
             var failure = World.ActorFor<IFailureControl>(
                 Definition.Has<FailureControlActor>(
@@ -25,17 +29,13 @@ namespace Vlingo.Actors.Tests
                     "queueArray",
                     "failure"));
             var times = 25;
-            failureControlTestResults.UntilFailNow = Until(1);
-            SuspendedSenderSupervisorActor.Instance.Value.UntilInformed = Until(1);
-            failureControlTestResults.UntilFailureCount = Until(times - 1);
-            supervisor.SendUsing(failure, times);
+            var failureAccess = failureControlTestResults.AfterCompleting(times);
+            var supervisorAccess = testResults.AfterCompleting(1);
+            failureControlSender.SendUsing(failure, times);
 
             failure.FailNow();
-            failureControlTestResults.UntilFailNow.Completes();
-            SuspendedSenderSupervisorActor.Instance.Value.UntilInformed.Completes();
-            failureControlTestResults.UntilFailureCount.Completes();
 
-            Assert.Equal(1, SuspendedSenderSupervisorActor.Instance.Value.InformedCount.Get());
+            Assert.Equal(1, supervisorAccess.ReadFromExpecting("informedCount", 1));
             Assert.True(failureControlTestResults.AfterFailureCount.Get() >= times - 1);
         }
     }

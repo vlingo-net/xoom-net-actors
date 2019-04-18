@@ -58,5 +58,25 @@ namespace Vlingo.Actors.Tests.Supervision
 
             public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
         }
+
+        internal class SuspendedSenderSupervisorResults
+        {
+            public AccessSafely access;
+            public AtomicInteger informedCount = new AtomicInteger(0);
+
+            public SuspendedSenderSupervisorResults()
+            {
+                access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("informedCount", (int increment) => informedCount.Set(informedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => informedCount.Get());
+                return access;
+            }
+        }
     }
 }
