@@ -86,8 +86,8 @@ namespace Vlingo.Actors.Tests.Supervision
             failureControlTestResults.UntilFailNow.Completes();
             failureControlTestResults.UntilAfterFail.Completes();
 
-            Assert.Equal(20, failedAccess.ReadFrom<int>("failNowCount"));
-            Assert.Equal(20, failedAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(40, failedAccess.ReadFrom<int>("failNowCount"));
+            Assert.Equal(40, failedAccess.ReadFrom<int>("afterFailureCount"));
             Assert.True(40 <= restartAccess.ReadFrom<int>("informedCount"));
         }
 
@@ -125,7 +125,7 @@ namespace Vlingo.Actors.Tests.Supervision
             Assert.True(failure.ActorInside.IsStopped);
             Assert.Equal(6, failureAccess.ReadFrom<int>("failNowCount"));
             Assert.Equal(5, failureAccess.ReadFrom<int>("afterFailureCount"));
-            Assert.Equal(5, restartAccess.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(6, restartAccess.ReadFrom<int>("informedCount"));
         }
 
         [Fact]
