@@ -36,7 +36,7 @@ namespace Vlingo.Actors.Tests
             failure.FailNow();
 
             Assert.Equal(1, supervisorAccess.ReadFromExpecting("informedCount", 1));
-            Assert.True(failureControlTestResults.AfterFailureCount.Get() >= times - 1);
+            Assert.Equal(times, failureAccess.ReadFromExpecting("afterFailureCountCount", times));
         }
     }
 }
