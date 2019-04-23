@@ -22,6 +22,6 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.4.2" />
+    <PackageReference Include="Vlingo.Common" Version="0.4.3" />
   </ItemGroup>
 </Project>
