@@ -85,7 +85,7 @@ namespace Vlingo.Actors.Tests
             Action<INoProtocol> afterConsumer = actor =>
             {
                 Assert.NotNull(actor);
-                scanResults.ScanFound.WriteUsing("foundContent", 1);
+                scanResults.ScanFound.WriteUsing("foundCount", 1);
             };
 
             World.Stage.ActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
@@ -149,7 +149,7 @@ namespace Vlingo.Actors.Tests
             Action<Optional<INoProtocol>> afterConsumer = maybe =>
             {
                 Assert.True(maybe.IsPresent);
-                scanResults.ScanFound.WriteUsing("foundContent", 1);
+                scanResults.ScanFound.WriteUsing("foundCount", 1);
             };
 
             World.Stage.MaybeActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
