@@ -90,7 +90,7 @@ namespace Vlingo.Actors.Tests
                 Access = AccessSafely
                     .AfterCompleting(steps)
                     .WritingWith("answers", (int answer) => answers[index++] = answer)
-                    .ReadingWith("answers", () => answers[index]);
+                    .ReadingWith("answers", (int index) => answers[index]);
 
                 return Access;
             }
