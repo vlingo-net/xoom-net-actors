@@ -27,7 +27,7 @@ namespace Vlingo.Actors.Tests.Supervision
             failure.FailNow();
 
             Assert.Equal(1, access.ReadFrom<int>("failNowCount"));
-            Assert.Equal(1, access.ReadFrom<int>("afterRestartCount"));
+            Assert.Equal(1, access.ReadFromExpecting("afterRestartCount", 1));
 
             access = failureControlTestResults.AfterCompleting(1);
 
