@@ -55,6 +55,29 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             }
         }
 
+        [Fact]
+        public void TestSuspendedDelivery()
+        {
+            const string Paused = "paused#";
+            const string Exceptional = "exceptional#";
+
+            var dispatcher = new ExecutorDispatcher(1, 1.0f);
+            var mailbox = new ConcurrentQueueMailbox(dispatcher, 1);
+
+            var testResults = new TestResults();
+            var actor = new CountTakerActor(testResults);
+
+            mailbox.SuspendExceptFor(Paused, typeof(CountTakerActor));
+
+            mailbox.SuspendExceptFor(Exceptional, typeof(CountTakerActor));
+
+            mailbox.Resume(Exceptional);
+
+            mailbox.Resume(Paused);
+
+            Assert.False(mailbox.IsSuspended);
+        }
+
         private class CountTakerActor : Actor, ICountTaker
         {
             public CountTakerActor(TestResults testResults)

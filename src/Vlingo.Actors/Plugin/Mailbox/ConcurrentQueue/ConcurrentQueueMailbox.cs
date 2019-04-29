@@ -198,13 +198,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                                     popped = true;
                                     --elements;
 
-                                    for(var possiblyObsolete = index + 1; possiblyObsolete < elements; ++possiblyObsolete)
+                                    while(index < elements)
                                     {
-                                        if (overrides[possiblyObsolete].Obsolete)
+                                        if (overrides[index].Obsolete)
                                         {
-                                            overrides.RemoveAt(possiblyObsolete);
-                                            //--possiblyObsolete;
-                                            //--elements;
+                                            overrides.RemoveAt(index);
+                                            --elements;
                                         }
                                         else
                                         {
