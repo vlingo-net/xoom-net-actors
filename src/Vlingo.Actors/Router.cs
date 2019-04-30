@@ -31,8 +31,9 @@ namespace Vlingo.Actors
         {
             for (var i = 0; i < specification.InitialPoolSize; ++i)
             {
-                var child = ChildActorFor(specification.RouterProtocol, specification.RouterDefinition);
-                Subscribe(Routee<P>.Of((P)child));
+                var protocols = new Type[] { specification.RouterProtocol, typeof(IAddressable) };
+                var two = ChildActorFor(protocols, specification.RouterDefinition);
+                Subscribe(Routee<P>.Of(two.Get<P>(0), two.Get<IAddressable>(1)));
             }
         }
 
@@ -50,7 +51,7 @@ namespace Vlingo.Actors
 
         protected internal virtual void Subscribe(IList<Routee<P>> toSubscribe)
         {
-            foreach(var routee in toSubscribe)
+            foreach (var routee in toSubscribe)
             {
                 Subscribe(routee);
             }
@@ -60,7 +61,7 @@ namespace Vlingo.Actors
 
         protected internal virtual void Unsubscribe(IList<Routee<P>> toUnsubscribe)
         {
-            foreach(var routee in toUnsubscribe)
+            foreach (var routee in toUnsubscribe)
             {
                 Unsubscribe(routee);
             }
@@ -90,9 +91,9 @@ namespace Vlingo.Actors
                 .ForEach(routee => routee.ReceiveCommand(action, routable1, routable2, routable3));
 
         protected internal virtual void DispatchCommand<T1, T2, T3, T4>(
-            Action<P, T1, T2, T3, T4> action, 
-            T1 routable1, 
-            T2 routable2, 
+            Action<P, T1, T2, T3, T4> action,
+            T1 routable1,
+            T2 routable2,
             T3 routable3,
             T4 routable4)
             => RoutingFor(routable1, routable2, routable3, routable4)
@@ -101,7 +102,7 @@ namespace Vlingo.Actors
                 .ForEach(routee => routee.ReceiveCommand(action, routable1, routable2, routable3, routable4));
 
         protected internal virtual ICompletes<R> DispatchQuery<T1, R>(
-            Func<P, T1, ICompletes<R>> query, 
+            Func<P, T1, ICompletes<R>> query,
             T1 routable1)
         {
             var completesEventually = CompletesEventually();

@@ -48,12 +48,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         public virtual bool IsDelivering 
             => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
 
-        public virtual bool Delivering(bool flag)
-            => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
-
         public virtual bool IsPreallocated => true;
 
         public int PendingMessages => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation");
+
+        public bool IsSuspended => false;
 
         public virtual void Send(IMessage message) => throw new NotSupportedException("Use preallocated mailbox Send(Actor, ...).");
 
@@ -101,5 +100,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 messages[idx] = new LocalMessage<object>(this);
             }
         }
+
+        public void Resume(string name) => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
+
+        public void SuspendExceptFor(string name, params Type[] overrides)
+            => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
     }
 }

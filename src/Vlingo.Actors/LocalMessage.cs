@@ -41,30 +41,9 @@ namespace Vlingo.Actors
 
         public virtual Actor Actor => actor;
 
-        public virtual void Deliver()
-        {
-            if (actor.LifeCycle.IsResuming)
-            {
-                if (IsStowed)
-                {
-                    InternalDeliver(this);
-                }
-                else
-                {
-                    InternalDeliver(actor.LifeCycle.Environment.Suspended.SwapWith<TActor>(this));
-                }
-                actor.LifeCycle.NextResuming();
-            }
-            else if (actor.IsDispersing)
-            {
-                InternalDeliver(this);
-                actor.LifeCycle.NextDispersing();
-            }
-            else
-            {
-                InternalDeliver(this);
-            }
-        }
+        public virtual void Deliver() => InternalDeliver(this);
+
+        public Type Protocol => typeof(TActor);
 
         public virtual bool IsStowed => false;
 
@@ -101,14 +80,6 @@ namespace Vlingo.Actors
             if (actor.IsStopped)
             {
                 DeadLetter();
-            }
-            else if (actor.LifeCycle.IsSuspended)
-            {
-                actor.LifeCycle.Environment.Suspended.Stow(message);
-            }
-            else if (actor.IsStowing && !actor.LifeCycle.Environment.IsStowageOverride(protocol))
-            {
-                actor.LifeCycle.Environment.Stowage.Stow(message);
             }
             else
             {

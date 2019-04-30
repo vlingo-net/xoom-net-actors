@@ -21,71 +21,64 @@ namespace Vlingo.Actors.Tests.Supervision
         {
             this.testResults = testResults;
             Instance.Value = this;
+            testResults.Access = testResults.AfterCompleting(0);
         }
 
         public void AfterFailure()
         {
-            testResults.AfterFailureCount.IncrementAndGet();
-            testResults.UntilAfterFail.Happened();
+            testResults.Access.WriteUsing("afterFailureCount", 1);
         }
 
         public void AfterFailureCount(int count)
         {
-            testResults.AfterFailureCount.IncrementAndGet();
-            testResults.UntilFailureCount.Happened();
+            testResults.Access.WriteUsing("afterFailureCountCount", 1);
         }
 
         public void FailNow()
         {
-            testResults.FailNowCount.IncrementAndGet();
-            testResults.UntilFailNow.Happened();
+            testResults.Access.WriteUsing("failNowCount", 1);
             throw new ApplicationException("Intended failure.");
         }
 
         protected internal override void BeforeStart()
         {
-            testResults.BeforeStartCount.IncrementAndGet();
-            testResults.UntilFailNow.Happened();
+            testResults.Access.WriteUsing("beforeStartCount", 1);
             base.BeforeStart();
         }
 
         protected internal override void AfterStop()
         {
-            testResults.AfterStopCount.IncrementAndGet();
-            testResults.UntilFailNow.Happened();
+            testResults.Access.WriteUsing("afterStopCount", 1);
             base.AfterStop();
         }
 
         protected internal override void BeforeRestart(Exception reason)
         {
-            testResults.BeforeRestartCount.IncrementAndGet();
-            testResults.UntilFailNow.Happened();
+            testResults.Access.WriteUsing("beforeRestartCount", 1);
             base.BeforeRestart(reason);
         }
 
         protected internal override void AfterRestart(Exception reason)
         {
             base.AfterRestart(reason);
-            testResults.AfterRestartCount.IncrementAndGet();
-            testResults.UntilAfterRestart.Happened();
+            testResults.Access.WriteUsing("afterRestartCount", 1);
         }
 
         protected internal override void BeforeResume(Exception reason)
         {
-            testResults.BeforeResume.IncrementAndGet();
-            testResults.UntilBeforeResume.Happened();
+            testResults.Access.WriteUsing("beforeResume", 1);
             base.BeforeResume(reason);
         }
 
         public override void Stop()
         {
-            testResults.StoppedCount.IncrementAndGet();
-            testResults.UntilStopped.Happened();
+            testResults.Access.WriteUsing("stoppedCount", 1);
             base.Stop();
         }
 
         public class FailureControlTestResults
         {
+            public AccessSafely Access { get; internal set; }
             public AtomicInteger AfterFailureCount = new AtomicInteger(0);
             public AtomicInteger AfterFailureCountCount = new AtomicInteger(0);
             public AtomicInteger AfterRestartCount = new AtomicInteger(0);
@@ -102,6 +95,46 @@ namespace Vlingo.Actors.Tests.Supervision
             public TestUntil UntilFailNow = TestUntil.Happenings(0);
             public TestUntil UntilFailureCount = TestUntil.Happenings(0);
             public TestUntil UntilStopped = TestUntil.Happenings(0);
+
+            public FailureControlTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+
+                    .WritingWith("afterFailureCount", (int increment) => AfterFailureCount.Set(AfterFailureCount.Get() + increment))
+                    .ReadingWith("afterFailureCount", () => AfterFailureCount.Get())
+
+                    .WritingWith("afterFailureCountCount", (int increment) => AfterFailureCountCount.Set(AfterFailureCountCount.Get() + increment))
+                    .ReadingWith("afterFailureCountCount", () => AfterFailureCountCount.Get())
+
+                    .WritingWith("afterRestartCount", (int increment) => AfterRestartCount.Set(AfterRestartCount.Get() + increment))
+                    .ReadingWith("afterRestartCount", () => AfterRestartCount.Get())
+
+                    .WritingWith("afterStopCount", (int increment) => AfterStopCount.Set(AfterStopCount.Get() + increment))
+                    .ReadingWith("afterStopCount", () => AfterStopCount.Get())
+
+                    .WritingWith("beforeRestartCount", (int increment) => BeforeRestartCount.Set(BeforeRestartCount.Get() + increment))
+                    .ReadingWith("beforeRestartCount", () => BeforeRestartCount.Get())
+
+                    .WritingWith("beforeResume", (int increment) => BeforeResume.Set(BeforeResume.Get() + increment))
+                    .ReadingWith("beforeResume", () => BeforeResume.Get())
+
+                    .WritingWith("beforeStartCount", (int increment) => BeforeStartCount.Set(BeforeStartCount.Get() + increment))
+                    .ReadingWith("beforeStartCount", () => BeforeStartCount.Get())
+
+                    .WritingWith("failNowCount", (int increment) => FailNowCount.Set(FailNowCount.Get() + increment))
+                    .ReadingWith("failNowCount", () => FailNowCount.Get())
+
+                    .WritingWith("stoppedCount", (int increment) => StoppedCount.Set(StoppedCount.Get() + increment))
+                    .ReadingWith("stoppedCount", () => StoppedCount.Get());
+
+                return Access;
+            }
         }
     }
 }

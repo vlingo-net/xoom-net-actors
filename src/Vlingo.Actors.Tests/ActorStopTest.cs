@@ -5,7 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
@@ -32,15 +31,15 @@ namespace Vlingo.Actors.Tests
 
             World.DefaultLogger.Log("Test: TestStopActors: stopping actors");
 
-            var terminatingAccess = results.TerminatingAccessCompletes(1);
-            terminatingAccess.WriteUsing("value", false);
+            results.TerminatingAccessCompletes(0).WriteUsing("value", false);
+
             var stopCountAccess = results.StopCountAccessCompletes(12);
             for (int idx = 0; idx < stoppables.Length; ++idx)
             {
                 stoppables[idx].Stop();
             }
 
-            var stopCount = stopCountAccess.ReadFrom<int>("value");
+            var stopCount = stopCountAccess.ReadFromExpecting("value", 12);
             Assert.Equal(12, stopCount);
 
             World.DefaultLogger.Log("Test: TestStopActors: stopped actors");
@@ -69,7 +68,7 @@ namespace Vlingo.Actors.Tests
 
             beforeStartCountAccess.ReadFrom<int>("value");
             var terminatingStopAccess = results.TerminatingStopCountAccessCompletes(12);
-            results.TerminatingAccessCompletes(1).WriteUsing("value", true);
+            results.TerminatingAccessCompletes(0).WriteUsing("value", true);
             World.Terminate();
             
             var terminatingStopCount = terminatingStopAccess.ReadFrom<int>("value");

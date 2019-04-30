@@ -92,26 +92,6 @@ namespace Vlingo.Actors
         public override bool IsOfSameGenericType<TOtherType>()
             => typeof(T) == typeof(TOtherType);
 
-        public ICompletes<T> AndThen(TimeSpan timeout, T failedOutcomeValue, Func<T, T> function)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICompletes<T> AndThen(T failedOutcomeValue, Func<T, T> function)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICompletes<T> AndThen(TimeSpan timeout, Func<T, T> function)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICompletes<T> AndThen(Func<T, T> function)
-        {
-            throw new NotImplementedException();
-        }
-
         public ICompletes<TO> AndThen<TO>(TimeSpan timeout, TO failedOutcomeValue, Func<T, TO> function)
         {
             throw new NotImplementedException();
@@ -152,22 +132,22 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
-        public O AndThenTo<F, O>(TimeSpan timeout, F failedOutcomeValue, Func<T, O> function)
+        public TO AndThenTo<TF, TO>(TimeSpan timeout, TF failedOutcomeValue, Func<T, TO> function)
         {
             throw new NotImplementedException();
         }
 
-        public O AndThenTo<F, O>(F failedOutcomeValue, Func<T, O> function)
+        public TO AndThenTo<TF, TO>(TF failedOutcomeValue, Func<T, TO> function)
         {
             throw new NotImplementedException();
         }
 
-        public O AndThenTo<O>(TimeSpan timeout, Func<T, O> function)
+        public TO AndThenTo<TO>(TimeSpan timeout, Func<T, TO> function)
         {
             throw new NotImplementedException();
         }
 
-        public O AndThenTo<O>(Func<T, O> function)
+        public TO AndThenTo<TO>(Func<T, TO> function)
         {
             throw new NotImplementedException();
         }

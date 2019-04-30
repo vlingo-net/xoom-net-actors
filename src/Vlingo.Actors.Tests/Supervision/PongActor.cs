@@ -26,22 +26,38 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Pong()
         {
-            testResults.PongCount.IncrementAndGet();
-            testResults.UntilPonged.Happened();
+            testResults.Access.WriteUsing("pongCount", 1);
             throw new ApplicationException("Intended Pong failure.");
         }
 
         public override void Stop()
         {
             base.Stop();
-            testResults.UntilStopped.Happened();
+            testResults.Access.WriteUsing("stopCount", 1);
         }
 
         public class PongTestResults
         {
-            public AtomicInteger PongCount = new AtomicInteger(0);
-            public TestUntil UntilPonged = TestUntil.Happenings(0);
-            public TestUntil UntilStopped = TestUntil.Happenings(0);
+            public readonly AtomicInteger PongCount = new AtomicInteger(0);
+            public readonly AtomicInteger StopCount = new AtomicInteger(0);
+
+            public AccessSafely Access { get; private set; }
+
+            public PongTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("pongCount", (int increment) => PongCount.Set(PongCount.Get() + increment))
+                    .ReadingWith("pongCount", () => PongCount.Get())
+                    .WritingWith("stopCount", (int increment) => StopCount.Set(StopCount.Get() + increment))
+                    .ReadingWith("stopCount", () => StopCount.Get());
+                return Access;
+            }
         }
     }
 }

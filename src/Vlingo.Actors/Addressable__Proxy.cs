@@ -5,13 +5,19 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Common;
-
 namespace Vlingo.Actors
 {
-    public interface IDirectoryScanner
+    internal class Addressable__Proxy : IAddressable
     {
-        ICompletes<T> ActorOf<T>(IAddress address);
-        ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address);
+        private readonly Actor actor;
+
+        public Addressable__Proxy(Actor actor, IMailbox mailbox)
+        {
+            this.actor = actor;
+        }
+
+        public IAddress Address => actor.Address;
+
+        public LifeCycle LifeCycle => actor.LifeCycle;
     }
 }

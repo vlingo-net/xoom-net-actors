@@ -26,9 +26,8 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            testResults.InformedCount.IncrementAndGet();
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            testResults.UntilInform.Happened();
+            testResults.Access.WriteUsing("informedCount", 1);
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy
@@ -43,7 +42,21 @@ namespace Vlingo.Actors.Tests.Supervision
         public class RestartForeverSupervisorTestResults
         {
             public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
-            public TestUntil UntilInform { get; set; } = TestUntil.Happenings(0);
+            public AccessSafely Access { get; private set; }
+            public RestartForeverSupervisorTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("informedCount", (int increment) => InformedCount.Set(InformedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => InformedCount.Get());
+
+                return Access;
+            }
         }
     }
 }

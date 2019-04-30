@@ -14,7 +14,7 @@ namespace Vlingo.Actors.Tests
 {
     public class SchedulerTest : ActorsTest
     {
-        private readonly IScheduled<object> scheduled;
+        private readonly IScheduled<CounterHolder> scheduled;
         private readonly Scheduler scheduler;
 
         public SchedulerTest()
@@ -54,11 +54,11 @@ namespace Vlingo.Actors.Tests
         }
 
 
-        private class Scheduled : IScheduled<object>
+        private class Scheduled : IScheduled<CounterHolder>
         {
-            public void IntervalSignal(IScheduled<object> scheduled, object data)
+            public void IntervalSignal(IScheduled<CounterHolder> scheduled, CounterHolder data)
             {
-                ((CounterHolder)data).Increment();
+                data.Increment();
             }
         }
 

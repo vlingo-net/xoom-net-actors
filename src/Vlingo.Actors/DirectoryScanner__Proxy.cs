@@ -13,6 +13,7 @@ namespace Vlingo.Actors
     public class DirectoryScanner__Proxy : IDirectoryScanner
     {
         private const string ActorOfRepresentation1 = "ActorOf<T>(Vlingo.Actors.Address)";
+        private const string ActorOfRepresentation2 = "MaybeActorOf<T>(Vlingo.Actors.Address)";
 
         private readonly Actor actor;
         private readonly IMailbox mailbox;
@@ -42,6 +43,28 @@ namespace Vlingo.Actors
             }
 
             actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation1));
+            return null;
+        }
+
+        public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
+        {
+            if (!actor.IsStopped)
+            {
+                Action<IDirectoryScanner> consumer = x => x.MaybeActorOf<T>(address);
+                var completes = new BasicCompletes<Optional<T>>(actor.Scheduler);
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, completes, ActorOfRepresentation2);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IDirectoryScanner>(actor, consumer, completes, ActorOfRepresentation2));
+                }
+
+                return completes;
+            }
+
+            actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation2));
             return null;
         }
     }

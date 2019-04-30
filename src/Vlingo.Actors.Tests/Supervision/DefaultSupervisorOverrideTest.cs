@@ -34,33 +34,33 @@ namespace Vlingo.Actors.Tests.Supervision
             var failure = TestWorld.ActorFor<IFailureControl>(
                 Definition.Has<FailureControlActor>(
                     Definition.Parameters(testResults), "failure-for-stop"));
-            testResults.UntilFailNow = Until(20);
-            testResults.UntilAfterFail = Until(20);
-            for(var idx = 0; idx < 20; ++idx)
-            {
-                testResults.UntilBeforeResume = Until(1);
-                failure.Actor.FailNow();
-                testResults.UntilBeforeResume.Completes();
-                failure.Actor.AfterFailure();
-            }
-            testResults.UntilFailNow.Completes();
-            testResults.UntilAfterFail.Completes();
 
-            testResults.UntilFailNow = Until(20);
-            testResults.UntilAfterFail = Until(20);
+            var access = testResults.AfterCompleting(40);
+
             for (var idx = 0; idx < 20; ++idx)
             {
-                testResults.UntilBeforeResume = Until(1);
                 failure.Actor.FailNow();
-                testResults.UntilBeforeResume.Completes();
                 failure.Actor.AfterFailure();
             }
-            testResults.UntilFailNow.Completes();
-            testResults.UntilAfterFail.Completes();
+
+            access.ReadFromExpecting("beforeResume", 20);
+            Assert.Equal(20, access.ReadFrom<int>("beforeResume"));
+            Assert.Equal(20, access.ReadFrom<int>("failNowCount"));
+            Assert.Equal(20, access.ReadFrom<int>("afterFailureCount"));
+
+            access = testResults.AfterCompleting(40);
+
+            for (var idx = 0; idx < 20; ++idx)
+            {
+                failure.Actor.FailNow();
+                failure.Actor.AfterFailure();
+            }
+
+            access.ReadFromExpecting("beforeResume", 40);
+            Assert.Equal(40, access.ReadFrom<int>("failNowCount"));
+            Assert.Equal(40, access.ReadFrom<int>("afterFailureCount"));
 
             Assert.False(failure.ActorInside.IsStopped);
-            Assert.Equal(40, testResults.FailNowCount.Get());
-            Assert.Equal(40, testResults.AfterFailureCount.Get());
         }
     }
 }

@@ -30,15 +30,29 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            TestResults.InformedCount.IncrementAndGet();
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            TestResults.UntilInform.Happened();
+            TestResults.Access.WriteUsing("informedCount", 1);
         }
 
         internal class PingSupervisorTestResults
         {
             public AtomicInteger InformedCount { get; set; } = new AtomicInteger(0);
-            public TestUntil UntilInform { get; set; } = TestUntil.Happenings(0);
+            public AccessSafely Access { get; private set; }
+
+            public PingSupervisorTestResults()
+            {
+                Access = AfterCompleting(0);
+            }
+
+            public AccessSafely AfterCompleting(int times)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith("informedCount", (int increment) => InformedCount.Set(InformedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => InformedCount.Get());
+
+                return Access;
+            }
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy

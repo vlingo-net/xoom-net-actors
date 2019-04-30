@@ -6,7 +6,9 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 
@@ -18,10 +20,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         private readonly IList<string> lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
         private readonly TestWorld world;
+        private readonly ConcurrentQueue<IMessage> queue;
+        private readonly AtomicReference<Stack<List<Type>>> suspendedOverrides;
 
         public TestMailbox()
         {
             world = TestWorld.Instance;
+            queue = new ConcurrentQueue<IMessage>();
+            suspendedOverrides = new AtomicReference<Stack<List<Type>>>(new Stack<List<Type>>());
         }
 
         public void Run()
@@ -40,7 +46,16 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public int PendingMessages => throw new NotSupportedException("TestMailbox does not support this operation.");
 
-        public bool Delivering(bool flag) => throw new NotSupportedException("TestMailbox does not support this operation.");
+        public bool IsSuspended => suspendedOverrides.Get().Count > 0;
+
+        public void Resume(string name)
+        {
+            if (suspendedOverrides.Get().Count > 0)
+            {
+                suspendedOverrides.Get().Pop();
+            }
+            ResumeAll();
+        }
 
         public void Send(IMessage message)
         {
@@ -51,6 +66,17 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
                     world.Track(message);
                 }
             }
+
+            if (IsSuspended)
+            {
+                queue.Enqueue(message);
+                return;
+            }
+            else
+            {
+                ResumeAll();
+            }
+
             message.Actor.ViewTestStateInitialization(null);
             message.Deliver();
         }
@@ -65,8 +91,25 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         }
 
         public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+            => throw new NotSupportedException("Not a preallocated mailbox.");
+
+        public void SuspendExceptFor(string name, params Type[] overrides)
+            => suspendedOverrides.Get().Push(overrides.ToList());
+
+        private void ResumeAll()
         {
-            throw new NotSupportedException("Not a preallocated mailbox.");
+            while (!queue.IsEmpty)
+            {
+                if(queue.TryDequeue(out var queued))
+                {
+                    var actor = queued?.Actor;
+                    if(actor != null)
+                    {
+                        actor.ViewTestStateInitialization(null);
+                        queued.Deliver();
+                    }
+                }
+            }
         }
     }
 }

@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 using Xunit;
@@ -19,28 +20,32 @@ namespace Vlingo.Actors.Tests
             var poolSize = 4;
             var rounds = 2;
             var messagesToSend = poolSize * rounds;
-            var until = TestUntil.Happenings(messagesToSend);
+            var results = new Results(messagesToSend);
 
-            var testRouter = TestWorld.ActorFor<ITwoArgSupplierProtocol>(typeof(TestRouterActor), poolSize);
+            var router = World.ActorFor<ITwoArgSupplierProtocol>(typeof(TestRouterActor), poolSize);
 
-            var answers = new int[messagesToSend];
             for (var i = 0; i < messagesToSend; i++)
             {
-                var round = i;
-                testRouter.Actor
-                  .ProductOf(round, round)
-                  .AndThenConsume(answer => answers[round] = answer)
-                  .AndThenConsume(_ => until.Happened());
+                router
+                  .ProductOf(i, i)
+                  .AndThenConsume(answer => results.Access.WriteUsing("answers", answer));
             }
 
-            until.Completes();
+            var allExpected = new List<int>();
 
             for (var round = 0; round < messagesToSend; round++)
             {
                 int expected = round * round;
-                int actual = answers[round];
-                Assert.Equal(expected, actual);
+                allExpected.Add(expected);
             }
+
+            for (var round = 0; round < messagesToSend; round++)
+            {
+                int actual = results.Access.ReadFrom<int, int>("answers", round);
+                Assert.True(allExpected.Remove(actual));
+            }
+
+            Assert.Empty(allExpected);
         }
 
         private class TestRouterActor : RoundRobinRouter<ITwoArgSupplierProtocol>, ITwoArgSupplierProtocol
@@ -64,6 +69,31 @@ namespace Vlingo.Actors.Tests
         {
             public ICompletes<int> ProductOf(int arg1, int arg2)
                 => Completes().With(arg1 * arg2);
+        }
+
+        private class Results
+        {
+            private readonly int[] answers;
+            private int index;
+
+            public AccessSafely Access { get; private set; }
+
+            public Results(int totalAnswers)
+            {
+                answers = new int[totalAnswers];
+                index = 0;
+                Access = AfterCompleting(totalAnswers);
+            }
+
+            private AccessSafely AfterCompleting(int steps)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(steps)
+                    .WritingWith("answers", (int answer) => answers[index++] = answer)
+                    .ReadingWith("answers", (int index) => answers[index]);
+
+                return Access;
+            }
         }
     }
 

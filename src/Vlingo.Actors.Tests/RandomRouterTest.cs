@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 using Xunit;
@@ -19,27 +20,33 @@ namespace Vlingo.Actors.Tests
             var poolSize = 4;
             var rounds = 2;
             var messagesToSend = poolSize * rounds;
-            var until = TestUntil.Happenings(messagesToSend);
+            var results = new Results(messagesToSend);
 
-            var testRouter = TestWorld.ActorFor<IOneArgSupplierProtocol>(typeof(TestSupplierActor), poolSize);
+            var router = World.ActorFor<IOneArgSupplierProtocol>(Definition.Has<TestSupplierActor>(Definition.Parameters(poolSize)));
             var answers = new int[messagesToSend];
             for (var i = 0; i < messagesToSend; i++)
             {
                 var round = i;
-                testRouter.Actor
+                router
                   .CubeOf(round)
-                  .AndThenConsume(answer => answers[round] = answer)
-                  .AndThenConsume(_ => until.Happened());
+                  .AndThenConsume(answer => results.Access.WriteUsing("answers", answer));
             }
 
-            until.Completes();
+            var allExpected = new List<int>();
 
             for (var round = 0; round < messagesToSend; round++)
             {
                 int expected = round * round * round;
-                int actual = answers[round];
-                Assert.Equal(expected, actual);
+                allExpected.Add(expected);
             }
+
+            for (var round = 0; round < messagesToSend; round++)
+            {
+                int actual = results.Access.ReadFrom<int, int>("answers", round);
+                Assert.True(allExpected.Remove(actual));
+            }
+
+            Assert.Empty(allExpected);
         }
 
         [Fact]
@@ -48,16 +55,28 @@ namespace Vlingo.Actors.Tests
             var poolSize = 4;
             var rounds = 2;
             var messagesToSend = poolSize * rounds;
-            var until = TestUntil.Happenings(messagesToSend);
+            var results = new Results(messagesToSend);
 
-            var testRouter = TestWorld.ActorFor<IOneArgConsumerProtocol>(typeof(TestConsumerActor), poolSize, until);
+            var router = World.ActorFor<IOneArgConsumerProtocol>(typeof(TestConsumerActor), results, poolSize);
 
             for (var i = 0; i < messagesToSend; i++)
             {
-                testRouter.Actor.Remember(i);
+                router.Remember(i);
             }
 
-            until.Completes();
+            var allExpected = new List<int>();
+
+            for (var round = 0; round < messagesToSend; round++)
+            {
+                allExpected.Add(round);
+            }
+
+            for (var round = 0; round < messagesToSend; round++)
+            {
+                Assert.True(allExpected.Remove(round));
+            }
+
+            Assert.Empty(allExpected);
         }
 
 
@@ -85,10 +104,10 @@ namespace Vlingo.Actors.Tests
 
         private class TestConsumerActor : RoundRobinRouter<IOneArgConsumerProtocol>, IOneArgConsumerProtocol
         {
-            public TestConsumerActor(int poolSize, TestUntil testUntil) :
+            public TestConsumerActor(Results results, int poolSize) :
                 base(new RouterSpecification(
                     poolSize,
-                    Definition.Has<TestConsumerWorker>(Definition.Parameters(testUntil)),
+                    Definition.Has<TestConsumerWorker>(Definition.Parameters(results)),
                     typeof(IOneArgConsumerProtocol)))
             {
             }
@@ -101,14 +120,39 @@ namespace Vlingo.Actors.Tests
 
         private class TestConsumerWorker : Actor, IOneArgConsumerProtocol
         {
-            private readonly TestUntil testUntil;
+            private readonly Results results;
 
-            public TestConsumerWorker(TestUntil testUntil)
+            public TestConsumerWorker(Results results)
             {
-                this.testUntil = testUntil;
+                this.results = results;
             }
 
-            public void Remember(int number) => testUntil.Happened();
+            public void Remember(int number) => results.Access.WriteUsing("answers", number);
+        }
+
+        private class Results
+        {
+            private readonly int[] answers;
+            private int index;
+
+            public AccessSafely Access { get; private set; }
+
+            public Results(int totalAnswers)
+            {
+                answers = new int[totalAnswers];
+                index = 0;
+                Access = AfterCompleting(totalAnswers);
+            }
+
+            private AccessSafely AfterCompleting(int steps)
+            {
+                Access = AccessSafely
+                    .AfterCompleting(steps)
+                    .WritingWith("answers", (int answer) => answers[index++] = answer)
+                    .ReadingWith("answers", (int index) => answers[index]);
+
+                return Access;
+            }
         }
     }
 

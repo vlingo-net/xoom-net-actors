@@ -38,39 +38,29 @@ namespace Vlingo.Actors.Tests.Supervision
             var ping = TestWorld.ActorFor<IPing>(
                 Definition.Has<PingActor>(
                     Definition.Parameters(testResults), "ping"));
-            testResults.UntilPinged = Until(5);
+            
+            var supervisorResults = PingSupervisorActor.Instance.Value.TestResults;
+            var pingAccess = testResults.AfterCompleting(5);
+            var supervisorAccess = supervisorResults.AfterCompleting(5);
+
 
             for (var idx = 0; idx < 5; ++idx)
             {
-                World.DefaultLogger.Log("PingSupervisorActor instance: " + PingSupervisorActor.Instance.Value);
-                World.DefaultLogger.Log("PingSupervisorActor testResults: " + PingSupervisorActor.Instance.Value.TestResults);
-                World.DefaultLogger.Log("PingSupervisorActor testResults untilInform: " + PingSupervisorActor.Instance.Value.TestResults.UntilInform);
-
-                PingSupervisorActor.Instance.Value.TestResults.UntilInform = Until(1);
                 ping.Actor.Ping();
-                PingSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
             }
 
-            testResults.UntilPinged.Completes();
-            // PingSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
-
             Assert.False(ping.ActorInside.IsStopped);
-            Assert.Equal(5, testResults.PingCount.Get());
-            Assert.Equal(5, PingSupervisorActor.Instance.Value.TestResults.InformedCount.Get());
+            Assert.Equal(5, pingAccess.ReadFrom<int>("pingCount"));
+            Assert.Equal(5, supervisorAccess.ReadFrom<int>("informedCount"));
 
-            testResults.UntilPinged = Until(1);
-            testResults.UntilStopped = Until(1);
-            PingSupervisorActor.Instance.Value.TestResults.UntilInform = Until(1);
+            pingAccess = testResults.AfterCompleting(2);
 
             ping.Actor.Ping();
 
-            PingSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
-            testResults.UntilPinged.Completes();
-            testResults.UntilStopped.Completes();
+            Assert.Equal(6, pingAccess.ReadFrom<int>("pingCount"));
+            Assert.Equal(6, supervisorAccess.ReadFrom<int>("informedCount"));
 
             Assert.True(ping.ActorInside.IsStopped);
-            Assert.Equal(6, testResults.PingCount.Get());
-            Assert.Equal(6, PingSupervisorActor.Instance.Value.TestResults.InformedCount.Get());
         }
 
         [Fact]
@@ -80,35 +70,29 @@ namespace Vlingo.Actors.Tests.Supervision
             var pong = TestWorld.ActorFor<IPong>(
                 Definition.Has<PongActor>(
                     Definition.Parameters(testResults), "pong"));
-            testResults.UntilPonged = Until(5);
+
+            var supervisorResults = PongSupervisorActor.Instance.Value.TestResults;
+            var pongAccess = testResults.AfterCompleting(10);
+            var supervisorAccess = supervisorResults.AfterCompleting(10);
 
             for (var idx = 0; idx < 10; ++idx)
             {
-                PongSupervisorActor.Instance.Value.TestResults.UntilInform = Until(1);
                 pong.Actor.Pong();
-                PongSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
             }
 
-            testResults.UntilPonged.Completes();
-            // PongSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
+            Assert.Equal(10, pongAccess.ReadFrom<int>("pongCount"));
+            Assert.Equal(10, supervisorAccess.ReadFrom<int>("informedCount"));
 
             Assert.False(pong.ActorInside.IsStopped);
-            Assert.Equal(10, testResults.PongCount.Get());
-            Assert.Equal(10, PongSupervisorActor.Instance.Value.TestResults.InformedCount.Get());
 
-            testResults.UntilPonged = Until(1);
-            testResults.UntilStopped = Until(1);
-            PongSupervisorActor.Instance.Value.TestResults.UntilInform = Until(1);
+            pongAccess = testResults.AfterCompleting(2);
 
             pong.Actor.Pong();
 
-            PongSupervisorActor.Instance.Value.TestResults.UntilInform.Completes();
-            testResults.UntilPonged.Completes();
-            testResults.UntilStopped.Completes();
+            Assert.Equal(11, pongAccess.ReadFrom<int>("pongCount"));
+            Assert.Equal(11, supervisorAccess.ReadFrom<int>("informedCount"));
 
             Assert.True(pong.ActorInside.IsStopped);
-            Assert.Equal(11, testResults.PongCount.Get());
-            Assert.Equal(11, PongSupervisorActor.Instance.Value.TestResults.InformedCount.Get());
         }
     }
 }

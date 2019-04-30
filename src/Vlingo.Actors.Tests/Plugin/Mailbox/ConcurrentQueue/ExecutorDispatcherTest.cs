@@ -117,9 +117,11 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public int PendingMessages => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
 
+            public bool IsSuspended => false;
+
             public void Close() { }
 
-            public bool Delivering(bool flag) => flag;
+            public void Resume(string name) => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
 
             public IMessage Receive()
             {
@@ -152,9 +154,10 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             public void Send(IMessage message) => queue.Enqueue(message);
 
             public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
-            {
-                throw new NotImplementedException();
-            }
+                => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
+
+            public void SuspendExceptFor(string name, params Type[] overrides)
+                => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
         }
 
         private class CountTakerActor : Actor, ICountTaker

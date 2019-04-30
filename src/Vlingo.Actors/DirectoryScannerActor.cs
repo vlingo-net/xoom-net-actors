@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
@@ -19,14 +20,35 @@ namespace Vlingo.Actors
         }
 
         public ICompletes<T> ActorOf<T>(IAddress address)
+            => Completes().With(InternalActorOf<T>(address));
+
+        public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
+        {
+            var typed = InternalActorOf<T>(address);
+            var maybe = typed == null ? Optional.Empty<T>() : Optional.Of(typed);
+            return Completes().With(maybe);
+        }
+
+        private T InternalActorOf<T>(IAddress address)
         {
             var actor = directory.ActorOf(address);
-            if(actor != null)
+            try
             {
-                return Completes().With(Stage.ActorAs<T>(actor));
+                if(actor != null)
+                {
+                    return Stage.ActorAs<T>(actor);
+                }
+                else
+                {
+                    Logger.Log($"Actor with address: {address} not found; protocol is: {typeof(T).Name}");
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.Log($"Error providing protocol: {typeof(T).Name} for actor with address: {address}", ex);
             }
 
-            return Completes().With(default(T));
+            return default(T);
         }
     }
 }

@@ -10,9 +10,9 @@ using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    public class Scheduled__Proxy : IScheduled<object>
+    public class Scheduled__Proxy<T> : IScheduled<T>
     {
-        private const string RepresentationIntervalSignal1 = "IntervalSignal(IScheduled, object)";
+        private const string RepresentationIntervalSignal1 = "IntervalSignal(Vlingo.Common.IScheduled<T>, T)";
         private readonly Actor actor;
         private readonly IMailbox mailbox;
 
@@ -22,18 +22,18 @@ namespace Vlingo.Actors
             this.mailbox = mailbox;
         }
 
-        public void IntervalSignal(IScheduled<object> scheduled, object data)
+        public void IntervalSignal(IScheduled<T> scheduled, T data)
         {
             if (!actor.IsStopped)
             {
-                Action<IScheduled<object>> consumer = x => x.IntervalSignal(scheduled, data);
+                Action<IScheduled<T>> consumer = x => x.IntervalSignal(scheduled, data);
                 if (mailbox.IsPreallocated)
                 {
                     mailbox.Send(actor, consumer, null, RepresentationIntervalSignal1);
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IScheduled<object>>(actor, consumer, RepresentationIntervalSignal1));
+                    mailbox.Send(new LocalMessage<IScheduled<T>>(actor, consumer, RepresentationIntervalSignal1));
                 }
             }
             else

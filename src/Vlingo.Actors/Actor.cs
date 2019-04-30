@@ -18,6 +18,8 @@ namespace Vlingo.Actors
     /// </summary>
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
+        private const string Paused = "#paused";
+
         internal readonly ResultCompletes completes;
         internal LifeCycle LifeCycle { get; }
 
@@ -192,6 +194,31 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
+        /// Answers the <code>Protocols</code> for the child <code>Actor</code> to be created by this parent <code>Actor</code>.
+        /// </summary>
+        /// <param name="protocols">The protocols for the child <code>Actor</code>.</param>
+        /// <param name="definition">The <code>Definition</code> of the child <code>Actor</code> to be created by this parent <code>Actor</code>.</param>
+        /// <returns><code>Protocols</code></returns>
+        protected internal Protocols ChildActorFor(Type[] protocols, Definition definition)
+        {
+            if(definition.Supervisor != null)
+            {
+                return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, definition.Supervisor, Logger);
+            }
+            else
+            {
+                if(this is ISupervisor)
+                {
+                    return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, LifeCycle.LookUpProxy<ISupervisor>(), Logger);
+                }
+                else
+                {
+                    return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, null, Logger);
+                }
+            }
+        }
+
+        /// <summary>
         /// Answers the <c>ICompletes</c> instance for this <c>Actor</c>, or <c>null</c> if the behavior of the currently
         /// delivered <c>IMessage</c> does not answer a <c>ICompletes</c>
         /// </summary>
@@ -293,24 +320,12 @@ namespace Vlingo.Actors
         //=======================================
 
         /// <summary>
-        /// Answers whether this <c>Actor</c> is currently dispersing previously stowed messages.
-        /// </summary>
-        protected internal virtual bool IsDispersing =>
-            LifeCycle.IsDispersing;
-
-        /// <summary>
         /// Starts the process of dispersing any messages stowed for this <c>Actor</c>.
         /// </summary>
         protected internal virtual void DisperseStowedMessages()
         {
-            LifeCycle.DisperseStowedMessages();
+            LifeCycle.Environment.Mailbox.Resume(Paused);
         }
-
-        /// <summary>
-        /// Answers whether this <c>Actor</c> is currently stowing messages.
-        /// </summary>
-        protected internal virtual bool IsStowing =>
-            LifeCycle.IsStowing;
 
         /// <summary>
         /// Starts the process of stowing messages for this <c>Actor</c>, and registers <paramref name="stowageOverrides"/> as
@@ -319,8 +334,7 @@ namespace Vlingo.Actors
         /// <param name="stowageOverrides">The protocol <c>Type</c>(s) that will trigger dispersal</param>
         protected internal virtual void StowMessages(params Type[] stowageOverrides)
         {
-            LifeCycle.StowMessages();
-            LifeCycle.Environment.StowageOverrides(stowageOverrides);
+            LifeCycle.Environment.Mailbox.SuspendExceptFor(Paused, stowageOverrides);
         }
 
         //=======================================

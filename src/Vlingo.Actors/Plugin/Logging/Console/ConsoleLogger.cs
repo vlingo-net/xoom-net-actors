@@ -20,13 +20,15 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 
         public string Name { get; }
 
-        public static ILogger TestInstance()
+        public static ILogger BasicInstance()
         {
             var configuration = Configuration.Define();
             var loggerConfiguration = ConsoleLoggerPluginConfiguration.Define();
             loggerConfiguration.Build(configuration);
             return new ConsoleLogger(loggerConfiguration.Name, loggerConfiguration);
         }
+
+        public static ILogger TestInstance() => BasicInstance();
 
         public void Close()
         {
