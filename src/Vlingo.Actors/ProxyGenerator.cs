@@ -121,7 +121,13 @@ namespace Vlingo.Actors
         {
             var builder = new StringBuilder();
 
-            var signature = string.Format("  public {0}(Actor actor, IMailbox mailbox)", ClassNameFor(protocolInterface, "__Proxy"));
+            var constructorName = ClassNameFor(protocolInterface, "__Proxy");
+            if (protocolInterface.IsGenericType)
+            {
+                constructorName = constructorName.Substring(0, constructorName.IndexOf('<'));
+            }
+
+            var signature = string.Format("  public {0}(Actor actor, IMailbox mailbox)", constructorName);
 
             builder
                 .Append(signature).Append("\n")
@@ -274,28 +280,28 @@ namespace Vlingo.Actors
                 method.Name,
                 methodParamSignature);
 
-            var ifNotStopped = "    if(!actor.IsStopped)\n    {";
-            var consumerStatement = string.Format("      Action<{0}> consumer = x => x.{1}({2});",
+            var ifNotStopped = "    if(!this.actor.IsStopped)\n    {";
+            var consumerStatement = string.Format("      Action<{0}> consumer = __ => __.{1}({2});",
                 GetSimpleTypeName(protocolInterface),
                 method.Name,
                 string.Join(", ", method.GetParameters().Select(p => p.Name)));
-            var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
+            var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
-                "      if(mailbox.IsPreallocated)\n" +
+                "      if(this.mailbox.IsPreallocated)\n" +
                 "      {{\n" +
-                "        mailbox.Send(actor, consumer, {0}, {1});\n" +
+                "        this.mailbox.Send(this.actor, consumer, {0}, {1});\n" +
                 "      }}\n" +
                 "      else\n" +
                 "      {{\n" +
-                "        mailbox.Send(new LocalMessage<{2}>(actor, consumer, {3}{1}));\n" +
+                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, consumer, {3}{1}));\n" +
                 "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
                 GetSimpleTypeName(protocolInterface),
                 isACompletes ? "completes, " : "");
             var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
-            var elseDead = string.Format("      actor.DeadLetters.FailedDelivery(new DeadLetter(actor, {0}));", representationName);
+            var elseDead = string.Format("      this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
             var returnStatement = string.IsNullOrEmpty(returnValue) ? "" : string.Format("    return {0};\n", returnValue);
 
@@ -464,7 +470,8 @@ namespace Vlingo.Actors
             if (type.IsGenericType)
             {
                 var name = type.Name.Substring(0, type.Name.IndexOf('`'));
-                return $"{name}<" + string.Join(", ", type.GenericTypeArguments.Select(GetSimpleTypeName)) + ">";
+                var genericTypeDeclaration = string.Join(", ", type.GetGenericArguments().Select(GetSimpleTypeName));
+                return $"{name}<{genericTypeDeclaration}>";
             }
 
             return type.Name;
