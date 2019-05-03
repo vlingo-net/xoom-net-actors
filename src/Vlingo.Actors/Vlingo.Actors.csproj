@@ -13,7 +13,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseUrl>https://mozilla.org/MPL/2.0/</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/vlingo-net/vlingo-net-actors</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/vlingo-net/vlingo-net-common/master/vlingo-64x64.png</PackageIconUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/vlingo-net/vlingo-net-actors/master/vlingo-64x64.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
@@ -22,6 +22,6 @@
     </AssemblyAttribute>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.4.3" />
+    <PackageReference Include="Vlingo.Common" Version="0.4.5" />
   </ItemGroup>
 </Project>
