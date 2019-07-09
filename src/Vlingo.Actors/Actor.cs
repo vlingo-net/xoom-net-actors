@@ -18,8 +18,6 @@ namespace Vlingo.Actors
     /// </summary>
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        private const string Paused = "#paused";
-
         internal readonly ResultCompletes completes;
         internal LifeCycle LifeCycle { get; }
 
@@ -54,8 +52,11 @@ namespace Vlingo.Actors
         /// <value><c>true</c> if this <c>Actor</c> is stopped. <c>false</c> otherwise.</value>
         public virtual bool IsStopped => LifeCycle.IsStopped;
 
+        public virtual void Conclude()
+            => SelfAs<IStoppable>().Stop();
+
         /// <summary>
-        /// Initiates the process or stopping this <c>Actor</c> and all of its children.
+        /// Initiates the process of stopping this <code>Actor</code> and all of its children.
         /// </summary>
         public virtual void Stop()
         {
@@ -64,7 +65,7 @@ namespace Vlingo.Actors
                 if (LifeCycle.Address.Id != World.DeadLettersId)
                 {
                     // TODO: remove this actor as a child on parent
-                    LifeCycle.Suspend();
+                    LifeCycle.SuspendForStop();
                     LifeCycle.Stop(this);
                 }
             }
@@ -225,9 +226,9 @@ namespace Vlingo.Actors
         /// <returns><c>ICompletes</c> or <c>null</c>, depending on the current <c>IMessage</c> delivered.</returns>
         protected internal virtual ICompletes Completes()
         {
-            if (completes == null)
+            if (completes == null || completes.InternalClientCompletes == null)
             {
-                throw new InvalidOperationException("Completes is not available for this protocol behavior");
+                throw new InvalidOperationException("Completes is not available for this protocol behavior; return type must not be void.");
             }
 
             return completes.ClientCompletes();
@@ -324,7 +325,7 @@ namespace Vlingo.Actors
         /// </summary>
         protected internal virtual void DisperseStowedMessages()
         {
-            LifeCycle.Environment.Mailbox.Resume(Paused);
+            LifeCycle.Environment.Mailbox.Resume(Mailbox.Paused);
         }
 
         /// <summary>
@@ -334,7 +335,7 @@ namespace Vlingo.Actors
         /// <param name="stowageOverrides">The protocol <c>Type</c>(s) that will trigger dispersal</param>
         protected internal virtual void StowMessages(params Type[] stowageOverrides)
         {
-            LifeCycle.Environment.Mailbox.SuspendExceptFor(Paused, stowageOverrides);
+            LifeCycle.Environment.Mailbox.SuspendExceptFor(Mailbox.Paused, stowageOverrides);
         }
 
         //=======================================
@@ -364,7 +365,8 @@ namespace Vlingo.Actors
         /// <param name="reason">The <c>Exception</c> cause of the supervision restart.</param>
         protected internal virtual void BeforeRestart(Exception reason)
         {
-            // override
+            // override for specific recovery
+            Logger.Error($"Default before restart recovery after: {reason.Message}", reason);
             LifeCycle.AfterStop(this);
         }
 
@@ -375,7 +377,8 @@ namespace Vlingo.Actors
         /// <param name="reason">The <c>Exception</c> cause of the supervision restart.</param>
         protected internal virtual void AfterRestart(Exception reason)
         {
-            // override
+            // override for specific recovery
+            Logger.Error($"Default after restart recovery after: {reason.Message}", reason);
             LifeCycle.BeforeStart(this);
         }
 
@@ -386,7 +389,8 @@ namespace Vlingo.Actors
         /// <param name="reason">The <c>Exception</c> cause of the supervision resume.</param>
         protected internal virtual void BeforeResume(Exception reason)
         {
-            // override
+            // override for specific recovery
+            Logger.Error($"Default before resume recovery after: {reason.Message}", reason);
         }
     }
 }

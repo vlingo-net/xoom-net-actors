@@ -56,5 +56,9 @@ namespace Vlingo.Actors
         }
 
         public override string ToString() => $"PooledCompletes[Id={Id} Address={Address}]";
+
+        public void Conclude()
+        {
+        }
     }
 }

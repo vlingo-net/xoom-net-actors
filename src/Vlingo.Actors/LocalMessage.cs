@@ -69,7 +69,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                actor.Logger.Log($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
+                actor.Logger.Warn($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
             }
         }
 
@@ -103,7 +103,7 @@ namespace Vlingo.Actors
                 }
                 catch(Exception ex)
                 {
-                    actor.Logger.Log($"Message#Deliver(): Exception: {ex.Message} for Actor: {actor} sending: {representation}", ex);
+                    actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {actor} sending: {representation}", ex);
                     actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(actor, ex));
                 }
             }

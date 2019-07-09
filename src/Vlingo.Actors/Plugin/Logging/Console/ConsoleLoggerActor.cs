@@ -15,12 +15,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 
         public ConsoleLoggerActor(ConsoleLogger logger)
         {
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void Close() => logger.Close();
@@ -29,14 +24,40 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 
         public string Name => logger.Name;
 
-        public void Log(string message) => logger.Log(message);
-
-        public void Log(string message, Exception ex) => logger.Log(message, ex);
-
         public override void Stop()
         {
             Close();
             base.Stop();
         }
+
+        public void Trace(string message) => logger.Trace(message);
+
+        public void Trace(string message, params object[] args) => logger.Trace(message, args);
+
+        public void Trace(string message, Exception throwable) => logger.Trace(message, throwable);
+
+        public void Debug(string message) => logger.Debug(message);
+
+        public void Debug(string message, params object[] args) => logger.Debug(message, args);
+
+        public void Debug(string message, Exception throwable) => logger.Debug(message, throwable);
+
+        public void Info(string message) => logger.Info(message);
+
+        public void Info(string message, params object[] args) => logger.Info(message, args);
+
+        public void Info(string message, Exception throwable) => logger.Info(message, throwable);
+
+        public void Warn(string message) => logger.Warn(message);
+
+        public void Warn(string message, params object[] args) => logger.Warn(message, args);
+
+        public void Warn(string message, Exception throwable) => logger.Warn(message, throwable);
+
+        public void Error(string message) => logger.Error(message);
+
+        public void Error(string message, params object[] args) => logger.Error(message, args);
+
+        public void Error(string message, Exception throwable) => logger.Error(message, throwable);
     }
 }

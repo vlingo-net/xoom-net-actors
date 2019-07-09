@@ -22,6 +22,26 @@ namespace Vlingo.Actors
 
         public bool IsStopped => actor.IsStopped;
 
+        public void Conclude()
+        {
+            if (!actor.IsStopped)
+            {
+                Action<IStoppable> consumer = x => x.Conclude();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, "Conclude()");
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Conclude()"));
+                }
+            }
+            else
+            {
+                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Conclude()"));
+            }
+        }
+
         public void Stop()
         {
             if (!actor.IsStopped)

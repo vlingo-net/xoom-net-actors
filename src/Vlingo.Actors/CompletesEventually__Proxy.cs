@@ -11,6 +11,7 @@ namespace Vlingo.Actors
 {
     public class CompletesEventually__Proxy : ICompletesEventually
     {
+        private const string RepresentationConclude = "Conclude()";
         private const string RepresentationStop = "Stop()";
         private const string RepresentationWith = "With(object)";
 
@@ -26,6 +27,26 @@ namespace Vlingo.Actors
         public IAddress Address => actor.Address;
 
         public bool IsStopped => actor.IsStopped;
+
+        public void Conclude()
+        {
+            if (!actor.IsStopped)
+            {
+                Action<IStoppable> consumer = x => x.Conclude();
+                if (mailbox.IsPreallocated)
+                {
+                    mailbox.Send(actor, consumer, null, RepresentationConclude);
+                }
+                else
+                {
+                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, RepresentationConclude));
+                }
+            }
+            else
+            {
+                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationConclude));
+            }
+        }
 
         public void Stop()
         {

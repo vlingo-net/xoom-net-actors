@@ -178,8 +178,8 @@ namespace Vlingo.Actors
         {
             configurationOverrides = new Dictionary<string, IPluginConfiguration>();
             plugins = new List<IPlugin>();
-            properties = null;
-            mergeProperties = false;
+            this.properties = properties;
+            mergeProperties = includeBaseLoad;
 
             UsingMainProxyGeneratedClassesPath("target/classes/")
             .UsingMainProxyGeneratedSourcesPath("target/generated-sources/")

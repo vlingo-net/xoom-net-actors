@@ -40,12 +40,12 @@ namespace Vlingo.Actors
                 }
                 else
                 {
-                    Logger.Log($"Actor with address: {address} not found; protocol is: {typeof(T).Name}");
+                    Logger.Debug($"Actor with address: {address} not found; protocol is: {typeof(T).Name}");
                 }
             }
             catch(Exception ex)
             {
-                Logger.Log($"Error providing protocol: {typeof(T).Name} for actor with address: {address}", ex);
+                Logger.Error($"Error providing protocol: {typeof(T).Name} for actor with address: {address}", ex);
             }
 
             return default(T);

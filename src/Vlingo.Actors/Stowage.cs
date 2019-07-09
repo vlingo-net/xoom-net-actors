@@ -33,7 +33,7 @@ namespace Vlingo.Actors
         {
             foreach (var message in stowedMessages)
             {
-                logger.Log($"STOWED: {message}");
+                logger.Debug($"STOWED: {message}");
             }
         }
 

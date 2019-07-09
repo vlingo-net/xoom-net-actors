@@ -342,7 +342,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Log($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol.Name}", e);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol.Name}", e);
             }
         }
 
@@ -363,9 +363,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Log($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass.Name}", e);
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass.Name}", e);
             }
         }
 

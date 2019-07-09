@@ -46,7 +46,7 @@ namespace Vlingo.Actors
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            Logger.Log($"PrivateRootActor: Failure of: {supervised.Address}: Stopping.", error);
+            Logger.Error($"PrivateRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Stopping.", error);
             supervised.Stop(SupervisionStrategy.Scope);
         }
 

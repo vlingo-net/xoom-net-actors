@@ -26,7 +26,7 @@ namespace Vlingo.Actors
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            Logger.Log($"PublicRootActor: Failure of: {supervised.Address}: Restarting.", error);
+            Logger.Error($"PublicRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Restarting.", error);
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
         }
 
