@@ -31,12 +31,11 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestActorForNoDefinitionAndProtocol()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(1);
             var simple = World.Stage.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
-            testResults.UntilSimple = TestUntil.Happenings(1);
             simple.SimpleSay();
-            testResults.UntilSimple.Completes();
-            Assert.True(testResults.Invoked.Get());
+
+            Assert.True(testResults.Invoked);
 
             var test = World.Stage.ActorFor<INoProtocol>(typeof(TestInterfaceActor));
             Assert.NotNull(test);
@@ -79,13 +78,12 @@ namespace Vlingo.Actors.Tests
             World.Stage.Directory.Register(address4, new TestInterfaceActor());
             World.Stage.Directory.Register(address5, new TestInterfaceActor());
 
-            var scanResults = new ScanResult();
-            scanResults.AfterCompleting(7);
+            var scanResults = new ScanResult(7);
 
             Action<INoProtocol> afterConsumer = actor =>
             {
                 Assert.NotNull(actor);
-                scanResults.ScanFound.WriteUsing("foundCount", 1);
+                scanResults.Found();
             };
 
             World.Stage.ActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
@@ -94,35 +92,35 @@ namespace Vlingo.Actors.Tests
             World.Stage.ActorOf<INoProtocol>(address2).AndThenConsume(afterConsumer);
             World.Stage.ActorOf<INoProtocol>(address1).AndThenConsume(afterConsumer);
 
-            World.Stage.ActorOf<INoProtocol>(address6)
-                .AndThen(null, actor =>
+            World.Stage
+                .MaybeActorOf<INoProtocol>(address6)
+                .AndThenConsume(maybe =>
                 {
-                    Assert.Null(actor);
-                    scanResults.ScanFound.WriteUsing("foundCount", 1);
-                    return actor;
-                })
-                .Otherwise(noSuchActor =>
-                {
-                    Assert.Null(noSuchActor);
-                    scanResults.ScanFound.WriteUsing("notFoundCount", 1);
-                    return null;
+                    if (maybe.IsPresent)
+                    {
+                        scanResults.Found();
+                    }
+                    else
+                    {
+                        scanResults.NotFound();
+                    }
                 });
-            World.Stage.ActorOf<INoProtocol>(address7)
-                .AndThen(null, actor =>
+            World.Stage
+                .MaybeActorOf<INoProtocol>(address7)
+                .AndThenConsume(maybe =>
                 {
-                    Assert.Null(actor);
-                    scanResults.ScanFound.WriteUsing("foundCount", 1);
-                    return actor;
-                })
-                .Otherwise(noSuchActor =>
-                {
-                    Assert.Null(noSuchActor);
-                    scanResults.ScanFound.WriteUsing("notFoundCount", 1);
-                    return null;
+                    if (maybe.IsPresent)
+                    {
+                        scanResults.Found();
+                    }
+                    else
+                    {
+                        scanResults.NotFound();
+                    }
                 });
 
-            Assert.Equal(5, scanResults.ScanFound.ReadFrom<int>("foundCount"));
-            Assert.Equal(2, scanResults.ScanFound.ReadFrom<int>("notFoundCount"));
+            Assert.Equal(5, scanResults.FoundCount);
+            Assert.Equal(2, scanResults.NotFoundCount);
         }
 
         [Fact]
@@ -143,13 +141,12 @@ namespace Vlingo.Actors.Tests
             World.Stage.Directory.Register(address4, new TestInterfaceActor());
             World.Stage.Directory.Register(address5, new TestInterfaceActor());
 
-            var scanResults = new ScanResult();
-            scanResults.AfterCompleting(7);
+            var scanResults = new ScanResult(7);
 
             Action<Optional<INoProtocol>> afterConsumer = maybe =>
             {
                 Assert.True(maybe.IsPresent);
-                scanResults.ScanFound.WriteUsing("foundCount", 1);
+                scanResults.Found()
             };
 
             World.Stage.MaybeActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
@@ -162,7 +159,7 @@ namespace Vlingo.Actors.Tests
                 .AndThen(maybe =>
                 {
                     Assert.False(maybe.IsPresent);
-                    scanResults.ScanFound.WriteUsing("notFoundCount", 1);
+                    scanResults.NotFound();
                     return maybe;
                 });
 
@@ -170,12 +167,12 @@ namespace Vlingo.Actors.Tests
                 .AndThen(maybe =>
                 {
                     Assert.False(maybe.IsPresent);
-                    scanResults.ScanFound.WriteUsing("notFoundCount", 1);
+                    scanResults.NotFound();
                     return maybe;
                 });
 
-            Assert.Equal(5, scanResults.ScanFound.ReadFrom<int>("foundCount"));
-            Assert.Equal(2, scanResults.ScanFound.ReadFrom<int>("notFoundCount"));
+            Assert.Equal(5, scanResults.FoundCount);
+            Assert.Equal(2, scanResults.NotFoundCount);
         }
 
         [Fact]
@@ -217,27 +214,27 @@ namespace Vlingo.Actors.Tests
 
         private class ScanResult
         {
-            private readonly AtomicInteger foundCount = new AtomicInteger(0);
-            private readonly AtomicInteger notFoundCount = new AtomicInteger(0);
-            
-            public AccessSafely ScanFound { get; private set; }
+            private readonly AccessSafely safely;
 
-            public ScanResult()
+            public ScanResult(int times)
             {
-                ScanFound = AfterCompleting(0);
-            }
-
-            public AccessSafely AfterCompleting(int times)
-            {
-                ScanFound = AccessSafely
+                var foundCount = new AtomicInteger(0);
+                var notFoundCount = new AtomicInteger(0);
+                safely = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("foundCount", (int increment) => foundCount.Set(foundCount.Get() + increment))
-                    .ReadingWith("foundCount", () => foundCount.Get())
-                    .WritingWith("notFoundCount", (int increment) => notFoundCount.Set(notFoundCount.Get() + increment))
-                    .ReadingWith("notFoundCount", () => notFoundCount.Get());
-
-                return ScanFound;
+                    .WritingWith<int>("foundCount", _ => foundCount.IncrementAndGet())
+                    .ReadingWith("foundCount", foundCount.Get)
+                    .WritingWith<int>("notFoundCount", _ => notFoundCount.IncrementAndGet())
+                    .ReadingWith("notFoundCount", notFoundCount.Get);
             }
+
+            public int FoundCount => safely.ReadFrom<int>("foundCount");
+
+            public int NotFoundCount => safely.ReadFrom<int>("notFoundCount");
+
+            public void Found() => safely.WriteUsing("foundCount", 1);
+
+            public void NotFound() => safely.WriteUsing("notFoundCount", 1);
         }
     }
 }

@@ -16,33 +16,49 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestBeforeStart()
         {
-            var testResults = new TestResults();
-            testResults.until = Until(1);
+            var testResults = TestResults.AfterCompleting(1);
             var actor = World.ActorFor<IStoppable>(typeof(LifecycleActor), testResults);
-            testResults.until.Completes();
 
-            Assert.True(testResults.receivedBeforeStart.Get());
-            Assert.False(testResults.receivedAfterStop.Get());
+            Assert.True(testResults.GetReceivedBeforeStart());
+            Assert.False(testResults.GetReceivedAfterStop());
         }
 
         [Fact]
         public void TestAfterStop()
         {
-            var testResults = new TestResults();
-            testResults.until = Until(2);
+            var testResults = TestResults.AfterCompleting(2);
+
             var actor = World.ActorFor<IStoppable>(typeof(LifecycleActor), testResults);
             actor.Stop();
-            testResults.until.Completes();
 
-            Assert.True(testResults.receivedBeforeStart.Get());
-            Assert.True(testResults.receivedAfterStop.Get());
+            Assert.True(testResults.GetReceivedBeforeStart());
+            Assert.True(testResults.GetReceivedAfterStop());
         }
 
         private class TestResults
         {
-            public AtomicBoolean receivedBeforeStart = new AtomicBoolean(false);
-            public AtomicBoolean receivedAfterStop = new AtomicBoolean(false);
-            public TestUntil until = TestUntil.Happenings(0);
+            private readonly AtomicBoolean receivedBeforeStart = new AtomicBoolean(false);
+            private readonly AtomicBoolean receivedAfterStop = new AtomicBoolean(false);
+            internal readonly AccessSafely received;
+
+            private TestResults(AccessSafely received)
+            {
+                this.received = received;
+            }
+
+            public static TestResults AfterCompleting(int times)
+            {
+                var testResults = new TestResults(AccessSafely.AfterCompleting(times));
+                testResults.received.WritingWith<bool>("receivedBeforeStart", testResults.receivedBeforeStart.Set);
+                testResults.received.ReadingWith("receivedBeforeStart", testResults.receivedBeforeStart.Get);
+                testResults.received.WritingWith<bool>("receivedAfterStop", testResults.receivedAfterStop.Set);
+                testResults.received.ReadingWith("receivedAfterStop", testResults.receivedAfterStop.Get);
+                return testResults;
+            }
+
+            public bool GetReceivedBeforeStart() => received.ReadFrom<bool>("receivedBeforeStart");
+
+            public bool GetReceivedAfterStop() => received.ReadFrom<bool>("receivedAfterStop");
         }
 
         private class LifecycleActor : Actor, IStoppable
@@ -56,14 +72,12 @@ namespace Vlingo.Actors.Tests
 
             protected internal override void BeforeStart()
             {
-                testResults.receivedBeforeStart.Set(true);
-                testResults.until.Happened();
+                testResults.received.WriteUsing("receivedBeforeStart", true);
             }
 
             protected internal override void AfterStop()
             {
-                testResults.receivedAfterStop.Set(true);
-                testResults.until.Happened();
+                testResults.received.WriteUsing("receivedAfterStop", true);
             }
         }
     }

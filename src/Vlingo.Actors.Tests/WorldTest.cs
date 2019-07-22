@@ -35,40 +35,34 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestWorldActorForDefintion()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(1);
             var simple = World.ActorFor<ISimpleWorld>(Definition.Has<SimpleActor>(Definition.Parameters(testResults)));
-            testResults.UntilSimple = Until(1);
 
             simple.SimpleSay();
-            testResults.UntilSimple.Completes();
 
-            Assert.True(testResults.Invoked.Get());
+            Assert.True(testResults.Invoked);
         }
 
         [Fact]
         public void TestWorldActorForFlat()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(1);
             var simple = World.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
-            testResults.UntilSimple = Until(1);
 
             simple.SimpleSay();
-            testResults.UntilSimple.Completes();
 
-            Assert.True(testResults.Invoked.Get());
+            Assert.True(testResults.Invoked);
         }
 
         [Fact]
         public void TestWorldNoDefintionActorFor()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(1);
             var simple = World.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
-            testResults.UntilSimple = Until(1);
 
             simple.SimpleSay();
-            testResults.UntilSimple.Completes();
 
-            Assert.True(testResults.Invoked.Get());
+            Assert.True(testResults.Invoked);
         }
 
         [Fact]
@@ -99,17 +93,24 @@ namespace Vlingo.Actors.Tests
                 this.testResults = testResults;
             }
 
-            public void SimpleSay()
-            {
-                testResults.Invoked.Set(true);
-                testResults.UntilSimple.Happened();
-            }
+            public void SimpleSay() => testResults.SetInvoked(true);
         }
 
         internal class TestResults
         {
-            public AtomicBoolean Invoked { get; set; } = new AtomicBoolean(false);
-            public TestUntil UntilSimple { get; set; } = TestUntil.Happenings(0);
+            private readonly AccessSafely safely;
+            public TestResults(int times)
+            {
+                var invoked = new AtomicBoolean(false);
+                safely = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith<bool>("invoked", val => invoked.Set(val))
+                    .ReadingWith("invoked", invoked.Get);
+            }
+
+            public bool Invoked => safely.ReadFrom<bool>("invoked");
+
+            public void SetInvoked(bool invoked) => safely.WriteUsing("invoked", invoked);
         }
 
         public interface IAnyDependecy { }

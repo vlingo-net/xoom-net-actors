@@ -10,28 +10,32 @@ using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests
 {
-    public class MockCompletes<T> : BasicCompletes<T>
+    public class MockCompletes<T> : BasicCompletes<T> where T:class
     {
-        private T outcome;
+        private readonly AtomicReference<T> outcome = new AtomicReference<T>(default(T));
+        private readonly AtomicInteger withCount = new AtomicInteger(0);
+        private readonly AccessSafely safely;
 
-        public MockCompletes()
+        public MockCompletes(int times)
             : base((Scheduler)null)
         {
-            UntilWith = TestUntil.Happenings(0);
-            WithCount = 0;
+            safely = AccessSafely.AfterCompleting(times)
+                .WritingWith<T>("outcome", val =>
+                {
+                    outcome.Set(val);
+                    withCount.IncrementAndGet();
+                })
+                .ReadingWith("outcome", outcome.Get)
+                .ReadingWith("count", withCount.Get);
         }
 
-        public TestUntil UntilWith { get; set; }
+        public int WithCount => safely.ReadFrom<int>("count");
 
-        public int WithCount { get; private set; }
-
-        public override T Outcome => outcome;
+        public override T Outcome => safely.ReadFrom<T>("outcome");
 
         public override ICompletes<TOutcome> With<TOutcome>(TOutcome outcome)
         {
-            this.outcome = (T)(object)outcome;
-            ++WithCount;
-            UntilWith.Happened();
+            safely.WriteUsing("outcome", (T)(object)outcome);
             return (ICompletes<TOutcome>)this;
         }
     }
