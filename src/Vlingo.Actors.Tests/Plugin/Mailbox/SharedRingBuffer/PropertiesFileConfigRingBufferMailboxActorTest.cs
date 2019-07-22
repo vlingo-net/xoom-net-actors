@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
@@ -15,15 +16,13 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
         [Fact]
         public void TestThatRingBufferIsUsed()
         {
-            var results = new TestResults();
+            var results = new TestResults(1);
             var one = World.ActorFor<IOneBehavior>(
                 Definition.Has<OneBehaviorActor>(Definition.Parameters(results), "ringMailbox", "one-behavior"));
 
             one.DoSomething();
 
-            results.until.Completes();
-
-            Assert.Equal(1, results.times);
+            Assert.Equal(1, results.Times);
         }
 
         public class OneBehaviorActor : Actor, IOneBehavior
@@ -35,17 +34,28 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
                 this.results = results;
             }
 
-            public void DoSomething()
-            {
-                results.times++;
-                results.until.Happened();
-            }
+            public void DoSomething() => results.Invoked();
         }
 
         public class TestResults
         {
-            public volatile int times = 0;
-            public TestUntil until = TestUntil.Happenings(1);
+            private readonly AccessSafely safely;
+
+            public TestResults(int happenings)
+            {
+                var times = new AtomicInteger(0);
+                safely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int>("times", _ => times.IncrementAndGet())
+                    .ReadingWith("times", times.Get);
+            }
+
+            public int Times
+            {
+                get => safely.ReadFrom<int>("times");
+            }
+
+            public void Invoked() => safely.WriteUsing("times", 1);
         }
     }
 

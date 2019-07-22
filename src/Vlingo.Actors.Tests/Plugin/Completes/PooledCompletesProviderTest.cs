@@ -30,12 +30,10 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
             plugin.Start(World);
 
-            var clientCompletes = new MockCompletes<object>();
-            clientCompletes.UntilWith = TestUntil.Happenings(1);
+            var clientCompletes = new MockCompletes<object>(1);
             var asyncCompletes = World.CompletesFor(clientCompletes);
             asyncCompletes.With(5);
-            clientCompletes.UntilWith.Completes();
-
+            
             Assert.Equal(1, clientCompletes.WithCount);
             Assert.Equal(5, clientCompletes.Outcome);
         }
@@ -54,17 +52,13 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
             plugin.Start(World);
 
-            var clientCompletes1 = new MockCompletes<int>();
-            var clientCompletes2 = new MockCompletes<int>();
-            clientCompletes1.UntilWith = TestUntil.Happenings(1);
+            var clientCompletes1 = new MockCompletes<object>(1);
+            var clientCompletes2 = new MockCompletes<object>(1);
             var completes1 = World.CompletesFor(clientCompletes1);
             completes1.With(5);
-            clientCompletes1.UntilWith.Completes();
 
-            clientCompletes2.UntilWith = TestUntil.Happenings(1);
             var completes2 = World.CompletesFor(completes1.Address, clientCompletes2);
             completes2.With(10);
-            clientCompletes2.UntilWith.Completes();
 
             Assert.Equal(1, clientCompletes1.WithCount);
             Assert.Equal(5, clientCompletes1.Outcome);

@@ -146,7 +146,7 @@ namespace Vlingo.Actors.Tests
             Action<Optional<INoProtocol>> afterConsumer = maybe =>
             {
                 Assert.True(maybe.IsPresent);
-                scanResults.Found()
+                scanResults.Found();
             };
 
             World.Stage.MaybeActorOf<INoProtocol>(address5).AndThenConsume(afterConsumer);
