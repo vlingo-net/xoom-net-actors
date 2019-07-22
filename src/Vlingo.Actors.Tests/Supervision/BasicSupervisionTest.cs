@@ -33,7 +33,7 @@ namespace Vlingo.Actors.Tests.Supervision
 
             failure.AfterFailure();
 
-            Assert.Equal(1, access.ReadFrom<int>("afterFailureCount"));
+            Assert.Equal(1, access.ReadFromExpecting<int>("afterFailureCount", 1));
         }
 
         [Fact]

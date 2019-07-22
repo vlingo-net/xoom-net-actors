@@ -148,7 +148,7 @@ namespace Vlingo.Actors.Tests
                     Completes().With("Must throw exception");
                     results.received.WriteUsing("exceptionThrown", false);
                 }
-                catch (Exception e)
+                catch
                 {
                     results.received.WriteUsing("exceptionThrown", true);
                 }

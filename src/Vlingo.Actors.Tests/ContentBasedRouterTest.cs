@@ -62,10 +62,10 @@ namespace Vlingo.Actors.Tests
 
         private void AssertSubmittedInvoices(TestResults testResults, ERPSystemCode[] erpsToTest, int[] countByERP, ERPSystemCode systemCode)
         {
-            var alphaSubmittedInvoices = testResults.GetSubmittedInvoices(systemCode);
-            Assert.Equal(countByERP[Array.BinarySearch(erpsToTest, systemCode)], alphaSubmittedInvoices.Count);
+            var submittedInvoices = testResults.GetSubmittedInvoices(systemCode);
+            Assert.Equal(countByERP[Array.BinarySearch(erpsToTest, systemCode)], submittedInvoices.Count);
 
-            foreach(var invoice in alphaSubmittedInvoices)
+            foreach(var invoice in submittedInvoices)
             {
                 Assert.Equal(systemCode, invoice.erp);
             }
