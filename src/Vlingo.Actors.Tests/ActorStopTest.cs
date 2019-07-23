@@ -18,7 +18,7 @@ namespace Vlingo.Actors.Tests
         {
             var results = new TestResults();
             var beforeStartCountAccess = results.BeforeStartCountAccessCompletes(12);
-            World.DefaultLogger.Log("Test: TestStopActors: starting actors");
+            World.DefaultLogger.Debug("Test: TestStopActors: starting actors");
 
             var stoppables = SetUpActors(World, results);
             for (int idx = 0; idx < stoppables.Length; ++idx)
@@ -29,7 +29,7 @@ namespace Vlingo.Actors.Tests
             var beforeStartCount = beforeStartCountAccess.ReadFrom<int>("value");
             Assert.Equal(12, beforeStartCount);
 
-            World.DefaultLogger.Log("Test: TestStopActors: stopping actors");
+            World.DefaultLogger.Debug("Test: TestStopActors: stopping actors");
 
             results.TerminatingAccessCompletes(0).WriteUsing("value", false);
 
@@ -42,8 +42,8 @@ namespace Vlingo.Actors.Tests
             var stopCount = stopCountAccess.ReadFromExpecting("value", 12);
             Assert.Equal(12, stopCount);
 
-            World.DefaultLogger.Log("Test: TestStopActors: stopped actors");
-            World.DefaultLogger.Log("Test: TestStopActors: terminating world");
+            World.DefaultLogger.Debug("Test: TestStopActors: stopped actors");
+            World.DefaultLogger.Debug("Test: TestStopActors: terminating world");
 
             var terminatingStopCountAccess = results.TerminatingStopCountAccessCompletes(0);
             results.TerminatingAccessCompletes(0).WriteUsing("value", true);

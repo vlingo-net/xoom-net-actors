@@ -36,9 +36,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         [Fact]
         public void TestMailboxSendReceive()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(Total);
             var actor = new CountTakerActor(testResults);
-            actor.TestResults.Until = Until(Total);
 
             for (var i = 0; i < Total; ++i)
             {
@@ -47,25 +46,21 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
                 mailbox.Send(message);
             }
-            actor.TestResults.Until.Completes();
 
-            for(var i=0; i<Total; ++i)
+            for (var i = 0; i < Total; ++i)
             {
-                Assert.Equal(i, actor.TestResults.Counts[i]);
+                Assert.Equal(i, actor.TestResults.GetCounts(i));
             }
         }
 
         [Fact]
-        public void TestSuspendedDelivery()
+        public void TestThatSuspendResumes()
         {
             const string Paused = "paused#";
             const string Exceptional = "exceptional#";
 
             var dispatcher = new ExecutorDispatcher(1, 1.0f);
             var mailbox = new ConcurrentQueueMailbox(dispatcher, 1);
-
-            var testResults = new TestResults();
-            var actor = new CountTakerActor(testResults);
 
             mailbox.SuspendExceptFor(Paused, typeof(CountTakerActor));
 
@@ -87,17 +82,25 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public TestResults TestResults { get; }
 
-            public void Take(int count)
-            {
-                TestResults.Counts.Add(count);
-                TestResults.Until.Happened();
-            }
+            public void Take(int count) => TestResults.AddCount(count);
         }
 
         private class TestResults
         {
-            public IList<int> Counts = new List<int>();
-            public TestUntil Until = TestUntil.Happenings(0);
+            private readonly AccessSafely safely;
+
+            public TestResults(int happenings)
+            {
+                var list = new List<int>();
+                safely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int>("counts", list.Add)
+                    .ReadingWith<int, int>("counts", i => list[i]);
+            }
+
+            public void AddCount(int count) => safely.WriteUsing("counts", count);
+
+            public int GetCounts(int index) => safely.ReadFrom<int, int>("counts", index);
         }
     }
 }

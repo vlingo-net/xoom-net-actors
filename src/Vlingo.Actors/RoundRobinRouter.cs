@@ -16,13 +16,21 @@ namespace Vlingo.Actors
             poolIndex = 0;
         }
 
+        internal int PoolIndex => poolIndex;
+
         protected internal override Routing<P> ComputeRouting() => Routing.With(NextRoutee());
 
         protected internal virtual Routee<P> NextRoutee()
         {
             var routees = Routees;
-            poolIndex = poolIndex++ % routees.Count;
+            poolIndex = IncrementAndGetPoolIndex() % routees.Count;
             return routees[poolIndex];
+        }
+
+        private int IncrementAndGetPoolIndex()
+        {
+            poolIndex = (poolIndex == int.MaxValue) ? 0 : poolIndex + 1;
+            return poolIndex;
         }
     }
 }

@@ -11,8 +11,6 @@ namespace Vlingo.Actors
 {
     internal sealed class LifeCycle
     {
-        private const string Exceptional = "#exceptional";
-
         internal Environment Environment { get; set; }
 
         internal LifeCycle(Environment environment)
@@ -63,7 +61,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log($"vlingo-dotnet/actors: Actor AfterStop() failed: {ex.Message}", ex);
+                Environment.Logger.Error($"vlingo-net/actors: Actor AfterStop() failed: {ex.Message}", ex);
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<IStoppable>(actor, ex));
             }
         }
@@ -76,7 +74,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log($"vlingo-dotnet/actors: Actor BeforeStart() failed: {ex.Message}");
+                Environment.Logger.Error($"vlingo-net/actors: Actor BeforeStart() failed: {ex.Message}");
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<IStartable>(actor, ex));
             }
         }
@@ -89,7 +87,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log($"vlingo-dotnet/actors: Actor AfterRestart() failed: {ex.Message}");
+                Environment.Logger.Error($"vlingo-net/actors: Actor AfterRestart() failed: {ex.Message}");
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<IStartable>(actor, ex));
             }
         }
@@ -102,7 +100,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log($"vlingo-net/actors: Actor BeforeRestart() failed: {ex.Message}");
+                Environment.Logger.Error($"vlingo-net/actors: Actor BeforeRestart() failed: {ex.Message}");
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<T>(actor, ex));
             }
         }
@@ -115,7 +113,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log($"vlingo-dotnet/actors: Actor BeforeResume() failed: {ex.Message}");
+                Environment.Logger.Error($"vlingo-net/actors: Actor BeforeResume() failed: {ex.Message}");
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<T>(actor, ex));
             }
         }
@@ -137,7 +135,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Environment.Logger.Log("vlingo-dotnet/actors: Actor Start() failed: {ex.Message}");
+                Environment.Logger.Error("vlingo-net/actors: Actor Start() failed: {ex.Message}");
                 Environment.Stage.HandleFailureOf(new StageSupervisedActor<IStartable>(targetActor, ex));
             }
         }
@@ -146,11 +144,13 @@ namespace Vlingo.Actors
 
         #region supervisor/suspending/resuming
 
-        internal void Resume() => Environment.Mailbox.Resume(Exceptional);
+        internal void Resume() => Environment.Mailbox.Resume(Mailbox.Exceptional);
 
         internal bool IsSuspended => Environment.Mailbox.IsSuspended;
 
-        internal void Suspend() => Environment.Mailbox.SuspendExceptFor(Exceptional, typeof(IStoppable));
+        internal void Suspend() => Environment.Mailbox.SuspendExceptFor(Mailbox.Exceptional, typeof(IStoppable));
+
+        internal void SuspendForStop() => Environment.Mailbox.SuspendExceptFor(Mailbox.Stopping, typeof(IStoppable));
 
         internal ISupervisor Supervisor<T>()
         {

@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
 using Xunit;
@@ -29,11 +30,10 @@ namespace Vlingo.Actors.Tests
             nothing.Actor.DoNothing(2);
             nothing.Actor.DoNothing(3);
 
-            result.until.Completes();
+            var deadLetters = result.GetDeadLetters();
+            Assert.Equal(3, deadLetters.Count);
 
-            Assert.Equal(3, result.deadLetters.Count);
-
-            foreach (var deadLetter in result.deadLetters)
+            foreach (var deadLetter in deadLetters)
             {
                 Assert.Equal("DoNothing(int)", deadLetter.Representation);
             }
@@ -41,14 +41,18 @@ namespace Vlingo.Actors.Tests
 
         public class TestResult
         {
-            public readonly IList<DeadLetter> deadLetters;
-            public readonly TestUntil until;
+            internal readonly AccessSafely deadLetters;
 
             public TestResult(int happenings)
             {
-                deadLetters = new List<DeadLetter>();
-                until = TestUntil.Happenings(happenings);
+                var dls = new ConcurrentBag<DeadLetter>();
+                deadLetters = AccessSafely.AfterCompleting(happenings);
+                deadLetters.WritingWith<DeadLetter>("dl", x => dls.Add(x));
+                deadLetters.ReadingWith("dl", () => dls.ToArray());
             }
+
+            public ICollection<DeadLetter> GetDeadLetters() => deadLetters.ReadFrom<ICollection<DeadLetter>>("dl");
+            public void AddDeadLetter(DeadLetter deadLetter) => deadLetters.WriteUsing("dl", deadLetter);
         }
     }
 
@@ -73,10 +77,6 @@ namespace Vlingo.Actors.Tests
             this.result = result;
         }
 
-        public void Handle(DeadLetter deadLetter)
-        {
-            result.deadLetters.Add(deadLetter);
-            result.until.Happened();
-        }
+        public void Handle(DeadLetter deadLetter) => result.AddDeadLetter(deadLetter);
     }
 }

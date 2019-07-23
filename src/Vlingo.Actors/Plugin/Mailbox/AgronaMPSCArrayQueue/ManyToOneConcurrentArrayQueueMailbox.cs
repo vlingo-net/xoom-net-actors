@@ -42,13 +42,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public bool IsPreallocated => false;
 
-        public int PendingMessages 
-            => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
+        public int PendingMessages => queue.Count;
 
         public bool IsSuspended => false;
 
         public void Resume(string name) 
-            => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
+            => Console.WriteLine($"WARNING: ManyToOneConcurrentArrayQueueMailbox does not support resume(): {name}");
 
         public void Run()
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
@@ -61,6 +60,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                 {
                     return;
                 }
+                while (PendingMessages >= queue.BoundedCapacity) ;
             }
             throw new InvalidOperationException("Count not enqueue message due to busy mailbox.");
         }
@@ -73,7 +73,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         }
 
         public void SuspendExceptFor(string name, params Type[] overrides)
-            => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
+        {
+            if(string.Equals(name, Actors.Mailbox.Stopping))
+            {
+                Console.WriteLine($"WARNING: ManyToOneConcurrentArrayQueueMailbox does not support SuspendExceptFor(): {name} overrides: {overrides}");
+            }
+        }
 
         public void Dispose()
         {

@@ -22,7 +22,7 @@ namespace Vlingo.Actors
 
         public void FailedDelivery(DeadLetter deadLetter)
         {
-            Logger.Log(deadLetter.ToString());
+            Logger.Debug(deadLetter.ToString());
 
             foreach (var listener in listeners)
             {
@@ -33,7 +33,7 @@ namespace Vlingo.Actors
                 catch (Exception ex)
                 {
                     // ignore, but log
-                    Logger.Log($"DeadLetters listener failed to handle: {deadLetter}", ex);
+                    Logger.Warn($"DeadLetters listener failed to handle: {deadLetter}", ex);
                 }
             }
         }

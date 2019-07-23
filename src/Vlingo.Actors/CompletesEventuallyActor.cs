@@ -20,14 +20,8 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Logger.Log($"The eventually completed outcome failed in the client because: {ex.Message}", ex);
+                Logger.Error($"The eventually completed outcome failed in the client because: {ex.Message}", ex);
             }
-        }
-
-        public override bool IsStopped => false;
-
-        public override void Stop()
-        {
         }
     }
 }

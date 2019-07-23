@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
 using Xunit;
@@ -18,27 +19,27 @@ namespace Vlingo.Actors.Tests
         public void TestThatItRoutes()
         {
             var messagesToSend = 63;
-            var until = TestUntil.Happenings(messagesToSend);
+            var testResults = new TestResults(messagesToSend);
 
             var erpsToTest = new[] { ERPSystemCode.Alpha, ERPSystemCode.Beta, ERPSystemCode.Charlie };
 
             var routerTestActorProtocols = World.ActorFor(
                 new[] { typeof(IInvoiceSubmitter), typeof(IInvoiceSubmitterSubscription) },
                 typeof(InvoiceSubmissionRouter),
-                until);
+                testResults);
 
             var routerProtocols = Protocols.Two<IInvoiceSubmitter, IInvoiceSubmitterSubscription>(routerTestActorProtocols);
 
             var routerAsInvoiceSubmitter = routerProtocols._1;
             var routerAsInvoiceSubmitterSubscription = routerProtocols._2;
 
-            var alphaSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Alpha, until);
+            var alphaSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Alpha, testResults);
             routerAsInvoiceSubmitterSubscription.Subscribe(alphaSubmitterTestActor.ActorAs<IInvoiceSubmitter>());
 
-            var betaSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Beta, until);
+            var betaSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Beta, testResults);
             routerAsInvoiceSubmitterSubscription.Subscribe(betaSubmitterTestActor.ActorAs<IInvoiceSubmitter>());
 
-            var charlieSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Charlie, until);
+            var charlieSubmitterTestActor = TestWorld.ActorFor<IInvoiceSubmitter>(typeof(ERPSpecificInvoiceSubmitter), ERPSystemCode.Charlie, testResults);
             routerAsInvoiceSubmitterSubscription.Subscribe(charlieSubmitterTestActor.ActorAs<IInvoiceSubmitter>());
 
             var random = new Random();
@@ -54,27 +55,19 @@ namespace Vlingo.Actors.Tests
                 countByERP[erpIndex] += 1;
             }
 
-            until.Completes();
+            AssertSubmittedInvoices(testResults, erpsToTest, countByERP, ERPSystemCode.Alpha);
+            AssertSubmittedInvoices(testResults, erpsToTest, countByERP, ERPSystemCode.Beta);
+            AssertSubmittedInvoices(testResults, erpsToTest, countByERP, ERPSystemCode.Charlie);
+        }
 
-            var alphaSubmitter = (ERPSpecificInvoiceSubmitter)alphaSubmitterTestActor.ActorInside;
-            Assert.Equal(countByERP[0], alphaSubmitter.submitted.Count);
-            foreach (var invoice in alphaSubmitter.submitted)
-            {
-                Assert.Equal(ERPSystemCode.Alpha, invoice.erp);
-            }
+        private void AssertSubmittedInvoices(TestResults testResults, ERPSystemCode[] erpsToTest, int[] countByERP, ERPSystemCode systemCode)
+        {
+            var submittedInvoices = testResults.GetSubmittedInvoices(systemCode);
+            Assert.Equal(countByERP[Array.BinarySearch(erpsToTest, systemCode)], submittedInvoices.Count);
 
-            var betaSubmitter = (ERPSpecificInvoiceSubmitter)betaSubmitterTestActor.ActorInside;
-            Assert.Equal(countByERP[1], betaSubmitter.submitted.Count);
-            foreach (var invoice in betaSubmitter.submitted)
+            foreach(var invoice in submittedInvoices)
             {
-                Assert.Equal(ERPSystemCode.Beta, invoice.erp);
-            }
-
-            var charlieSubmitter = (ERPSpecificInvoiceSubmitter)charlieSubmitterTestActor.ActorInside;
-            Assert.Equal(countByERP[2], charlieSubmitter.submitted.Count);
-            foreach (var invoice in charlieSubmitter.submitted)
-            {
-                Assert.Equal(ERPSystemCode.Charlie, invoice.erp);
+                Assert.Equal(systemCode, invoice.erp);
             }
         }
 
@@ -87,16 +80,25 @@ namespace Vlingo.Actors.Tests
 
         private class InvoiceSubmissionRouter : ContentBasedRouter<IInvoiceSubmitter>, IInvoiceSubmitter, IInvoiceSubmitterSubscription
         {
-            public InvoiceSubmissionRouter(TestUntil testUntil) :
+            public InvoiceSubmissionRouter(TestResults testResults) :
                 base(new RouterSpecification(
                     0,
-                    Definition.Has<ERPSpecificInvoiceSubmitter>(Definition.Parameters(ERPSystemCode.None, testUntil)),
+                    Definition.Has<ERPSpecificInvoiceSubmitter>(Definition.Parameters(ERPSystemCode.None, testResults)),
                     typeof(IInvoiceSubmitter)))
             {
             }
 
             protected internal override Routing<IInvoiceSubmitter> RoutingFor<T1>(T1 routable1)
-                => Routing.With(routees);
+            {
+                if (routable1 is Invoice)
+                {
+                    return Routing.With(routees);
+                }
+                else
+                {
+                    return Routing.With(new List<Routee<IInvoiceSubmitter>>(0));
+                }
+            }
 
             public void Subscribe(IInvoiceSubmitter submitter)
                 => Subscribe(Routee<IInvoiceSubmitter>.Of(submitter));
@@ -113,24 +115,42 @@ namespace Vlingo.Actors.Tests
         private class ERPSpecificInvoiceSubmitter : Actor, IInvoiceSubmitter
         {
             private readonly ERPSystemCode erp;
-            private readonly TestUntil testUntil;
-            internal readonly List<Invoice> submitted;
+            private readonly TestResults testResults;
 
-            public ERPSpecificInvoiceSubmitter(ERPSystemCode erp, TestUntil testUntil)
+            public ERPSpecificInvoiceSubmitter(ERPSystemCode erp, TestResults testResults)
             {
                 this.erp = erp;
-                this.testUntil = testUntil;
-                submitted = new List<Invoice>();
+                this.testResults = testResults;
             }
 
             public void SubmitInvoice(Invoice invoice)
             {
                 if (erp == invoice.erp)
                 {
-                    submitted.Add(invoice);
-                    testUntil.Happened();
+                    testResults.InvoiceSubmitted(invoice);
                 }
             }
+        }
+
+        private class TestResults
+        {
+            internal readonly AccessSafely submittedInvoices;
+
+            public TestResults(int times)
+            {
+                var invoices = new ConcurrentDictionary<ERPSystemCode, IList<Invoice>>();
+                submittedInvoices = AccessSafely.AfterCompleting(times);
+                submittedInvoices.WritingWith<ERPSystemCode, Invoice>(
+                    "submittedInvoices",
+                    (key, value) => invoices.GetOrAdd(key, new List<Invoice>()).Add(value));
+                submittedInvoices.ReadingWith<ERPSystemCode, IList<Invoice>>("submittedInvoices", key => invoices.GetValueOrDefault(key));
+            }
+
+            public void InvoiceSubmitted(Invoice invoice) 
+                => submittedInvoices.WriteUsing("submittedInvoices", invoice.erp, invoice);
+
+            public IList<Invoice> GetSubmittedInvoices(ERPSystemCode code) 
+                => submittedInvoices.ReadFrom<ERPSystemCode, IList<Invoice>>("submittedInvoices", code);
         }
     }
 

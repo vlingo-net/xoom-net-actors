@@ -102,4 +102,11 @@ namespace Vlingo.Actors
         /// <param name="representation">The string representation of this message invocation.</param>
         void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation);
     }
+
+    public static class Mailbox
+    {
+        public const string Exceptional = "#exceptional";
+        public const string Paused = "#paused";
+        public const string Stopping = "#stopping";
+    }
 }

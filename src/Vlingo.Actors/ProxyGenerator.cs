@@ -81,7 +81,7 @@ namespace Vlingo.Actors
 
         public Result GenerateFor(Type actorProtocol)
         {
-            logger.Log("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
+            logger.Debug("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
             try
             {
                 var proxyClassSource = ProxyClassSource(actorProtocol);

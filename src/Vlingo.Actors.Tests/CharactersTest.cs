@@ -5,9 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -28,23 +28,32 @@ namespace Vlingo.Actors.Tests
                 threeBehaviors.Three();
             }
 
-            results.until.Completes();
-
-            Assert.Equal(10, results.one);
-            Assert.Equal(20, results.two);
-            Assert.Equal(30, results.three);
+            Assert.Equal(10, results.GetCounterValue("one"));
+            Assert.Equal(20, results.GetCounterValue("two"));
+            Assert.Equal(30, results.GetCounterValue("three"));
         }
 
         private class Results
         {
-            public int one;
-            public int two;
-            public int three;
-            public TestUntil until;
+            internal readonly AccessSafely counters;
+
             public Results(int times)
             {
-                until = TestUntil.Happenings(times);
+                var one = new AtomicInteger(0);
+                var two = new AtomicInteger(0);
+                var three = new AtomicInteger(0);
+
+                counters = AccessSafely.AfterCompleting(times);
+
+                counters.WritingWith<int>("one", x => one.AddAndGet(x));
+                counters.ReadingWith("one", one.Get);
+                counters.WritingWith<int>("two", x => two.AddAndGet(x));
+                counters.ReadingWith("two", two.Get);
+                counters.WritingWith<int>("three", x => three.AddAndGet(x));
+                counters.ReadingWith("three", three.Get);
             }
+
+            public int GetCounterValue(string name) => counters.ReadFrom<int>(name);
         }
 
         private class ThreeBehaviorsState : IThreeBehaviors
@@ -68,23 +77,20 @@ namespace Vlingo.Actors.Tests
 
             public void One()
             {
-                results.one += incrementBy;
+                results.counters.WriteUsing("one", incrementBy);
                 characters.Become(TWO);
-                results.until.Happened();
             }
 
             public void Two()
             {
-                results.two += incrementBy;
+                results.counters.WriteUsing("two", incrementBy);
                 characters.Become(THREE);
-                results.until.Happened();
             }
 
             public void Three()
             {
-                results.three += incrementBy;
+                results.counters.WriteUsing("three", incrementBy);
                 characters.Become(ONE);
-                results.until.Happened();
             }
         }
 

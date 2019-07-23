@@ -5,8 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Common;
-using Vlingo.Actors.TestKit;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -17,38 +15,26 @@ namespace Vlingo.Actors.Tests
         public void TestStartWorldWithDefaultConfiguration()
         {
             var worldDefaultConfig = World.Start("defaults");
-            var testResults = new TestResults();
+            var testResults = new WorldTest.TestResults(1);
             var simple = worldDefaultConfig.ActorFor<ISimpleWorldForDefaultConfig>(
                 Definition.Has<SimpleActor>(
                     Definition.Parameters(testResults)));
-            testResults.UntilSimple = TestUntil.Happenings(1);
 
             simple.SimplySay();
-            testResults.UntilSimple.Completes();
 
-            Assert.True(testResults.Invoked.Get());
+            Assert.True(testResults.Invoked);
         }
 
         private class SimpleActor : Actor, ISimpleWorldForDefaultConfig
         {
-            private readonly TestResults testResults;
+            private readonly WorldTest.TestResults testResults;
 
-            public SimpleActor(TestResults testResults)
+            public SimpleActor(WorldTest.TestResults testResults)
             {
                 this.testResults = testResults;
             }
 
-            public void SimplySay()
-            {
-                testResults.Invoked.Set(true);
-                testResults.UntilSimple.Happened();
-            }
-        }
-
-        private class TestResults
-        {
-            public AtomicBoolean Invoked { get; set; } = new AtomicBoolean(false);
-            public TestUntil UntilSimple { get; set; } = TestUntil.Happenings(0);
+            public void SimplySay() => testResults.SetInvoked(true);
         }
     }
 

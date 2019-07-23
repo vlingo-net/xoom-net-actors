@@ -230,7 +230,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                World.DefaultLogger.Log($"vlingo-net/actors: FAILED: {e.Message}", e);
+                World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
             }
@@ -282,7 +282,7 @@ namespace Vlingo.Actors
             var logger = World.DefaultLogger;
             if (logger.IsEnabled)
             {
-                logger.Log($"STAGE: {Name}");
+                logger.Debug($"STAGE: {Name}");
                 directory.Dump(logger);
             }
         }
@@ -309,6 +309,8 @@ namespace Vlingo.Actors
         /// Gets whether or not this <c>Stage</c> has been stopped or is in the process of stopping.
         /// </summary>
         public bool IsStopped => stopped.Get();
+
+        public void Conclude() => Stop();
 
         /// <summary>
         /// Initiates the process of stopping this <c>Stage</c>.
@@ -396,7 +398,7 @@ namespace Vlingo.Actors
             {
                 Console.WriteLine(e.Message);
                 Console.WriteLine(e.StackTrace);
-                World.DefaultLogger.Log($"vlingo-net/actors: FAILED: {e.Message}", e);
+                World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
             }
 
             return null;
@@ -431,7 +433,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                World.DefaultLogger.Log($"vlingo/actors: FAILED: {e.Message}", e);
+                World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
             }
 
             return null;
@@ -618,7 +620,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                logger.Log($"Actor instantiation failed because: {e.Message}", e);
+                logger.Error($"Actor instantiation failed because: {e.Message}", e);
 
                 throw new InvalidOperationException($"Actor instantiation failed because: {e.Message}", e);
             }

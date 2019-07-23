@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq;
 
 namespace Vlingo.Actors.Plugin.Logging.Console
 {
@@ -34,16 +35,59 @@ namespace Vlingo.Actors.Plugin.Logging.Console
         {
         }
 
-        public void Log(string message)
+        public void Debug(string message) => Log(message, "Debug");
+
+        public void Debug(string message, params object[] args) => Log(message, "Debug", args);
+
+        public void Debug(string message, Exception throwable) => Log(message, "Debug", throwable);
+
+        public void Error(string message) => Log(message, "Error");
+
+        public void Error(string message, params object[] args) => Log(message, "Error", args);
+
+        public void Error(string message, Exception throwable) => Log(message, "Error", throwable);
+
+        public void Info(string message) => Log(message, "Info");
+
+        public void Info(string message, params object[] args) => Log(message, "Info", args);
+
+        public void Info(string message, Exception throwable) => Log(message, "Info", throwable);
+
+        public void Trace(string message) => Log(message, "Trace");
+
+        public void Trace(string message, params object[] args) => Log(message, "Trace", args);
+
+        public void Trace(string message, Exception throwable) => Log(message, "Trace", throwable);
+
+        public void Warn(string message) => Log(message, "Warn");
+
+        public void Warn(string message, params object[] args) => Log(message, "Warn", args);
+
+        public void Warn(string message, Exception throwable) => Log(message, "Warn", throwable);
+
+        private void Log(string message, string level)
         {
-            System.Console.WriteLine($"{Name}: {message}");
+            System.Console.WriteLine($"{Name}[{level}]: {message}");
         }
 
-        public void Log(string message, Exception ex)
+        private void Log(string message, string level, Exception ex)
         {
-            System.Console.WriteLine($"{Name}: {message}");
-            System.Console.WriteLine($"{Name} [Exception]: {ex.Message}");
-            System.Console.WriteLine($"{Name} [StackTrace]: {ex.StackTrace}");
+            System.Console.WriteLine($"{Name}[{level}]: {message}");
+            System.Console.WriteLine($"{Name}[{level}] [Exception]: {ex.Message}");
+            System.Console.WriteLine($"{Name}[{level}] [StackTrace]: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                var iex = ex.InnerException;
+                System.Console.WriteLine($"{Name}[{level}] [InnerException]: {iex.Message}");
+                System.Console.WriteLine($"{Name}[{level}] [InnerException-StackTrace]: {iex.StackTrace}");
+            }
+        }
+
+        private void Log(string message, string level, params object[] args)
+        {
+            System.Console.WriteLine($"{Name}[{level}]: {message}");
+            var argString = string.Join("\n", args?.Select(x => x.ToString()));
+            System.Console.WriteLine($"{Name}[{level}]: args:\n{argString}");
         }
     }
 }

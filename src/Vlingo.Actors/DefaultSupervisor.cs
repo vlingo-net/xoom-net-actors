@@ -21,6 +21,10 @@ namespace Vlingo.Actors
 
         public void Inform(Exception error, ISupervised supervised)
         {
+            Logger.Error(
+                $"DefaultSupervisor: Failure of: {supervised.Address} because: {error.Message} Action: Possibly restarting.", 
+                error);
+
             supervised.RestartWithin(
                 DefaultSupervisionStrategy.Period,
                 DefaultSupervisionStrategy.Intensity,

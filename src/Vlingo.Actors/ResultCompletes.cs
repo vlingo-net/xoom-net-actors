@@ -167,12 +167,12 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
-        public T Await()
+        public TO Await<TO>()
         {
             throw new NotImplementedException();
         }
 
-        public T Await(TimeSpan timeout)
+        public TO Await<TO>(TimeSpan timeout)
         {
             throw new NotImplementedException();
         }

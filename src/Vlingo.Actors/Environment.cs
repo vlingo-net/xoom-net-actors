@@ -57,7 +57,7 @@ namespace Vlingo.Actors
             MaybeSupervisor = maybeSupervisor;
             FailureMark = new FailureMark();
             Logger = logger;
-            Children = new List<Actor>(0);
+            Children = new List<Actor>();
             ProxyCache = new Dictionary<Type, object>();
             Stowage = new Stowage();
             stowageOverrides = null;

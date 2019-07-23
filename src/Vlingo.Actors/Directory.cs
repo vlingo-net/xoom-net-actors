@@ -47,7 +47,7 @@ namespace Vlingo.Actors
                     .SelectMany(map => map.Values)
                     .Select(actor => $"DIR: DUMP: ACTOR: {actor.Address} PARENT: {GetParentAddress(actor)} TYPE: {actor.GetType().FullName}")
                     .ToList()
-                    .ForEach(msg => logger.Log(msg));
+                    .ForEach(msg => logger.Debug(msg));
             }
         }
 

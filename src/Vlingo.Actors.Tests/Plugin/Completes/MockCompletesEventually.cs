@@ -22,6 +22,10 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
         public IAddress Address => null;
 
+        public void Conclude()
+        {
+        }
+
         public void Stop()
         {
         }

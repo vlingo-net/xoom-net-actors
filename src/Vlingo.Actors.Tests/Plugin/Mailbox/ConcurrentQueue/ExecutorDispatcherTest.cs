@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
@@ -34,11 +35,9 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         [Fact]
         public void TestClose()
         {
-            var testResults = new TestResults();
-            testResults.Log.Set(true);
+            var testResults = new TestResults(3, false);
             var mailbox = new TestMailbox(testResults, World.DefaultLogger);
             var actor = new CountTakerActor(testResults, World.DefaultLogger);
-            testResults.Until = Until(3);
 
             for (var count = 0; count < 3; ++count)
             {
@@ -48,7 +47,6 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 mailbox.Send(message);
                 dispatcher.Execute(mailbox);
             }
-            testResults.Until.Completes();
 
             dispatcher.Close();
 
@@ -57,21 +55,20 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             mailbox.Send(message2);
             dispatcher.Execute(mailbox);
 
-            Assert.Equal(3, testResults.Counts.Count);
-            for (var idx = 0; idx < testResults.Counts.Count; ++idx)
+            var counts = testResults.GetCounts();
+            Assert.Equal(3, counts.Count);
+            for (var idx = 0; idx < counts.Count; ++idx)
             {
-                Assert.Contains(idx, testResults.Counts);
+                Assert.Contains(idx, counts);
             }
         }
 
         [Fact]
         public void TestExecute()
         {
-            var testResults = new TestResults();
-            testResults.Log.Set(true);
+            var testResults = new TestResults(Total, false);
             var mailbox = new TestMailbox(testResults, World.DefaultLogger);
             var actor = new CountTakerActor(testResults, World.DefaultLogger);
-            testResults.Until = Until(Total);
 
             for (var count = 0; count < Total; ++count)
             {
@@ -81,11 +78,12 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 mailbox.Send(message);
                 dispatcher.Execute(mailbox);
             }
-            testResults.Until.Completes();
 
-            for (var idx = 0; idx < testResults.Counts.Count; ++idx)
+            List<int> counts = testResults.GetCounts();
+            Assert.Equal(Total, counts.Count);
+            for (var idx = 0; idx < counts.Count; ++idx)
             {
-                Assert.Contains(idx, testResults.Counts);
+                Assert.Contains(idx, counts);
             }
         }
 
@@ -136,17 +134,17 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             public void Run()
             {
                 var message = Receive();
-                if (testResults.Log.Get())
+                if (testResults.shouldLog)
                 {
-                    logger.Log($"TestMailBox: Run: received: {message}");
+                    logger.Debug($"TestMailBox: Run: received: {message}");
                 }
 
                 if (message != null)
                 {
                     message.Deliver();
-                    if (testResults.Log.Get())
+                    if (testResults.shouldLog)
                     {
-                        logger.Log($"TestMailBox: Run: adding: {testResults.Highest.Get()}");
+                        logger.Debug($"TestMailBox: Run: adding: {testResults.GetHighest()}");
                     }
                 }
             }
@@ -171,33 +169,50 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 this.logger = logger;
             }
 
-            public void Take(int count)
-            {
-                if (testResults.Log.Get())
-                {
-                    logger.Log($"CountTakerActor: Take: count: {count}");
-                }
-
-                if (count > testResults.Highest.Get())
-                {
-                    if (testResults.Log.Get())
-                    {
-                        logger.Log($"CountTakerActor: Run: received: {count} > {testResults.Highest.Get()}");
-                    }
-
-                    testResults.Highest.Set(count);
-                }
-                testResults.Counts.Add(testResults.Highest.Get());
-                testResults.Until.Happened();
-            }
+            public void Take(int count) => testResults.Take(count, logger);
         }
 
         private class TestResults
         {
-            public AtomicBoolean Log = new AtomicBoolean(false);
-            public ConcurrentBag<int> Counts = new ConcurrentBag<int>();
-            public AtomicInteger Highest = new AtomicInteger(0);
-            public TestUntil Until = TestUntil.Happenings(0);
+            private readonly AccessSafely safely;
+            internal readonly bool shouldLog;
+
+            public TestResults(int happenings, bool shouldLog)
+            {
+                this.shouldLog = shouldLog;
+
+                var counts = new List<int>();
+                var highest = new AtomicInteger(0);
+
+                safely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int, ILogger>("results", (count, logger) =>
+                    {
+                        if (shouldLog)
+                        {
+                            logger.Debug($"CountTakerActor: take: {count}");
+                        }
+
+                        if (count > highest.Get())
+                        {
+                            if (shouldLog)
+                            {
+                                logger.Debug($"CountTakerActor: take: {count} > {highest.Get()}");
+                            }
+                            highest.Set(count);
+                        }
+
+                        counts.Add(highest.Get());
+                    })
+                    .ReadingWith("results", () => counts)
+                    .ReadingWith("highest", highest.Get);
+            }
+
+            public void Take(int count, ILogger logger) => safely.WriteUsing("results", count, logger);
+
+            public List<int> GetCounts() => safely.ReadFrom<List<int>>("results");
+
+            public int GetHighest() => safely.ReadFrom<int>("highest");
         }
     }
 }

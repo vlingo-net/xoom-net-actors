@@ -10,15 +10,48 @@ using Vlingo.Common;
 namespace Vlingo.Actors.TestKit
 {
     /// <summary>
-    /// A context useful for testing.
+    /// A context useful for testing, consisting of an atomic reference value
+    /// and a safe access to state modification with expected number of outcomes.
     /// </summary>
     public class TestContext
     {
+        public TestContext(int times)
+        {
+            Access = AccessSafely.AfterCompleting(times);
+            reference = new AtomicReference<object>();
+            SetUpWriteRead();
+        }
+
+        public TestContext()
+            : this(0)
+        {
+        }
+
+        /// <summary>
+        /// Answer the <typeparamref name="T"/> typed value of my access when it is available.
+        /// Block unless the value is immediately available.
+        /// </summary>
+        /// <typeparam name="T">The type of my reference to answer.</typeparam>
+        /// <returns></returns>
+        public virtual T MustComplete<T>() => Access.ReadFrom<T>("reference");
+
+        /// <summary>
+        /// Answer myself after initializing my atomic reference to <paramref name="value"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the value to set.</typeparam>
+        /// <param name="value">The value of type <typeparamref name="T"/>.</param>
+        /// <returns></returns>
+        public virtual TestContext InitialReferenceValueOf<T>(T value)
+        {
+            reference.Set(value);
+            return this;
+        }
+
         /// <summary>
         /// A reference to any object that may be of use to the test.
-        /// Use reference() to cast the inner object to a specific type.
+        /// Use ReferenceValue&lt;T&gt;() to cast the inner object to a specific type.
         /// </summary>
-        private readonly AtomicReference<object> reference = new AtomicReference<object>();
+        private readonly AtomicReference<object> reference;
 
         /// <summary>
         /// Track number of expected happenings. Use resetHappeningsTo(n)
@@ -26,8 +59,49 @@ namespace Vlingo.Actors.TestKit
         /// </summary>
         public TestUntil Until { get; } = TestUntil.Happenings(0);
 
-        public virtual T Reference<T>() => (T)reference.Get();
+        /// <summary>
+        /// Answer my access;
+        /// </summary>
+        public AccessSafely Access { get; private set; }
 
-        public virtual void ResetHappeningsTo(int times) => Until.ResetHappeningsTo(times);
+        /// <summary>
+        /// Answer my reference values as a <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <returns></returns>
+        public virtual T ReferenceValue<T>() => (T)reference.Get();
+
+        /// <summary>
+        /// Answer the <code>TestContext</code> after writing the value at <code>"reference"</code>.
+        /// </summary>
+        /// <typeparam name="T">The value type.</typeparam>
+        /// <param name="value">The <typeparamref name="T"/> typed value to write.</param>
+        /// <returns></returns>
+        public virtual TestContext ReferenceValueTo<T>(T value)
+        {
+            Access.WriteUsing("reference", value);
+            return this;
+        }
+
+        /// <summary>
+        /// Answer a myself with with a new expected completions/happenings <paramref name="times"/>.
+        /// </summary>
+        /// <param name="times">The number of expected completions.</param>
+        /// <returns></returns>
+        public virtual TestContext ResetAfterCompletingTo(int times)
+        {
+            Access = Access.ResetAfterCompletingTo(times);
+            return this;
+        }
+
+        /// <summary>
+        /// Set up writer and reader of state.
+        /// </summary>
+        private void SetUpWriteRead()
+        {
+            Access
+                .WritingWith<object>("reference", value => reference.Set(value))
+                .ReadingWith("reference", () => reference.Get());
+        }
     }
 }

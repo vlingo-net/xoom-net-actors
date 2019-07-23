@@ -32,25 +32,29 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestScheduleOnceOneHappyDelivery()
         {
-            var holder = new CounterHolder();
-            holder.Until = Until(1);
+            var holder = new CounterHolder(1);
 
             scheduler.ScheduleOnce(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
-            holder.Until.Completes();
 
-            Assert.Equal(1, holder.Counter);
+            Assert.Equal(1, holder.GetCounter());
         }
 
         [Fact]
         public void TestScheduleManyHappyDelivery()
         {
-            var holder = new CounterHolder();
-            holder.Until = Until(505);
+            var holder = new CounterHolder(505);
 
             scheduler.Schedule(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
-            holder.Until.Completes();
 
-            Assert.True(holder.Counter > 500);
+            Assert.True(holder.GetCounter() > 500);
+        }
+
+        [Fact]
+        public void TestThatManyScheduleOnceDeliver()
+        {
+            var query = World.ActorFor<IFinalCountQuery>(typeof(OnceScheduled), 10);
+            var count = query.QueryCount().Await<int>();
+            Assert.Equal(10, count);
         }
 
 
@@ -62,16 +66,73 @@ namespace Vlingo.Actors.Tests
             }
         }
 
-        private class CounterHolder
+        private class OnceScheduled : Actor, IFinalCountQuery, IScheduled<int>
         {
-            public int Counter { get; private set; } = 0;
-            public TestUntil Until { get; set; }
+            private ICompletesEventually completesEventually;
+            private int count;
+            private readonly int maximum;
+            private readonly IScheduled<int> scheduled;
 
-            public void Increment()
+            public OnceScheduled(int maximum)
             {
-                ++Counter;
-                Until.Happened();
+                this.maximum = maximum;
+                count = 0;
+                scheduled = SelfAs<IScheduled<int>>();
+            }
+
+            public ICompletes<int> QueryCount()
+            {
+                completesEventually = CompletesEventually();
+                return (ICompletes<int>)Completes();
+            }
+
+            public void IntervalSignal(IScheduled<int> scheduled, int data)
+            {
+                if (count < maximum)
+                {
+                    Schedule();
+                }
+                else
+                {
+                    completesEventually.With(count);
+
+                    SelfAs<IStoppable>().Stop();
+                }
+            }
+
+            public override void Start()
+            {
+                Schedule();
+            }
+
+            private void Schedule()
+            {
+                ++count;
+                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
             }
         }
+
+        private class CounterHolder
+        {
+            private readonly AccessSafely safely;
+
+            public CounterHolder(int times)
+            {
+                var counter = new AtomicInteger(0);
+                safely = AccessSafely
+                    .AfterCompleting(times)
+                    .WritingWith<int>("counter", _ => counter.IncrementAndGet())
+                    .ReadingWith("counter", counter.Get);
+            }
+
+            public void Increment() => safely.WriteUsing("counter", 1);
+
+            public int GetCounter() => safely.ReadFrom<int>("counter");
+        }
+    }
+
+    public interface IFinalCountQuery
+    {
+        ICompletes<int> QueryCount();
     }
 }

@@ -22,7 +22,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            Logger.Log($"DefaultSupervisorOverride: Failure of: {supervised.Address}", error);
+            Logger.Error($"DefaultSupervisorOverride: Failure of: {supervised.Address} because: {error.Message} Action: Resuming.", error);
             supervised.Resume();
         }
 

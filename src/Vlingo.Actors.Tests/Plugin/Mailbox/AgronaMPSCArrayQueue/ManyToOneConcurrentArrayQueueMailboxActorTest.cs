@@ -41,38 +41,34 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
         [Fact]
         public void TestBasicDispatch()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(MaxCount);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
                     Definition.Parameters(testResults), "testRingMailbox", "countTaker-1"));
             const int totalCount = MailboxSize / 2;
-            testResults.Until = Until(MaxCount);
 
             for (var count = 1; count <= totalCount; ++count)
             {
                 countTaker.Take(count);
             }
-            testResults.Until.Completes();
 
-            Assert.Equal(MaxCount, testResults.Highest.Get());
+            Assert.Equal(MaxCount, testResults.GetHighest());
         }
 
         [Fact]
         public void TestOverflowDispatch()
         {
-            var testResults = new TestResults();
+            var testResults = new TestResults(MaxCount);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
                     Definition.Parameters(testResults), "testRingMailbox", "countTaker-2"));
             const int totalCount = MailboxSize * 2;
-            testResults.Until = Until(MaxCount);
             for (var count = 1; count <= totalCount; ++count)
             {
                 countTaker.Take(count);
             }
-            testResults.Until.Completes();
 
-            Assert.Equal(MaxCount, testResults.Highest.Get());
+            Assert.Equal(MaxCount, testResults.GetHighest());
         }
 
         private class CountTakerActor : Actor, ICountTaker
@@ -88,11 +84,11 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
 
             public void Take(int count)
             {
-                if (count > TestResults.Highest.Get())
+                if (TestResults.IsHighest(count))
                 {
-                    TestResults.Highest.Set(count);
-                    TestResults.Until.Happened();
+                    TestResults.SetHighest(count);
                 }
+
                 if (count < MaxCount)
                 {
                     self.Take(count + 1);
@@ -102,8 +98,23 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         private class TestResults
         {
-            public AtomicInteger Highest = new AtomicInteger(0);
-            public TestUntil Until = TestUntil.Happenings(0);
+            private readonly AccessSafely safely;
+
+            public TestResults(int happenings)
+            {
+                var highest = new AtomicInteger(0);
+                safely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int>("highest", x => highest.Set(x))
+                    .ReadingWith("highest", highest.Get)
+                    .ReadingWith<int, bool>("isHighest", count => count > highest.Get());
+            }
+
+            public void SetHighest(int value) => safely.WriteUsing("highest", value);
+
+            public int GetHighest() => safely.ReadFrom<int>("highest");
+
+            public bool IsHighest(int val) => safely.ReadFromNow<int, bool>("isHighest", val);
         }
     }
 }

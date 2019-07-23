@@ -19,11 +19,63 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Log(string message)
+        public void Debug(string message)
         {
         }
 
-        public void Log(string message, Exception ex)
+        public void Debug(string message, params object[] args)
+        {
+        }
+
+        public void Debug(string message, Exception throwable)
+        {
+        }
+
+        public void Error(string message)
+        {
+        }
+
+        public void Error(string message, params object[] args)
+        {
+        }
+
+        public void Error(string message, Exception throwable)
+        {
+        }
+
+        public void Info(string message)
+        {
+        }
+
+        public void Info(string message, params object[] args)
+        {
+        }
+
+        public void Info(string message, Exception throwable)
+        {
+        }
+
+        public void Trace(string message)
+        {
+        }
+
+        public void Trace(string message, params object[] args)
+        {
+        }
+
+        public void Trace(string message, Exception throwable)
+        {
+        }
+
+        public void Warn(string message)
+        {
+        }
+
+        public void Warn(string message, params object[] args)
+        {
+        }
+
+        public void Warn(string message, Exception throwable)
         {
         }
     }

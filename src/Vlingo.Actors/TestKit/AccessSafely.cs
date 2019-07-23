@@ -27,6 +27,17 @@ namespace Vlingo.Actors.TestKit
         private readonly IDictionary<string, object> suppliers;
         private readonly TestUntil until;
 
+        private AccessSafely(AccessSafely existing, int happenings)
+        {
+            totalWrites = existing.totalWrites;
+            until = TestUntil.Happenings(happenings);
+            biConsumers = existing.biConsumers;
+            consumers = existing.consumers;
+            functions = existing.functions;
+            suppliers = existing.suppliers;
+            @lock = new object();
+        }
+
         private AccessSafely(int happenings)
         {
             totalWrites = new AtomicInteger(0);
@@ -40,6 +51,32 @@ namespace Vlingo.Actors.TestKit
 
         private AccessSafely() : this(0)
         {
+        }
+
+        private Func<T, R> GetRequiredFunction<T, R>(string name)
+        {
+            if (functions.TryGetValue(name, out var obj))
+            {
+                if (obj != null)
+                {
+                    return (Func<T, R>)obj;
+                }
+            }
+
+            throw new ArgumentException($"Unknown function: {name}");
+        }
+
+        public Func<T> GetRequiredSupplier<T>(string name)
+        {
+            if (suppliers.TryGetValue(name, out var obj))
+            {
+                if (obj != null)
+                {
+                    return (Func<T>)obj;
+                }
+            }
+
+            throw new ArgumentException($"Unknown supplier: {name}");
         }
 
         /// <summary>
@@ -58,6 +95,14 @@ namespace Vlingo.Actors.TestKit
         /// </summary>
         /// <returns>AccessSafely</returns>
         public static AccessSafely Immediately() => new AccessSafely();
+
+        /// <summary>
+        /// Answer a new AccessSafely with my existing reads and writes functionality.
+        /// </summary>
+        /// <param name="happenings">The number of times that WriteUsing() is employed prior to ReadFrom() answering</param>
+        /// <returns></returns>
+        public virtual AccessSafely ResetAfterCompletingTo(int happenings)
+            => new AccessSafely(this, happenings);
 
         /// <summary>
         /// Answer me with <paramref name="function"/> registered for reading.
@@ -121,16 +166,13 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual T ReadFrom<T>(string name)
         {
-            if (!suppliers.ContainsKey(name))
-            {
-                throw new ArgumentOutOfRangeException(nameof(name), $"Unknow supplier: {name}");
-            }
+            var supplier = GetRequiredSupplier<T>(name);
 
             until.Completes();
 
             lock (@lock)
             {
-                return (suppliers[name] as Func<T>).Invoke();
+                return supplier.Invoke();
             }
         }
 
@@ -144,16 +186,13 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual R ReadFrom<T, R>(string name, T parameter)
         {
-            if (!functions.ContainsKey(name))
-            {
-                throw new ArgumentOutOfRangeException(nameof(name), $"Unknow function: {name}");
-            }
+            var function = GetRequiredFunction<T, R>(name);
 
             until.Completes();
 
             lock (@lock)
             {
-                return (functions[name] as Func<T, R>).Invoke(parameter);
+                return function.Invoke(parameter);
             }
         }
 
@@ -180,14 +219,10 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual T ReadFromExpecting<T>(string name, T expected, long retries)
         {
-            if (!suppliers.ContainsKey(name))
-            {
-                throw new ArgumentOutOfRangeException(nameof(name), $"Unknown supplier: {name}");
-            }
+            var supplier = GetRequiredSupplier<T>(name);
 
             until.Completes();
 
-            var supplier = suppliers[name] as Func<T>;
             using (var waiter = new AutoResetEvent(false))
             {
                 for (long count = 0; count < retries; ++count)
@@ -220,14 +255,29 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual T ReadFromNow<T>(string name)
         {
-            if (!suppliers.ContainsKey(name))
-            {
-                throw new ArgumentOutOfRangeException(nameof(name), $"Unknow supplier: {name}");
-            }
+            var supplier = GetRequiredSupplier<T>(name);
 
             lock (@lock)
             {
-                return (suppliers[name] as Func<T>).Invoke();
+                return supplier.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Answer the value associated with <paramref name="name"/> immediately.
+        /// </summary>
+        /// <typeparam name="T">The type of the parameter to the <code>Func&lt;T, R&gt;</code>.</typeparam>
+        /// <typeparam name="R">The type of the return value associated with <paramref name="name"/>.</typeparam>
+        /// <param name="name">The name of the value to answer.</param>
+        /// <param name="parameter">The T typed function parameter.</param>
+        /// <returns></returns>
+        public virtual R ReadFromNow<T, R>(string name, T parameter)
+        {
+            var function = GetRequiredFunction<T, R>(name);
+
+            lock (@lock)
+            {
+                return function.Invoke(parameter);
             }
         }
 
@@ -270,11 +320,56 @@ namespace Vlingo.Actors.TestKit
             lock (@lock)
             {
                 totalWrites.IncrementAndGet();
-                (consumers[name] as Action<T1, T2>).Invoke(value1, value2);
+                (biConsumers[name] as Action<T1, T2>).Invoke(value1, value2);
                 until.Happened();
             }
         }
 
-        public virtual int TotalWrites => totalWrites.Get();
+        /// <summary>
+        /// Answer the total of writes completed.
+        /// </summary>
+        public virtual int TotalWrites
+        {
+            get
+            {
+                lock (@lock)
+                {
+                    return totalWrites.Get();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Answer the total of writes completed after ensuring that it surpasses <paramref name="lesser"/>,
+        /// or if <paramref name="retries"/> is reached first throw <code>InvalidOperationException</code>.
+        /// </summary>
+        /// <param name="lesser">The int value that must be surpassed.</param>
+        /// <param name="retries">The long number of retries before failing.</param>
+        /// <returns></returns>
+        public virtual int TotalWritesGreaterThan(int lesser, long retries)
+        {
+            using (var waiter = new AutoResetEvent(false))
+            {
+                for (long count = 0; count < retries; ++count)
+                {
+                    lock (@lock)
+                    {
+                        var total = totalWrites.Get();
+                        if (total > lesser)
+                        {
+                            return total;
+                        }
+                    }
+
+                    try
+                    {
+                        waiter.WaitOne(TimeSpan.FromMilliseconds(1));
+                    }
+                    catch { }
+                }
+            }
+
+            throw new InvalidOperationException($"Did not reach expected value: {lesser + 1}");
+        }
     }
 }

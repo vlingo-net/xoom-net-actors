@@ -9,6 +9,11 @@ using System;
 
 namespace Vlingo.Actors
 {
+    /// <summary>
+    /// ContentBasedRouter is a kind of <see cref="Router{P}"/> that considers the
+    /// content of messages in computing a <see cref="Routing{P}"/>.
+    /// </summary>
+    /// <typeparam name="P"></typeparam>
     public abstract class ContentBasedRouter<P> : Router<P>
     {
         protected ContentBasedRouter(RouterSpecification specification) : base(specification)
