@@ -75,6 +75,12 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             System.Console.WriteLine($"{Name}[{level}]: {message}");
             System.Console.WriteLine($"{Name}[{level}] [Exception]: {ex.Message}");
             System.Console.WriteLine($"{Name}[{level}] [StackTrace]: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                var iex = ex.InnerException;
+                System.Console.WriteLine($"{Name}[{level}] [InnerException]: {iex.Message}");
+                System.Console.WriteLine($"{Name}[{level}] [InnerException-StackTrace]: {iex.StackTrace}");
+            }
         }
 
         private void Log(string message, string level, params object[] args)
