@@ -84,7 +84,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
 
             public void Take(int count)
             {
-                if (TestResults.IsHighest())
+                if (TestResults.IsHighest(count))
                 {
                     TestResults.SetHighest(count);
                 }
@@ -114,7 +114,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
 
             public int GetHighest() => safely.ReadFrom<int>("highest");
 
-            public bool IsHighest() => safely.ReadFrom<bool>("isHighest");
+            public bool IsHighest(int val) => safely.ReadFromNow<int, bool>("isHighest", val);
         }
     }
 }
