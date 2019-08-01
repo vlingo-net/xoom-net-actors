@@ -124,7 +124,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name to assign to the new <c>World</c> instance.</param>
         /// <returns>A <c>World</c> instance.</returns>
-        public static World StartWithDefault(string name)
+        public static World StartWithDefaults(string name)
         {
             return Start(name, Configuration.Define());
         }
