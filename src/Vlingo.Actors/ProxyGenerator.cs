@@ -47,7 +47,7 @@ namespace Vlingo.Actors
 
         internal DynaType Type { get; }
 
-        public static ProxyGenerator ForClasPath(
+        public static ProxyGenerator ForClassPath(
             IList<FileInfo> classPath,
             DirectoryInfo destinationDirectory,
             DynaType type,
@@ -139,22 +139,13 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private string ImportStatements(
-            Type protocolInterface,
-            IEnumerable<MethodInfo> methods,
-            IEnumerable<PropertyInfo> properties)
+        private string ImportStatements()
         {
             var namespaces = new HashSet<string>();
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
             namespaces.Add(typeof(Actor).Namespace);
             namespaces.Add(typeof(AtomicBoolean).Namespace); // Vlingo.Common
-
-            namespaces.Add(protocolInterface.Namespace);
-
-            GetAllUsedTypesIn(protocolInterface, methods, properties)
-                .ToList()
-                .ForEach(t => namespaces.Add(t.Namespace));
 
             return string.Join("\n", namespaces.Select(x => $"using {x};"));
             
@@ -170,66 +161,11 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private IEnumerable<Type> GetAllUsedTypesIn(
-            Type type,
-            IEnumerable<MethodInfo> methods,
-            IEnumerable<PropertyInfo> properties)
-        {
-            var allReturnTypes = methods
-                .Select(m => m.ReturnType)
-                .Concat(properties.Select(p => p.PropertyType));
-
-            var allParameterTypes = methods
-                .SelectMany(m => m.GetParameters().Select(p => p.ParameterType))
-                .Distinct();
-
-            return GetInnerAndOuterTypes(type)
-                .Concat(allReturnTypes)
-                .Concat(allReturnTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
-                .Concat(allParameterTypes)
-                .Concat(allParameterTypes.SelectMany(x => GetInnerAndOuterTypes(x)))
-                .Distinct();
-        }
-
-        private IEnumerable<Type> GetInnerAndOuterTypes(Type type) => GetOuterTypes(type).Concat(GetInnerTypes(type));
-
-        private IEnumerable<Type> GetOuterTypes(Type type)
-        {
-            var t = type.DeclaringType;
-            while (t != null)
-            {
-                yield return t;
-                t = t.DeclaringType;
-            }
-        }
-
-        private IEnumerable<Type> GetInnerTypes(Type type)
-        {
-            if (!type.IsGenericType)
-            {
-                yield break;
-            }
-
-            foreach(var t in type.GetGenericArguments())
-            {
-                yield return t;
-
-                foreach(var outer in GetOuterTypes(t))
-                {
-                    yield return outer;
-                }
-                foreach(var inner in GetInnerTypes(t))
-                {
-                    yield return inner;
-                }
-            }
-        }
-
         private string RepresentationStatements(IEnumerable<MethodInfo> methods)
         {
             var builder = new StringBuilder();
 
-            int count = 0;
+            var count = 0;
 
             foreach (var method in methods)
             {
@@ -393,7 +329,7 @@ namespace Vlingo.Actors
             var properties = GetPropertiesFor(protocolInterface).ToList();
             var builder = new StringBuilder();
             builder
-                .Append(ImportStatements(protocolInterface, methods, properties)).Append("\n")
+                .Append(ImportStatements()).Append("\n")
                 .Append(NamespaceStatement(protocolInterface, hasNamespace)).Append("\n")
                 .Append(ClassStatement(protocolInterface)).Append("\n")
                 .Append(RepresentationStatements(methods)).Append("\n")
@@ -429,7 +365,7 @@ namespace Vlingo.Actors
 
             if (type.IsEnum)
             {
-                return $"{type.Name}.{Activator.CreateInstance(type).ToString()}";
+                return $"{type.Name}.{Activator.CreateInstance(type)}";
             }
 
             return Activator.CreateInstance(type).ToString();
@@ -469,12 +405,13 @@ namespace Vlingo.Actors
 
             if (type.IsGenericType)
             {
-                var name = type.Name.Substring(0, type.Name.IndexOf('`'));
+                var typeName = type.FullName ?? type.Name;
+                var name = typeName.Substring(0, typeName.IndexOf('`'));
                 var genericTypeDeclaration = string.Join(", ", type.GetGenericArguments().Select(GetSimpleTypeName));
                 return $"{name}<{genericTypeDeclaration}>";
             }
 
-            return type.Name;
+            return type.FullName ?? type.Name;
         }
         
         private static bool DoesImplementICompletes(Type type)
