@@ -4,7 +4,7 @@
 
     <!-- NuGet Metadata -->
     <IsPackable>true</IsPackable>
-    <PackageVersion>0.4.0</PackageVersion>
+    <PackageVersion>0.4.1</PackageVersion>
     <PackageId>Vlingo.Actors</PackageId>
     <Authors>Vlingo</Authors>
     <Description>
