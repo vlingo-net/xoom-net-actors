@@ -28,7 +28,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             isShuttingDown = new AtomicBoolean(false);
         }
 
-        public void Execute(IRunnable task)
+        public async void Execute(IRunnable task)
         {
             if (isShuttingDown.Get())
             {
@@ -37,7 +37,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             }
 
             queue.Enqueue(task);
-            TryStartExecution();
+            await TryStartExecution();
         }
 
         public void Shutdown()
@@ -45,15 +45,15 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             isShuttingDown.Set(true);
         }
 
-        private void TryStartExecution()
+        private async Task TryStartExecution()
         {
             if (!queue.IsEmpty && TryIncreaseRunningThreadCount())
             {
-                Task.Run(() => ThreadStartMethod());
+                await Task.Run(() => ThreadStartMethod());
             }
         }
 
-        private void ThreadStartMethod()
+        private async void ThreadStartMethod()
         {
             if (queue.TryDequeue(out IRunnable task))
             {
@@ -64,7 +64,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 finally
                 {
                     DecreaseRunningThreadCount();
-                    TryStartExecution();
+                    await TryStartExecution();
                 }
             }
         }
