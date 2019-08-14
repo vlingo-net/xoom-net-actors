@@ -108,7 +108,7 @@ namespace Vlingo.Actors.Tests
             private void Schedule()
             {
                 ++count;
-                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.FromMilliseconds(10), TimeSpan.FromMilliseconds(1));
+                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(1));
             }
         }
 
