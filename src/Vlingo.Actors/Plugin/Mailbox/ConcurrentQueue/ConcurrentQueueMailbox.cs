@@ -169,12 +169,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                         accessible.Set(false);
                         return temp;
                     }
-                    else
+
+                    if(++retries > 100_000_000)
                     {
-                        if(++retries > 100_000_000)
-                        {
-                            return null;
-                        }
+                        return null;
                     }
                 }
             }
@@ -223,12 +221,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
                         break;
                     }
-                    else
+
+                    if(++retries > 100_000_000)
                     {
-                        if(++retries > 100_000_000)
-                        {
-                            return false;
-                        }
+                        return false;
                     }
                 }
 
@@ -247,12 +243,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                         accessible.Set(false);
                         break;
                     }
-                    else
+
+                    if(++retries > 100_000_000)
                     {
-                        if(++retries > 100_000_000)
-                        {
-                            return;
-                        }
+                        return;
                     }
                 }
             }

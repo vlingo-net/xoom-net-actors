@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System.Net;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -17,12 +17,12 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenTestInterface));
-            Assert.Contains("System.Net.Dns dns", result.Source);
+            Assert.Contains("System.Threading.Tasks.Task t", result.Source);
         }
     }
 
     public interface IProxyGenTestInterface
     {
-        void DoSomething(Dns dns);
+        void DoSomething(Task t);
     }
 }

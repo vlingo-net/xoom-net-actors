@@ -97,7 +97,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         {
             for (int idx = 0; idx < mailboxSize; ++idx)
             {
-                messages[idx] = new LocalMessage<object>(this);
+                messages[idx] = new LocalMessage<object>();
             }
         }
 

@@ -35,13 +35,13 @@ namespace Vlingo.Actors
         {
         }
 
-        public LocalMessage(IMailbox mailbox)
+        public LocalMessage()
         {
         }
 
         public virtual Actor Actor => actor;
 
-        public virtual void Deliver() => InternalDeliver(this);
+        public virtual void Deliver() => InternalDeliver();
 
         public Type Protocol => typeof(TActor);
 
@@ -52,7 +52,7 @@ namespace Vlingo.Actors
         public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes completes, string representation)
         {
             this.actor = actor;
-            this.consumer = (TActor x) => consumer.Invoke((TConsumer)(object)x);
+            this.consumer = x => consumer.Invoke((TConsumer)(object)x);
             this.representation = representation;
             this.completes = completes;
         }
@@ -63,7 +63,7 @@ namespace Vlingo.Actors
         {
             var deadLetter = new DeadLetter(actor, representation);
             var deadLetters = actor.DeadLetters;
-            if(deadLetters != null)
+            if (deadLetters != null)
             {
                 deadLetters.FailedDelivery(deadLetter);
             }
@@ -73,10 +73,8 @@ namespace Vlingo.Actors
             }
         }
 
-        private void InternalDeliver(IMessage message)
+        private void InternalDeliver()
         {
-            var protocol = typeof(TActor);
-
             if (actor.IsStopped)
             {
                 DeadLetter();
