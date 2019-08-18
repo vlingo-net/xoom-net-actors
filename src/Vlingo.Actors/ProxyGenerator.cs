@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Vlingo.Common;
 using Vlingo.Common.Compiler;
 
@@ -144,6 +145,7 @@ namespace Vlingo.Actors
             var namespaces = new HashSet<string>();
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
+            namespaces.Add("System.Threading.Tasks");
             namespaces.Add(typeof(Actor).Namespace);
             namespaces.Add(typeof(AtomicBoolean).Namespace); // Vlingo.Common
 
@@ -209,6 +211,7 @@ namespace Vlingo.Actors
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
             var isACompletes = DoesImplementICompletes(method.ReturnType);
+            var isTask = IsTask(method.ReturnType);
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {p.Name}"));
             var methodSignature = string.Format("  public {0} {1}({2})",
@@ -217,10 +220,17 @@ namespace Vlingo.Actors
                 methodParamSignature);
 
             var ifNotStopped = "    if(!this.actor.IsStopped)\n    {";
-            var consumerStatement = string.Format("      Action<{0}> consumer = __ => __.{1}({2});",
-                GetSimpleTypeName(protocolInterface),
-                method.Name,
-                string.Join(", ", method.GetParameters().Select(p => p.Name)));
+            var consumerStatement = isTask ?
+                string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
+                              "      Action<{1}> consumer = __ => tcs.SetResult(__.{2}({3}));",
+                    GetSimpleTypeName(method.ReturnType),
+                    GetSimpleTypeName(protocolInterface),
+                    method.Name,
+                    string.Join(", ", method.GetParameters().Select(p => p.Name))) : 
+                string.Format("      Action<{0}> consumer = __ => __.{1}({2});",
+                    GetSimpleTypeName(protocolInterface),
+                    method.Name,
+                    string.Join(", ", method.GetParameters().Select(p => p.Name)));
             var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
@@ -237,6 +247,7 @@ namespace Vlingo.Actors
                 GetSimpleTypeName(protocolInterface),
                 isACompletes ? "completes, " : "");
             var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
+            var taskReturnStatement = isTask ? "      return tcs.Task.Unwrap();\n" : "";
             var elseDead = string.Format("      this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
             var returnStatement = string.IsNullOrEmpty(returnValue) ? "" : string.Format("    return {0};\n", returnValue);
@@ -250,6 +261,7 @@ namespace Vlingo.Actors
                 .Append(completesStatement)
                 .Append(mailboxSendStatement).Append("\n")
                 .Append(completesReturnStatement)
+                .Append(taskReturnStatement)
                 .Append("    }\n")
                 .Append("    else\n")
                 .Append("    {\n")
@@ -434,6 +446,11 @@ namespace Vlingo.Actors
             }
 
             return interfaces.Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == completesUnboundedType);
+        }
+        
+        private static bool IsTask(Type type)
+        {
+            return type == typeof(Task) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>);
         }
     }
 }
