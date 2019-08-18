@@ -82,19 +82,9 @@ namespace Vlingo.Actors.Tests
         {
             if(!this.actor.IsStopped)
             {
-                var tcs = new TaskCompletionSource<int>();
-                Action<Vlingo.Actors.Tests.IUsesTask> consumer = async __ =>
-                {
-                    try
-                    {
-                        tcs.SetResult(await __.GetOne());
-                    }
-                    catch (AggregateException e)
-                    {
-                        tcs.SetException(e);
-                    }
-                };
-                if(this.mailbox.IsPreallocated)
+                var tcs = new TaskCompletionSource<Task<int>>();
+                Action<Vlingo.Actors.Tests.IUsesTask> consumer = __ => tcs.SetResult(__.GetOne()); 
+                if (this.mailbox.IsPreallocated)
                 {
                     this.mailbox.Send(this.actor, consumer, null, GetOneRepresentation2);
                 }
@@ -103,7 +93,7 @@ namespace Vlingo.Actors.Tests
                     this.mailbox.Send(new LocalMessage<Vlingo.Actors.Tests.IUsesTask>(this.actor, consumer, GetOneRepresentation2));
                 }
 
-                return tcs.Task;
+                return tcs.Task.Unwrap();
             }
             else
             {
