@@ -16,7 +16,7 @@ namespace Vlingo.Actors
     {
         private readonly Random random;
 
-        public RandomRouter(RouterSpecification specification) : base(specification)
+        public RandomRouter(RouterSpecification<P> specification) : base(specification)
         {
             random = new Random();
         }

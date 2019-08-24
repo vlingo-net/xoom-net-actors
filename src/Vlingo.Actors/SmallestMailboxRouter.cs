@@ -13,7 +13,7 @@ namespace Vlingo.Actors
     /// </summary>
     public class SmallestMailboxRouter<P> : Router<P>
     {
-        public SmallestMailboxRouter(RouterSpecification specification) : base(specification)
+        public SmallestMailboxRouter(RouterSpecification<P> specification) : base(specification)
         {
         }
 

@@ -21,13 +21,13 @@ namespace Vlingo.Actors
     {
         protected readonly IList<Routee<P>> routees;
 
-        public Router(RouterSpecification specification)
+        public Router(RouterSpecification<P> specification)
         {
             routees = new List<Routee<P>>();
             InitRoutees(specification);
         }
 
-        protected internal virtual void InitRoutees(RouterSpecification specification)
+        protected internal virtual void InitRoutees(RouterSpecification<P> specification)
         {
             for (var i = 0; i < specification.InitialPoolSize; ++i)
             {

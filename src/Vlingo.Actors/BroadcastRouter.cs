@@ -16,7 +16,7 @@ namespace Vlingo.Actors
     /// <typeparam name="P"></typeparam>
     public abstract class BroadcastRouter<P> : Router<P>
     {
-        protected internal BroadcastRouter(RouterSpecification specification) : base(specification)
+        protected internal BroadcastRouter(RouterSpecification<P> specification) : base(specification)
         {
         }
 

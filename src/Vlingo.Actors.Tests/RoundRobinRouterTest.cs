@@ -51,10 +51,9 @@ namespace Vlingo.Actors.Tests
         private class TestRouterActor : RoundRobinRouter<ITwoArgSupplierProtocol>, ITwoArgSupplierProtocol
         {
             public TestRouterActor(int poolSize) :
-                base(new RouterSpecification(
+                base(new RouterSpecification<ITwoArgSupplierProtocol>(
                     poolSize,
-                    Definition.Has<TestRouteeActor>(Definition.NoParameters),
-                    typeof(ITwoArgSupplierProtocol)))
+                    Definition.Has<TestRouteeActor>(Definition.NoParameters)))
             {
             }
 

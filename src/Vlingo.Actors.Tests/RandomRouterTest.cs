@@ -83,10 +83,9 @@ namespace Vlingo.Actors.Tests
         private class TestSupplierActor : RoundRobinRouter<IOneArgSupplierProtocol>, IOneArgSupplierProtocol
         {
             public TestSupplierActor(int poolSize) :
-                base(new RouterSpecification(
+                base(new RouterSpecification<IOneArgSupplierProtocol>(
                     poolSize,
-                    Definition.Has<TestSupplierWorker>(Definition.NoParameters),
-                    typeof(IOneArgSupplierProtocol)))
+                    Definition.Has<TestSupplierWorker>(Definition.NoParameters)))
             {
             }
 
@@ -105,10 +104,9 @@ namespace Vlingo.Actors.Tests
         private class TestConsumerActor : RoundRobinRouter<IOneArgConsumerProtocol>, IOneArgConsumerProtocol
         {
             public TestConsumerActor(Results results, int poolSize) :
-                base(new RouterSpecification(
+                base(new RouterSpecification<IOneArgConsumerProtocol>(
                     poolSize,
-                    Definition.Has<TestConsumerWorker>(Definition.Parameters(results)),
-                    typeof(IOneArgConsumerProtocol)))
+                    Definition.Has<TestConsumerWorker>(Definition.Parameters(results))))
             {
             }
 

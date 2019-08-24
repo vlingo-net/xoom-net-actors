@@ -16,7 +16,7 @@ namespace Vlingo.Actors
     /// <typeparam name="P"></typeparam>
     public abstract class ContentBasedRouter<P> : Router<P>
     {
-        protected ContentBasedRouter(RouterSpecification specification) : base(specification)
+        protected ContentBasedRouter(RouterSpecification<P> specification) : base(specification)
         {
         }
 

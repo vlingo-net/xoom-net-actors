@@ -11,7 +11,7 @@ namespace Vlingo.Actors
     {
         private int poolIndex;
 
-        public RoundRobinRouter(RouterSpecification specification) : base(specification)
+        public RoundRobinRouter(RouterSpecification<P> specification) : base(specification)
         {
             poolIndex = 0;
         }

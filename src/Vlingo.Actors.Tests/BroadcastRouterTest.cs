@@ -43,10 +43,9 @@ namespace Vlingo.Actors.Tests
         private class MathCommandRouter : BroadcastRouter<IThreeArgConsumerProtocol>, IThreeArgConsumerProtocol
         {
             public MathCommandRouter(int poolSize, TestResults testResults) :
-                base(new RouterSpecification(
+                base(new RouterSpecification<IThreeArgConsumerProtocol>(
                     poolSize,
-                    Definition.Has<MathCommandWorker>(Definition.Parameters(testResults)),
-                    typeof(IThreeArgConsumerProtocol)))
+                    Definition.Has<MathCommandWorker>(Definition.Parameters(testResults))))
             {
             }
 

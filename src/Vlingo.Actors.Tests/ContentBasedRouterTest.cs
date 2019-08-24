@@ -81,10 +81,9 @@ namespace Vlingo.Actors.Tests
         private class InvoiceSubmissionRouter : ContentBasedRouter<IInvoiceSubmitter>, IInvoiceSubmitter, IInvoiceSubmitterSubscription
         {
             public InvoiceSubmissionRouter(TestResults testResults) :
-                base(new RouterSpecification(
+                base(new RouterSpecification<IInvoiceSubmitter>(
                     0,
-                    Definition.Has<ERPSpecificInvoiceSubmitter>(Definition.Parameters(ERPSystemCode.None, testResults)),
-                    typeof(IInvoiceSubmitter)))
+                    Definition.Has<ERPSpecificInvoiceSubmitter>(Definition.Parameters(ERPSystemCode.None, testResults))))
             {
             }
 
