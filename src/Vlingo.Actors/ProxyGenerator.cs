@@ -114,9 +114,10 @@ namespace Vlingo.Actors
         }
 
         private string ClassStatement(Type protocolInterface)
-            => string.Format("public class {0} : {1}\n{{",
+            => string.Format("public class {0} : {1}{2}\n{{",
                 ClassNameFor(protocolInterface, "__Proxy"),
-                GetSimpleTypeName(protocolInterface));
+                GetSimpleTypeName(protocolInterface),
+                GetGenericConstraints(protocolInterface));
 
         private string Constructor(Type protocolInterface)
         {
@@ -367,6 +368,11 @@ namespace Vlingo.Actors
                 return string.Empty;
             }
 
+            if (type.IsGenericParameter)
+            {
+                return $"default({type.Name})";
+            }
+
             if(!type.IsValueType || Nullable.GetUnderlyingType(type) != null)
             {
                 return "null";
@@ -438,8 +444,42 @@ namespace Vlingo.Actors
 
             return info.Name;
         }
+        
+        private string GetGenericConstraints(Type type)
+        {
+            if (type.IsGenericTypeDefinition)
+            {
+                var constraintPairs = type.GetGenericTypeDefinition()
+                    .GetGenericArguments()
+                    .Select(i =>
+                    {
+                        var genericConstraints = i.GetGenericParameterConstraints().Select(c => c.FullName).ToList();
+                        if (!genericConstraints.Any())
+                        {
+                            var gpa = i.GenericParameterAttributes;
+                            var constraintMask = gpa & GenericParameterAttributes.SpecialConstraintMask;
+                            if (constraintMask != GenericParameterAttributes.None)
+                            {
+                                if ((constraintMask & GenericParameterAttributes.ReferenceTypeConstraint) != 0)
+                                    genericConstraints.Add("class");
+                                if ((constraintMask & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0)
+                                    genericConstraints.Add("struct");
+                                if ((constraintMask & GenericParameterAttributes.DefaultConstructorConstraint) != 0)
+                                    genericConstraints.Add("new()");
+                            }
+                        }
+                        return (i.Name, string.Join(", ", genericConstraints));
+                    })
+                    .Where(p => !string.IsNullOrEmpty(p.Item2));
 
-        public string GetGenericConstraints(MethodInfo info)
+                var constraints = constraintPairs.Select(p => $" where {p.Item1} : {p.Item2}");
+                return string.Join(" ", constraints);
+            }
+
+            return string.Empty;
+        }
+
+        private string GetGenericConstraints(MethodInfo info)
         {
             if (info.IsGenericMethod)
             {

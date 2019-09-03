@@ -49,6 +49,18 @@ namespace Vlingo.Actors.Tests
 
             Assert.Single(methodGenericDefinition.GetGenericArguments());
         }
+        
+        [Fact]
+        public void ShouldLoadGenericProxyWithConstraintsWhenNotAvailable()
+        {
+            var actor = World.ActorFor<IGenericWithConstraints<GenericHandler, object>>(typeof(GenericInterfaceWithContraintsNoProxy));
+
+            Assert.True(actor.GetType().IsGenericType);
+            
+            var actualProxyType = actor.GetType().GetGenericTypeDefinition();
+
+            Assert.Equal(2, actualProxyType.GetGenericArguments().Length);
+        }
 
         public ProxyLookupTest(ITestOutputHelper output)
         {
@@ -74,6 +86,14 @@ namespace Vlingo.Actors.Tests
         {
             public void Handle<T>(string name, Action<T> consumer) where T : GenericHandler
             {
+            }
+        }
+        
+        private class GenericInterfaceWithContraintsNoProxy : Actor, IGenericWithConstraints<GenericHandler, object>
+        {
+            public object Handle(Action<GenericHandler> consumer)
+            {
+                return new object();
             }
         }
     }
@@ -102,6 +122,11 @@ namespace Vlingo.Actors.Tests
     public interface IGenericMethod
     {
         void Handle<T>(string name, Action<T> consumer) where T : GenericHandler;
+    }
+
+    public interface IGenericWithConstraints<T, R> where T : GenericHandler where R : new()
+    {
+        R Handle(Action<T> consumer);
     }
     
     public class GenericHandler {}
