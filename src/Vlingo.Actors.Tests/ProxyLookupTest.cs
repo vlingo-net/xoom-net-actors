@@ -5,7 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Vlingo.Actors.Tests
 {
@@ -35,6 +37,24 @@ namespace Vlingo.Actors.Tests
 
             Assert.Equal(3, actualProxyType.GetGenericArguments().Length);
         }
+        
+        [Fact]
+        public void ShouldLoadGenericMethodProxyWhenNotAvailable()
+        {
+            var actor = World.ActorFor<IGenericMethod>(typeof(GenericMethodActorWithNoProxy));
+
+            var actualProxyType = actor.GetType();
+            var methodType = actualProxyType.GetMethod("Handle");
+            var methodGenericDefinition = methodType.GetGenericMethodDefinition();
+
+            Assert.Single(methodGenericDefinition.GetGenericArguments());
+        }
+
+        public ProxyLookupTest(ITestOutputHelper output)
+        {
+            var converter = new Converter(output);
+            Console.SetOut(converter);
+        }
 
         private class GenericInterfaceActor : Actor, IGenericInterface<int, string>
         {
@@ -46,6 +66,13 @@ namespace Vlingo.Actors.Tests
         private class GenericInterfaceActorWithNoProxy : Actor, INoProxyGenericInterface<int, string, bool>
         {
             public void DoSomethingElse(int a, string b, bool c)
+            {
+            }
+        }
+        
+        private class GenericMethodActorWithNoProxy : Actor, IGenericMethod
+        {
+            public void Handle<T>(string name, Action<T> consumer) where T : GenericHandler
             {
             }
         }
@@ -71,4 +98,11 @@ namespace Vlingo.Actors.Tests
         {
         }
     }
+
+    public interface IGenericMethod
+    {
+        void Handle<T>(string name, Action<T> consumer) where T : GenericHandler;
+    }
+    
+    public class GenericHandler {}
 }

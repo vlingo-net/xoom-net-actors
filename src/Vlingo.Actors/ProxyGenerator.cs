@@ -173,9 +173,10 @@ namespace Vlingo.Actors
             {
                 if (!method.IsStatic)
                 {
-                    var statement = string.Format("  private const string {0}Representation{1} = \"{0}({2})\";\n",
+                    var statement = string.Format("  private const string {0}Representation{1} = \"{2}({3})\";\n",
                                     method.Name,
                                     ++count,
+                                    GetMethodName(method),
                                     string.Join(", ", method.GetParameters().Select(p => GetSimpleTypeName(p.ParameterType))));
 
                     builder.Append(statement);
@@ -214,33 +215,34 @@ namespace Vlingo.Actors
             var isTask = IsTask(method.ReturnType);
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {p.Name}"));
-            var methodSignature = string.Format("  public {0} {1}({2})",
+            var methodSignature = string.Format("  public {0} {1}({2}){3}",
                 GetSimpleTypeName(method.ReturnType),
-                method.Name,
-                methodParamSignature);
+                GetMethodName(method),
+                methodParamSignature,
+                GetGenericConstraints(method));
 
             var ifNotStopped = "    if(!this.actor.IsStopped)\n    {";
             var consumerStatement = isTask ?
                 string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
-                              "      Action<{1}> consumer = __ => tcs.SetResult(__.{2}({3}));",
+                              "      Action<{1}> cons128873 = __ => tcs.SetResult(__.{2}({3}));",
                     GetSimpleTypeName(method.ReturnType),
                     GetSimpleTypeName(protocolInterface),
-                    method.Name,
+                    GetMethodName(method),
                     string.Join(", ", method.GetParameters().Select(p => p.Name))) : 
-                string.Format("      Action<{0}> consumer = __ => __.{1}({2});",
+                string.Format("      Action<{0}> cons128873 = __ => __.{1}({2});",
                     GetSimpleTypeName(protocolInterface),
-                    method.Name,
+                    GetMethodName(method),
                     string.Join(", ", method.GetParameters().Select(p => p.Name)));
             var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
                 "      if(this.mailbox.IsPreallocated)\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(this.actor, consumer, {0}, {1});\n" +
+                "        this.mailbox.Send(this.actor, cons128873, {0}, {1});\n" +
                 "      }}\n" +
                 "      else\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, consumer, {3}{1}));\n" +
+                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, cons128873, {3}{1}));\n" +
                 "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
@@ -424,6 +426,32 @@ namespace Vlingo.Actors
             }
 
             return type.FullName ?? type.Name;
+        }
+
+        private string GetMethodName(MethodInfo info)
+        {
+            if (info.IsGenericMethod)
+            {
+                var genericArguments = info.GetGenericArguments();
+                return $"{info.Name}<{string.Join(", ", genericArguments.Select(a => a.Name))}>";
+            }
+
+            return info.Name;
+        }
+
+        public string GetGenericConstraints(MethodInfo info)
+        {
+            if (info.IsGenericMethod)
+            {
+                var constraintPairs = info.GetGenericMethodDefinition()
+                    .GetGenericArguments()
+                    .Select(i => (i.Name, string.Join(", ", i.GetGenericParameterConstraints().Select(c => c.FullName))));
+
+                var constraints = constraintPairs.Select(p => $" where {p.Item1} : {p.Item2}");
+                return string.Join(" ", constraints);
+            }
+
+            return string.Empty;
         }
         
         private static bool DoesImplementICompletes(Type type)
