@@ -41,7 +41,7 @@ namespace Vlingo.Actors
 
         public string GetProperty(string key, string defaultValue)
         {
-            if (dictionary.TryGetValue(key, out string value))
+            if(dictionary.TryGetValue(key, out string value))
             {
                 return value;
             }
@@ -60,12 +60,12 @@ namespace Vlingo.Actors
               .AddJsonFile(configFile.Name, optional: false, reloadOnChange: true)
               .Build();
 
-            var flatten = config.AsEnumerable().Where(c => c.Value != null);
+            var configurations = config.AsEnumerable().Where(c => c.Value != null);
 
-            foreach (var conf in flatten)
+            foreach(var configuration in configurations)
             {
-                var k = conf.Key.Replace(":",".");
-                var v = conf.Value;
+                var k = configuration.Key.Replace(":",".");
+                var v = configuration.Value;
                 SetProperty(k, v);
             }
         }
