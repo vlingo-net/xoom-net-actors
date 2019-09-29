@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -18,7 +19,7 @@ namespace Vlingo.Actors
         private static Func<Properties> Factory = () =>
         {
             var props = new Properties();
-            props.Load(new FileInfo("vlingo-actors.properties"));
+            props.Load(new FileInfo("vlingo-actors.json"));
             return props;
         };
 
@@ -40,7 +41,7 @@ namespace Vlingo.Actors
 
         public string GetProperty(string key, string defaultValue)
         {
-            if(dictionary.TryGetValue(key, out string value))
+            if (dictionary.TryGetValue(key, out string value))
             {
                 return value;
             }
@@ -55,17 +56,17 @@ namespace Vlingo.Actors
 
         public void Load(FileInfo configFile)
         {
-            foreach(var line in File.ReadAllLines(configFile.FullName))
-            {
-                if(string.IsNullOrWhiteSpace(line) || line.Trim().StartsWith("#"))
-                {
-                    continue;
-                }
+            var config = new ConfigurationBuilder()
+              .AddJsonFile(configFile.Name, optional: false, reloadOnChange: true)
+              .Build();
 
-                var items = line.Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
-                var key = items[0].Trim();
-                var val = string.Join("=", items.Skip(1)).Trim();
-                SetProperty(key, val);
+            var flatten = config.AsEnumerable().Where(c => c.Value != null);
+
+            foreach (var conf in flatten)
+            {
+                var k = conf.Key.Replace(":",".");
+                var v = conf.Value;
+                SetProperty(k, v);
             }
         }
     }
