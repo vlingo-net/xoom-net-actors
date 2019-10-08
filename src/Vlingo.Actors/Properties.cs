@@ -7,14 +7,12 @@
 
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
-    // TODO: implement using IAppSettingsProvider later
-    public sealed class Properties
+    public sealed class Properties: ConfigurationProperties
     {
         private static Func<Properties> Factory = () =>
         {
@@ -26,48 +24,5 @@ namespace Vlingo.Actors
         private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, true);
 
         public static Properties Instance => SingleInstance.Value;
-
-        private readonly IDictionary<string, string> dictionary;
-        public Properties()
-        {
-            dictionary = new Dictionary<string, string>();
-        }
-
-        public ICollection<string> Keys => dictionary.Keys;
-
-        public bool IsEmpty => dictionary.Count == 0;
-
-        public string GetProperty(string key) => GetProperty(key, null);
-
-        public string GetProperty(string key, string defaultValue)
-        {
-            if(dictionary.TryGetValue(key, out string value))
-            {
-                return value;
-            }
-
-            return defaultValue;
-        }
-
-        public void SetProperty(string key, string value)
-        {
-            dictionary[key] = value;
-        }
-
-        public void Load(FileInfo configFile)
-        {
-            var config = new ConfigurationBuilder()
-              .AddJsonFile(configFile.Name, optional: false, reloadOnChange: true)
-              .Build();
-
-            var configurations = config.AsEnumerable().Where(c => c.Value != null);
-
-            foreach(var configuration in configurations)
-            {
-                var k = configuration.Key.Replace(":",".");
-                var v = configuration.Value;
-                SetProperty(k, v);
-            }
-        }
     }
 }
