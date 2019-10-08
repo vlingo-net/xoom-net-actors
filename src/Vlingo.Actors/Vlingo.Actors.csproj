@@ -15,7 +15,6 @@
     <PackageProjectUrl>https://github.com/vlingo-net/vlingo-net-actors</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/vlingo-net/vlingo-net-actors/master/vlingo-64x64.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
