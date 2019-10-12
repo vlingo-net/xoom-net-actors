@@ -70,13 +70,13 @@ namespace Vlingo.Actors.Tests
             Assert.True(testResults.GetExceptionThrown());
         }
 
-        [Fact]//(Skip = "Need explanation of why it should timeout")]
+        [Fact]
         public void TestThatTimeOutOccursForSideEffects()
         {
             var greetingsTestResults = TestResults.AfterCompleting(1);
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesCausesTimeoutActor), greetingsTestResults);
             var helloCompletes = uc.GetHello()
-                .AndThenConsume(TimeSpan.FromMilliseconds(10), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
+                .AndThenConsume(TimeSpan.FromMilliseconds(1), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
                 .Otherwise<Hello>(failedHello =>
                 {
                     greetingsTestResults.SetGreeting(failedHello.greeting);
