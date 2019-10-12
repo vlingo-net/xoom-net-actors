@@ -76,7 +76,7 @@ namespace Vlingo.Actors.Tests
             var greetingsTestResults = TestResults.AfterCompleting(1);
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesCausesTimeoutActor), greetingsTestResults);
             var helloCompletes = uc.GetHello()
-                .AndThenConsume(TimeSpan.FromMilliseconds(2), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
+                .AndThenConsume(TimeSpan.FromMilliseconds(10), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
                 .Otherwise<Hello>(failedHello =>
                 {
                     greetingsTestResults.SetGreeting(failedHello.greeting);
