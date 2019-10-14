@@ -90,7 +90,7 @@ namespace Vlingo.Actors.Tests
             var valueTestResults = TestResults.AfterCompleting(1);
 
             var oneCompletes = uc.GetOne()
-                .AndThenConsume(TimeSpan.FromMilliseconds(2), 0, value => valueTestResults.SetValue(value))
+                .AndThenConsume(TimeSpan.FromMilliseconds(20), 0, value => valueTestResults.SetValue(value))
                 .Otherwise<int>(value =>
                 {
                     valueTestResults.SetValue(value);
@@ -102,6 +102,7 @@ namespace Vlingo.Actors.Tests
             oneCompletes.With(1);
 
             Assert.NotEqual(1, valueTestResults.GetValue());
+            Assert.Equal(0, valueTestResults.GetValue());
             Assert.Equal(0, oneCompletes.Outcome);
         }
 
