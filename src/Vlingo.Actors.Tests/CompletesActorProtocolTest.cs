@@ -70,14 +70,14 @@ namespace Vlingo.Actors.Tests
             Assert.True(testResults.GetExceptionThrown());
         }
 
-        [Fact]//(Skip = "Need explanation of why it should timeout")]
+        [Fact]
         public void TestThatTimeOutOccursForSideEffects()
         {
             var greetingsTestResults = TestResults.AfterCompleting(1);
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesCausesTimeoutActor), greetingsTestResults);
             var helloCompletes = uc.GetHello()
-                .AndThenConsume(TimeSpan.FromMilliseconds(2), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
-                .Otherwise(failedHello =>
+                .AndThenConsume(TimeSpan.FromMilliseconds(1), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
+                .Otherwise<Hello>(failedHello =>
                 {
                     greetingsTestResults.SetGreeting(failedHello.greeting);
                     return failedHello;
@@ -91,17 +91,21 @@ namespace Vlingo.Actors.Tests
 
             var oneCompletes = uc.GetOne()
                 .AndThenConsume(TimeSpan.FromMilliseconds(2), 0, value => valueTestResults.SetValue(value))
-                .Otherwise(value =>
+                .Otherwise<int>(value =>
                 {
                     valueTestResults.SetValue(value);
                     return 0;
                 });
 
-            try { Thread.Sleep(100); } catch (Exception) { }
-
-            oneCompletes.With(1);
-
+            var thread = new Thread(() =>
+            {
+                Thread.Sleep(100);
+                oneCompletes.With(1); 
+            });
+            thread.Start();
+            
             Assert.NotEqual(1, valueTestResults.GetValue());
+            Assert.Equal(0, valueTestResults.GetValue());
             Assert.Equal(0, oneCompletes.Outcome);
         }
 

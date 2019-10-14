@@ -92,6 +92,11 @@ namespace Vlingo.Actors
         public override bool IsOfSameGenericType<TOtherType>()
             => typeof(T) == typeof(TOtherType);
 
+        public ICompletes<T> With(T outcome)
+        {
+            throw new NotImplementedException();
+        }
+
         public ICompletes<TO> AndThen<TO>(TimeSpan timeout, TO failedOutcomeValue, Func<T, TO> function)
         {
             throw new NotImplementedException();
@@ -132,6 +137,26 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public TNewResult AndThenTo<TNewResult>(TimeSpan timeout, TNewResult failedOutcomeValue, Func<T, TNewResult> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TNewResult> AndThenTo<TNewResult>(TimeSpan timeout, TNewResult failedOutcomeValue, Func<T, ICompletes<TNewResult>> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TNewResult AndThenTo<TNewResult>(TNewResult failedOutcomeValue, Func<T, TNewResult> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TNewResult> AndThenTo<TNewResult>(TNewResult failedOutcomeValue, Func<T, ICompletes<TNewResult>> function)
+        {
+            throw new NotImplementedException();
+        }
+
         public TO AndThenTo<TF, TO>(TimeSpan timeout, TF failedOutcomeValue, Func<T, TO> function)
         {
             throw new NotImplementedException();
@@ -147,7 +172,22 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public ICompletes<TNewResult> AndThenTo<TNewResult>(TimeSpan timeout, Func<T, ICompletes<TNewResult>> function)
+        {
+            throw new NotImplementedException();
+        }
+
         public TO AndThenTo<TO>(Func<T, TO> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TNewResult> AndThenTo<TNewResult>(Func<T, ICompletes<TNewResult>> function)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<TFailedOutcome> Otherwise<TFailedOutcome>(Func<TFailedOutcome, TFailedOutcome> function)
         {
             throw new NotImplementedException();
         }
@@ -167,7 +207,17 @@ namespace Vlingo.Actors
             throw new NotImplementedException();
         }
 
+        public T Await()
+        {
+            throw new NotImplementedException();
+        }
+
         public TO Await<TO>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public T Await(TimeSpan timeout)
         {
             throw new NotImplementedException();
         }
