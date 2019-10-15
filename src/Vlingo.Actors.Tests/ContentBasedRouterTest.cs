@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using Vlingo.Actors.TestKit;
 using Xunit;
 
@@ -75,7 +76,7 @@ namespace Vlingo.Actors.Tests
         {
             var dollars = random.Next(10_000);
             var cents = random.Next(100);
-            return decimal.Parse($"{dollars}.{cents}");
+            return decimal.Parse($"{dollars}.{cents}", CultureInfo.InvariantCulture);
         }
 
         private class InvoiceSubmissionRouter : ContentBasedRouter<IInvoiceSubmitter>, IInvoiceSubmitter, IInvoiceSubmitterSubscription
