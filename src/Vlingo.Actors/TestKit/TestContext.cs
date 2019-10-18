@@ -69,7 +69,16 @@ namespace Vlingo.Actors.TestKit
         /// </summary>
         /// <typeparam name="T">The value type.</typeparam>
         /// <returns></returns>
-        public virtual T ReferenceValue<T>() => (T)reference.Get();
+        public virtual T ReferenceValue<T>()
+        {
+            var result = reference.Get();
+            if (result == null)
+            {
+                return default!;
+            }
+
+            return (T) result;
+        }
 
         /// <summary>
         /// Answer the <code>TestContext</code> after writing the value at <code>"reference"</code>.
