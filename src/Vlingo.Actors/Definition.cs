@@ -84,19 +84,19 @@ namespace Vlingo.Actors
 
         public Type Type { get; }
         private List<object> parameters;
-        public Actor Parent { get; }
-        public string MailboxName { get; }
-        public string ActorName { get; }
-        public ISupervisor Supervisor { get; }
-        private ILogger Logger { get; }
+        public Actor? Parent { get; }
+        public string? MailboxName { get; }
+        public string? ActorName { get; }
+        public ISupervisor? Supervisor { get; }
+        private ILogger? Logger { get; }
 
         private Definition(
             Type type,
             List<object> parameters,
-            Actor parent,
-            string mailboxName,
-            string actorName,
-            ILogger logger)
+            Actor? parent,
+            string? mailboxName,
+            string? actorName,
+            ILogger? logger)
         {
             Type = type;
             this.parameters = parameters;
@@ -110,7 +110,7 @@ namespace Vlingo.Actors
         private Definition(
             Type type,
             List<object> parameters,
-            Actor parent,
+            Actor? parent,
             string mailboxName,
             string actorName) :
         this(type, parameters, parent, mailboxName, actorName, null)
@@ -120,7 +120,7 @@ namespace Vlingo.Actors
         private Definition(
             Type type,
             List<object> parameters,
-            Actor parent,
+            Actor? parent,
             string actorName) :
         this(type, parameters, parent, null, actorName, null)
         {
@@ -167,7 +167,7 @@ namespace Vlingo.Actors
 
         internal List<object> InternalParameters() => parameters;
 
-        private ISupervisor AssignSupervisor(Actor parent)
+        private ISupervisor? AssignSupervisor(Actor? parent)
         {
             if (parent != null && parent is ISupervisor)
             {

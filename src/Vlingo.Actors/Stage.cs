@@ -19,7 +19,7 @@ namespace Vlingo.Actors
     {
         private readonly IDictionary<Type, ISupervisor> commonSupervisors;
         private readonly Directory directory;
-        private IDirectoryScanner directoryScanner;
+        private IDirectoryScanner? directoryScanner;
         private readonly Scheduler scheduler;
         private AtomicBoolean stopped;
 
