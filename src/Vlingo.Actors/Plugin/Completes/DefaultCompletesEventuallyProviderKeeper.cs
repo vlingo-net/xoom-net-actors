@@ -11,7 +11,7 @@ namespace Vlingo.Actors.Plugin.Completes
 {
     public sealed class DefaultCompletesEventuallyProviderKeeper : ICompletesEventuallyProviderKeeper
     {
-        private CompletesEventuallyProviderInfo completesEventuallyProviderInfo;
+        private CompletesEventuallyProviderInfo? completesEventuallyProviderInfo;
 
         public void Close()
         {

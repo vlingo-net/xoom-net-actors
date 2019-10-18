@@ -33,7 +33,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public IMessage Receive() => null!;
+        public IMessage? Receive() => null;
 
         public void Resume(string name)
         {

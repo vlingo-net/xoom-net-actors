@@ -251,7 +251,7 @@ namespace Vlingo.Actors
                     defaultLogger = LoggerProvider.StandardLoggerProvider(this, "vlingo-net").Logger;
                 }
 
-                return defaultLogger;
+                return defaultLogger!;
             }
         }
 
@@ -284,7 +284,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name of the logger.</param>
         /// <returns></returns>
-        public ILogger Logger(string name) => loggerProviderKeeper.FindNamed(name).Logger;
+        public ILogger Logger(string name) => loggerProviderKeeper.FindNamed(name).Logger!;
 
         /// <summary>
         /// Gets the <c>string</c> name of this <c>World</c>.

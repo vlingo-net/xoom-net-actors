@@ -28,7 +28,7 @@ namespace Vlingo.Actors.Plugin.Completes
             return this;
         }
 
-        public string Mailbox { get; private set; }
+        public string? Mailbox { get; private set; }
 
         public int PoolSize { get; private set; }
 

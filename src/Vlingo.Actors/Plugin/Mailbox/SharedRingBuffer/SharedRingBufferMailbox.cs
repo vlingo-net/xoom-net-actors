@@ -56,7 +56,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public virtual void Send(IMessage message) => throw new NotSupportedException("Use preallocated mailbox Send(Actor, ...).");
 
-        public virtual void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public virtual void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
             var messageIndex = sendIndex.IncrementAndGet();
             var ringSendIndex = (int)(messageIndex % mailboxSize);
@@ -79,7 +79,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             { }
         }
 
-        public virtual IMessage Receive()
+        public virtual IMessage? Receive()
         {
             var messageIndex = receiveIndex.Get();
             if (messageIndex < readyIndex.Get())

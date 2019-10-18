@@ -39,7 +39,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public IMailbox ProvideMailboxFor(int hashCode) => ProvideMailboxFor(hashCode, null);
 
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
+        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher? dispatcher)
         {
             ManyToOneConcurrentArrayQueueDispatcher maybeDispatcher;
 

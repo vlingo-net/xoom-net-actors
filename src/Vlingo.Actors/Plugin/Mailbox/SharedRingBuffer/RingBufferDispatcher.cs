@@ -19,7 +19,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         private CancellationTokenSource backoffTokenSource;
         private readonly CancellationTokenSource dispatcherTokenSource;
-        private Task started;
+        private Task? started;
         private readonly object mutex = new object();
         
         internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)

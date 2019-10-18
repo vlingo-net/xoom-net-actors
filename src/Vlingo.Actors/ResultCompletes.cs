@@ -37,7 +37,7 @@ namespace Vlingo.Actors
 
         public abstract ICompletes<O> With<O>(O outcome);
         public abstract ICompletes? ClientCompletes();
-        public abstract void Reset(ICompletes clientCompletes);
+        public abstract void Reset(ICompletes? clientCompletes);
         public abstract bool IsOfSameGenericType<TOtherType>();
     }
 
@@ -82,7 +82,7 @@ namespace Vlingo.Actors
             return InternalClientCompletes;
         }
 
-        public override void Reset(ICompletes clientCompletes)
+        public override void Reset(ICompletes? clientCompletes)
         {
            InternalClientCompletes = clientCompletes;
            InternalOutcome = null;
