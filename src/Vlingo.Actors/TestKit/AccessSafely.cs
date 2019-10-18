@@ -297,7 +297,7 @@ namespace Vlingo.Actors.TestKit
             lock (@lock)
             {
                 totalWrites.IncrementAndGet();
-                (consumers[name] as Action<T>).Invoke(value);
+                (consumers[name] as Action<T>)!.Invoke(value);
                 until.Happened();
             }
         }
@@ -320,7 +320,7 @@ namespace Vlingo.Actors.TestKit
             lock (@lock)
             {
                 totalWrites.IncrementAndGet();
-                (biConsumers[name] as Action<T1, T2>).Invoke(value1, value2);
+                (biConsumers[name] as Action<T1, T2>)!.Invoke(value1, value2);
                 until.Happened();
             }
         }
