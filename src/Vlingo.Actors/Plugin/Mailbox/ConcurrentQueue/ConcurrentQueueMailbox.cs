@@ -40,7 +40,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public void Resume(string name)
         {
-            if (suspendedDeliveryOverrides.Get().Pop(name))
+            if (suspendedDeliveryOverrides.Get()!.Pop(name))
             {
                 dispatcher.Execute(this);
             }
@@ -50,7 +50,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         {
             if (IsSuspended)
             {
-                if (suspendedDeliveryOverrides.Get().MatchesTop(message.Protocol))
+                if (suspendedDeliveryOverrides.Get()!.MatchesTop(message.Protocol))
                 {
                     dispatcher.Execute(new ResumingMailbox(message));
                     if (!queue.IsEmpty)
@@ -72,11 +72,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         }
 
         public void SuspendExceptFor(string name, params Type[] overrides)
-            => suspendedDeliveryOverrides.Get().Push(new Overrides(name, overrides));
+            => suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
 
-        public bool IsSuspended => !suspendedDeliveryOverrides.Get().IsEmpty;
+        public bool IsSuspended => !suspendedDeliveryOverrides.Get()!.IsEmpty;
 
-        public IMessage Receive()
+        public IMessage? Receive()
         {
             if(queue.TryDequeue(out IMessage result))
             {
@@ -123,7 +123,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             }
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
             throw new NotSupportedException("Not a preallocated mailbox.");
         }
@@ -154,14 +154,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 return false;
             }
 
-            public Overrides Peek()
+            public Overrides? Peek()
             {
                 var retries = 0;
                 while (true)
                 {
                     if(accessible.CompareAndSet(false, true))
                     {
-                        Overrides temp = null;
+                        Overrides? temp = null;
                         if (!IsEmpty)
                         {
                             temp = overrides[0];

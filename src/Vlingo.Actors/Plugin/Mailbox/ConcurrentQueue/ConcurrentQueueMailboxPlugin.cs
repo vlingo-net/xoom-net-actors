@@ -12,7 +12,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
     public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
         private readonly ConcurrentQueueMailboxPluginConfiguration configuration;
-        private IDispatcher executorDispatcher;
+        private IDispatcher? executorDispatcher;
 
         public ConcurrentQueueMailboxPlugin()
         {
@@ -37,7 +37,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         }
 
         public IMailbox ProvideMailboxFor(int hashCode) 
-            => new ConcurrentQueueMailbox(executorDispatcher, configuration.DispatcherThrottlingCount);
+            => new ConcurrentQueueMailbox(executorDispatcher!, configuration.DispatcherThrottlingCount);
 
         public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
         {
@@ -49,7 +49,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             return new ConcurrentQueueMailbox(dispatcher, configuration.DispatcherThrottlingCount);
         }
 
-        public override void Close() => executorDispatcher.Close();
+        public override void Close() => executorDispatcher!.Close();
 
         public override IPlugin With(IPluginConfiguration overrideConfiguration)
             => overrideConfiguration == null ? this : new ConcurrentQueueMailboxPlugin(overrideConfiguration);
