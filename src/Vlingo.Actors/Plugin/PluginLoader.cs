@@ -55,7 +55,7 @@ namespace Vlingo.Actors.Plugin
         {
             var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
             var classNameKey = $"plugin.{pluginName}.classname";
-            var className = properties.GetProperty(classNameKey);
+            var className = properties.GetProperty(classNameKey) ?? throw new ArgumentNullException("properties.GetProperty(classNameKey)");
 
             try
             {

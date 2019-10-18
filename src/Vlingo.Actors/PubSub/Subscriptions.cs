@@ -56,13 +56,13 @@ namespace Vlingo.Actors.PubSub
             => (existingValues, givenValue) => existingValues.Remove(givenValue);
 
         private Condition DefaultCondition()
-            => (subscription, topic, subscriber) => subscription.Key.Equals(topic);
+            => (subscription, topic, subscriber) => topic != null && subscription.Key.Equals(topic);
 
         private Condition NoCondition()
             => (subscription, topic, subscriber) => true;
 
         private AffectedSubscriptions PerformOperation(
-            Topic topic,
+            Topic? topic,
             ISubscriber subscriber,
             Condition condition,
             Operation operation)
@@ -72,7 +72,7 @@ namespace Vlingo.Actors.PubSub
             {
                 if (condition.Should(subscription, topic, subscriber) && operation.Perform(subscription.Value, subscriber))
                 {
-                    affectedSubscriptions.Add(topic, subscriber);
+                    if (topic != null) affectedSubscriptions.Add(topic, subscriber);
                 }
             }
 

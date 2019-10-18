@@ -297,8 +297,10 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="protocol"></param>
         /// <param name="common"></param>
-        public void RegisterCommonSupervisor(Type protocol, ISupervisor common)
-            => commonSupervisors[protocol] = common;
+        public void RegisterCommonSupervisor(Type? protocol, ISupervisor common)
+        {
+            if (protocol != null) commonSupervisors[protocol] = common;
+        }
 
         /// <summary>
         /// Gets the <c>Scheduler</c> of this <c>Stage</c>.

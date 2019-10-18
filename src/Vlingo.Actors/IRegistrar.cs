@@ -14,8 +14,8 @@ namespace Vlingo.Actors
         void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider);
         void Register(string name, bool isDefault, ILoggerProvider loggerProvider);
         void Register(string name, bool isDefault, IMailboxProvider mailboxProvider);
-        void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass);
-        void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass);
+        void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass);
+        void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass);
         void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper);
         void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper);
         void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper);

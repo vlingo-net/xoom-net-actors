@@ -22,7 +22,7 @@ namespace Vlingo.Actors.Plugin.Supervision
         public DefaultSupervisorOverridePluginConfiguration WithSupervisor(
             string stageName,
             string supervisorName,
-            Type supervisorClass)
+            Type? supervisorClass)
         {
             Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisorClass));
             return this;
@@ -34,7 +34,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         public string StageName(int index) => Supervisors[index].StageName;
 
-        public Type SupervisorClass(int index) => Supervisors[index].SupervisorClass;
+        public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
 
         internal IList<ConfiguredSupervisor> Supervisors { get; }
 

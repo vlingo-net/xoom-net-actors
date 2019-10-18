@@ -331,7 +331,7 @@ namespace Vlingo.Actors
         /// <param name="name">The <c>string</c> name of the supervisor to register.</param>
         /// <param name="supervisedProtocol">The protocol for which the supervisor will supervise.</param>
         /// <param name="supervisorClass">The <c>Type</c> (which should be a subclass of <c>Actor</c>) to register as a supervisor.</param>
-        public void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
+        public void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass)
         {
             try
             {
@@ -342,7 +342,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Error($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol.Name}", e);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol!.Name}", e);
             }
         }
 
@@ -353,7 +353,7 @@ namespace Vlingo.Actors
         /// <param name="stageName">The <c>string</c> of the <c>Stage</c> in which the <paramref name="supervisorClass"/> is be registered.</param>
         /// <param name="name">The <c>string</c> name of the supervisor to register.</param>
         /// <param name="supervisorClass">The <c>Type</c> (which should be a subclass of <c>Actor</c>) to register as a supervisor.</param>
-        public void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
+        public void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass)
         {
             try
             {
@@ -363,7 +363,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Error($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass.Name}", e);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass!.Name}", e);
             }
         }
 
@@ -373,12 +373,12 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>ICompletesEventuallyProviderKeeper</c> to register.</param>
         public void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper)
         {
-            if (this.completesProviderKeeper != null)
+            if (completesProviderKeeper != null)
             {
-                this.completesProviderKeeper.Close();
+                completesProviderKeeper.Close();
             }
 
-            this.completesProviderKeeper = keeper;
+            completesProviderKeeper = keeper;
         }
 
         /// <summary>
@@ -536,7 +536,7 @@ namespace Vlingo.Actors
         /// Sets the <paramref name="defaultParent"/> <c>Actor</c> as the default for this <c>World</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="defaultParent">The <c>Actor</c> to use as default parent.</param>
-        internal void SetDefaultParent(Actor defaultParent)
+        internal void SetDefaultParent(Actor? defaultParent)
         {
             lock (defaultParentMutex)
             {
@@ -578,7 +578,7 @@ namespace Vlingo.Actors
         /// Sets the <c>PrivateRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="privateRoot">The <c>IStoppable</c> protocol backed by the <c>PrivateRootActor</c></param>
-        internal void SetPrivateRoot(IStoppable privateRoot)
+        internal void SetPrivateRoot(IStoppable? privateRoot)
         {
             lock (privateRootMutex)
             {
@@ -602,7 +602,7 @@ namespace Vlingo.Actors
         /// Sets the <c>PublicRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="publicRoot">The <c>IStoppable</c> protocol backed by the <c>PublicRootActor</c></param>
-        internal void SetPublicRoot(IStoppable publicRoot)
+        internal void SetPublicRoot(IStoppable? publicRoot)
         {
             lock (publicRootMutex)
             {

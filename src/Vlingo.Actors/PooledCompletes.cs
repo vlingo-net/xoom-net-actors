@@ -27,7 +27,7 @@ namespace Vlingo.Actors
             CompletesEventually = completesEventually;
         }
 
-        public virtual object Outcome { get; private set; }
+        public virtual object? Outcome { get; private set; }
 
         public virtual void With(object outcome)
         {

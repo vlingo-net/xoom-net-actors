@@ -28,7 +28,7 @@ namespace Vlingo.Actors
         public static Definition Has(Type typeOfT, List<object> parameters)
             => new Definition(typeOfT, parameters);
 
-        public static Definition Has(Type typeOfT, List<object> parameters, string actorName)
+        public static Definition Has(Type? typeOfT, List<object> parameters, string actorName)
             => new Definition(typeOfT, parameters, actorName);
 
         public static Definition Has<T>(

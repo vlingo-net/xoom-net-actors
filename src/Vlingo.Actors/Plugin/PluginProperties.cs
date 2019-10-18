@@ -40,7 +40,7 @@ namespace Vlingo.Actors.Plugin
             return int.Parse(value);
         }
 
-        public string GetString(string key, string defaultValue) => properties.GetProperty(Key(key), defaultValue);
+        public string? GetString(string key, string defaultValue) => properties.GetProperty(Key(key), defaultValue);
 
         private string Key(string key) => $"plugin.{Name}.{key}";
     }

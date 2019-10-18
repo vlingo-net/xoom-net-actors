@@ -30,7 +30,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
         {
         }
 
-        public void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
+        public void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass)
         {
         }
 
@@ -38,7 +38,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
         {
         }
 
-        public void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
+        public void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass)
         {
         }
 

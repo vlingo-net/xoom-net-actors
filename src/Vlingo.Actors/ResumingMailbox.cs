@@ -33,7 +33,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public IMessage Receive() => null;
+        public IMessage? Receive() => null;
 
         public void Resume(string name)
         {
@@ -45,7 +45,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
             throw new InvalidOperationException("Not a preallocated mailbox.");
         }

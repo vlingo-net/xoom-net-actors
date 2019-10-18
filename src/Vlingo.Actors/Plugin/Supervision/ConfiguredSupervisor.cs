@@ -17,7 +17,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         private static DynaClassLoader ClassLoader => ClassLoaderSingleton.Value;
 
-        internal static Type ProtocolFrom(string supervisedProtocol)
+        internal static Type? ProtocolFrom(string supervisedProtocol)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             }
         }
 
-        internal static Type SupervisorFrom(string supervisorClassname)
+        internal static Type? SupervisorFrom(string supervisorClassname)
         {
             try
             {
@@ -50,9 +50,9 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         internal string SupervisorName { get; }
 
-        internal Type SupervisorClass { get; }
+        internal Type? SupervisorClass { get; }
 
-        internal Type SupervisedProtocol { get; }
+        internal Type? SupervisedProtocol { get; }
 
         public override int GetHashCode()
             => 31 * StageName.GetHashCode() + SupervisorName.GetHashCode();
@@ -68,10 +68,10 @@ namespace Vlingo.Actors.Plugin.Supervision
 
             return StageName.Equals(otherSupervisor.StageName) &&
                    SupervisorName.Equals(otherSupervisor.SupervisorName) &&
-                   ((SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null) ||
-                   (SupervisedProtocol != null && otherSupervisor.SupervisedProtocol != null &&
-                    SupervisedProtocol.Equals(otherSupervisor.SupervisedProtocol))) &&
-                   SupervisorClass.Equals(otherSupervisor.SupervisorClass);
+                   (SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null ||
+                   SupervisedProtocol != null && otherSupervisor.SupervisedProtocol != null &&
+                   SupervisedProtocol == otherSupervisor.SupervisedProtocol) &&
+                   SupervisorClass == otherSupervisor.SupervisorClass;
         }
 
         internal ConfiguredSupervisor(string stageName, string supervisorName, Type supervisedProtocol, Type supervisorClass)
@@ -90,7 +90,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             SupervisorClass = SupervisorFrom(supervisorClassname);
         }
 
-        internal ConfiguredSupervisor(string stageName, string supervisorName, Type supervisorClass)
+        internal ConfiguredSupervisor(string stageName, string supervisorName, Type? supervisorClass)
         {
             StageName = stageName;
             SupervisorName = supervisorName;

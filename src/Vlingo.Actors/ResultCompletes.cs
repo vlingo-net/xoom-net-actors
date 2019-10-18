@@ -12,31 +12,31 @@ namespace Vlingo.Actors
 {
     internal abstract class ResultCompletes : ICompletes
     {
-        private ICompletes internalClientCompletes;
-        internal ICompletes InternalClientCompletes
+        private ICompletes? internalClientCompletes;
+        internal ICompletes? InternalClientCompletes
         {
-            get => resultHolder.internalClientCompletes;
-            set => resultHolder.internalClientCompletes = value;
+            get => resultHolder!.internalClientCompletes;
+            set => resultHolder!.internalClientCompletes = value;
         }
 
-        private object _internalOutcome;
-        internal object InternalOutcome
+        private object? _internalOutcome;
+        internal object? InternalOutcome
         {
-            get => resultHolder._internalOutcome;
-            set => resultHolder._internalOutcome = value;
+            get => resultHolder!._internalOutcome;
+            set => resultHolder!._internalOutcome = value;
         }
 
         private bool _hasInternalOutcome;
         internal bool HasInternalOutcomeSet
         {
-            get => resultHolder._hasInternalOutcome;
-            set => resultHolder._hasInternalOutcome = value;
+            get => resultHolder!._hasInternalOutcome;
+            set => resultHolder!._hasInternalOutcome = value;
         }
 
-        protected ResultCompletes resultHolder;
+        protected ResultCompletes? resultHolder;
 
         public abstract ICompletes<O> With<O>(O outcome);
-        public abstract ICompletes ClientCompletes();
+        public abstract ICompletes? ClientCompletes();
         public abstract void Reset(ICompletes clientCompletes);
         public abstract bool IsOfSameGenericType<TOtherType>();
     }
@@ -56,7 +56,7 @@ namespace Vlingo.Actors
         {
         }
 
-        private ResultCompletes(ICompletes clientCompletes, object internalOutcome, bool hasOutcomeSet)
+        private ResultCompletes(ICompletes? clientCompletes, object? internalOutcome, bool hasOutcomeSet)
         {
             resultHolder = this;
             InternalClientCompletes = clientCompletes;
@@ -69,7 +69,7 @@ namespace Vlingo.Actors
             HasInternalOutcomeSet = true;
             InternalOutcome = outcome;
 
-            if (!resultHolder.IsOfSameGenericType<O>())
+            if (!resultHolder!.IsOfSameGenericType<O>())
             {
                 resultHolder = new ResultCompletes<O>(InternalClientCompletes, InternalOutcome, HasInternalOutcomeSet);
             }
@@ -77,7 +77,7 @@ namespace Vlingo.Actors
             return (ICompletes<O>)resultHolder;
         }
 
-        public override ICompletes ClientCompletes()
+        public override ICompletes? ClientCompletes()
         {
             return InternalClientCompletes;
         }
