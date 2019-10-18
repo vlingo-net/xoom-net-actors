@@ -38,7 +38,7 @@ namespace Vlingo.Actors.TestKit
         /// <typeparam name="TActor">The protocol for my actor inside.</typeparam>
         /// <returns></returns>
         public virtual TActor ActorAs<TActor>()
-            => (TActor)(object)Actor;
+            => (TActor)(object)Actor!;
 
         /// <summary>
         /// Answer my address, which is the address of my actor inside.
