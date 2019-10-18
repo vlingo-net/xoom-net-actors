@@ -18,7 +18,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public override int Pass => 1;
 
-        public override IPluginConfiguration Configuration => null;
+        public override IPluginConfiguration Configuration => null!;
 
         public override void Close()
         {
@@ -30,6 +30,6 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public override void Start(IRegistrar registrar) => registrar.Register(Name, false, this);
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration) => null;
+        public override IPlugin With(IPluginConfiguration overrideConfiguration) => null!;
     }
 }

@@ -79,7 +79,7 @@ namespace Vlingo.Actors
         /// before each <code>TestMailbox</code> delivery.
         /// </summary>
         /// <param name="context">The TestContext.</param>
-        public virtual void ViewTestStateInitialization(TestContext context) { }
+        public virtual void ViewTestStateInitialization(TestContext? context) { }
 
         /// <summary>
         /// Answers the <c>TestState</c> for this <c>Actor</c>. Override to provide a snapshot of the current <c>Actor</c> state.

@@ -76,7 +76,7 @@ namespace Vlingo.Actors
         /// Answer the next <code>IMessage</code> that can be received.
         /// </summary>
         /// <returns></returns>
-        IMessage? Receive();
+        IMessage Receive();
 
         /// <summary>
         /// Answer the count of messages that have not yet been delivered.

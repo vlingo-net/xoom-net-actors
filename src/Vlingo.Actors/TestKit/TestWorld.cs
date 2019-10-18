@@ -16,7 +16,7 @@ namespace Vlingo.Actors.TestKit
     {
         private IMailboxProvider mailboxProvider;
         private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
-        internal static TestWorld? Instance
+        internal static TestWorld Instance
         {
             get
             {
@@ -130,7 +130,7 @@ namespace Vlingo.Actors.TestKit
         public void Terminate()
         {
             World.Terminate();
-            Instance = null;
+            Instance = null!;
             actorMessages.Clear();
         }
 
