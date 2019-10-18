@@ -22,7 +22,7 @@ namespace Vlingo.Actors
         /// </summary>
         protected internal override Routing<P> ComputeRouting()
         {
-            Routee<P> least = null;
+            Routee<P>? least = null;
             var leastCount = int.MaxValue;
 
             foreach(var routee in Routees)
@@ -33,7 +33,8 @@ namespace Vlingo.Actors
                     least = routee;
                     break;
                 }
-                else if(count < leastCount)
+
+                if(count < leastCount)
                 {
                     least = routee;
                     leastCount = count;
