@@ -92,7 +92,7 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 logger);
 
-            return actor.ProtocolActor;
+            return actor!.ProtocolActor;
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
-            return actor.ProtocolActor;
+            return actor!.ProtocolActor;
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace Vlingo.Actors
         /// <typeparam name="T">The protocol supported by the backing <c>Actor</c>.</typeparam>
         /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
-        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner.ActorOf<T>(address).AndThen(default(T), proxy => proxy);
+        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
 
         /// <summary>
         /// Answer the protocol reference of the actor with <paramref name="address"/> as a non-empty
@@ -198,7 +198,7 @@ namespace Vlingo.Actors
         /// <param name="address">The address of the actor to find.</param>
         /// <returns></returns>
         public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
-            => directoryScanner.MaybeActorOf<T>(address).AndThen(proxy => proxy);
+            => directoryScanner!.MaybeActorOf<T>(address).AndThen(proxy => proxy);
 
 
         /// <summary>
@@ -209,7 +209,7 @@ namespace Vlingo.Actors
         /// <typeparam name="T">The protocol type.</typeparam>
         /// <param name="definition">the <c>Definition</c> used to initialize the newly created <c>Actor</c>.</param>
         /// <returns></returns>
-        public TestActor<T> TestActorFor<T>(Definition definition)
+        public TestActor<T>? TestActorFor<T>(Definition definition)
         {
             var redefinition = Definition.Has(
                 definition.Type,
@@ -225,7 +225,7 @@ namespace Vlingo.Actors
                     null,
                     null,
                     definition.Supervisor,
-                    definition.LoggerOr(World.DefaultLogger)).ToTestActor();
+                    definition.LoggerOr(World.DefaultLogger))!.ToTestActor();
 
             }
             catch (Exception e)
@@ -238,7 +238,7 @@ namespace Vlingo.Actors
             return null;
         }
 
-        public TestActor<T> TestActorFor<T>(Type actorType, params object[] parameters)
+        public TestActor<T>? TestActorFor<T>(Type actorType, params object[] parameters)
             => TestActorFor<T>(Definition.Has(actorType, parameters.ToList()));
 
         /// <summary>
@@ -347,10 +347,10 @@ namespace Vlingo.Actors
         /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
         /// <param name="logger">The logger for this <c>Actor</c>.</param>
         /// <returns></returns>
-        internal T ActorFor<T>(Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
+        internal T ActorFor<T>(Definition definition, Actor? parent, ISupervisor? maybeSupervisor, ILogger logger)
         {
             var actor = ActorProtocolFor<T>(definition, parent, null, null, maybeSupervisor, logger);
-            return actor.ProtocolActor;
+            return actor!.ProtocolActor;
         }
 
         /// <summary>
@@ -362,7 +362,7 @@ namespace Vlingo.Actors
         /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
         /// <param name="logger">Teh logger for this <c>Actor</c>.</param>
         /// <returns></returns>
-        internal ActorProtocolActor<object>[] ActorProtocolFor(Type[] protocols, Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
+        internal ActorProtocolActor<object>[]? ActorProtocolFor(Type[] protocols, Definition definition, Actor? parent, ISupervisor? maybeSupervisor, ILogger logger)
         {
             AssertProtocolCompliance(protocols);
             return ActorProtocolFor(protocols, definition, parent, null, null, maybeSupervisor, logger);
@@ -379,10 +379,10 @@ namespace Vlingo.Actors
         /// <param name="maybeSupervisor"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        internal ActorProtocolActor<T> ActorProtocolFor<T>(
+        internal ActorProtocolActor<T>? ActorProtocolFor<T>(
             Definition definition,
             Actor? parent,
-            IAddress maybeAddress,
+            IAddress? maybeAddress,
             IMailbox? maybeMailbox,
             ISupervisor? maybeSupervisor,
             ILogger logger)
@@ -415,13 +415,13 @@ namespace Vlingo.Actors
         /// <param name="maybeSupervisor"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        internal ActorProtocolActor<object>[] ActorProtocolFor(
+        internal ActorProtocolActor<object>[]? ActorProtocolFor(
             Type[] protocols,
             Definition definition,
-            Actor parent,
-            IAddress maybeAddress,
-            IMailbox maybeMailbox,
-            ISupervisor maybeSupervisor,
+            Actor? parent,
+            IAddress? maybeAddress,
+            IMailbox? maybeMailbox,
+            ISupervisor? maybeSupervisor,
             ILogger logger)
         {
             AssertProtocolCompliance(protocols);
@@ -553,7 +553,7 @@ namespace Vlingo.Actors
         /// <param name="address">the Address allocated to the Actor</param>
         /// <param name="maybeMailbox">the possible Mailbox</param>
         /// <returns></returns>
-        private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox maybeMailbox)
+        private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox? maybeMailbox)
             => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition);
 
         /// <summary>
@@ -593,10 +593,10 @@ namespace Vlingo.Actors
         /// <returns></returns>
         private Actor CreateRawActor(
           Definition definition,
-          Actor parent,
-          IAddress maybeAddress,
-          IMailbox maybeMailbox,
-          ISupervisor maybeSupervisor,
+          Actor? parent,
+          IAddress? maybeAddress,
+          IMailbox? maybeMailbox,
+          ISupervisor? maybeSupervisor,
           ILogger logger)
         {
             if (IsStopped)
@@ -669,8 +669,13 @@ namespace Vlingo.Actors
             return all;
         }
 
-        internal static object[] ToActors(ActorProtocolActor<object>[] all)
+        internal static object[] ToActors(ActorProtocolActor<object>[]? all)
         {
+            if (all == null)
+            {
+                return new object[0];
+            }
+            
             var actors = new object[all.Length];
             for (int idx = 0; idx < all.Length; ++idx)
             {
@@ -679,8 +684,13 @@ namespace Vlingo.Actors
             return actors;
         }
 
-        internal static object[] ToTestActors(ActorProtocolActor<T>[] all, Type[] protocols)
+        internal static object[] ToTestActors(ActorProtocolActor<T>[]? all, Type[] protocols)
         {
+            if (all == null)
+            {
+                return new object[0];
+            }
+            
             var testActors = new object[all.Length];
             for (int idx = 0; idx < all.Length; ++idx)
             {

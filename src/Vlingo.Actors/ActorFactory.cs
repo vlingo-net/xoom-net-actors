@@ -61,11 +61,11 @@ namespace Vlingo.Actors
 
         internal static Actor ActorFor(
           Stage stage,
-          Actor parent,
+          Actor? parent,
           Definition definition,
           IAddress address,
           IMailbox mailbox,
-          ISupervisor supervisor,
+          ISupervisor? supervisor,
           ILogger logger)
         {
             var environment = new Environment(

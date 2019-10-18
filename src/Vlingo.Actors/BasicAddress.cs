@@ -10,7 +10,7 @@ namespace Vlingo.Actors
     public sealed class BasicAddress : IAddress
     {
         private readonly long id;
-        private readonly string name;
+        private readonly string? name;
 
         public long Id => id;
 
@@ -54,14 +54,14 @@ namespace Vlingo.Actors
         {
         }
 
-        internal BasicAddress(long reservedId, string name) : this(reservedId, name, false)
+        internal BasicAddress(long reservedId, string? name) : this(reservedId, name, false)
         {
         }
 
-        internal BasicAddress(long reservedId, string name, bool prefixName)
+        internal BasicAddress(long reservedId, string? name, bool prefixName)
         {
             id = reservedId;
-            this.name = name == null ? null : (prefixName ? (name + id) : name);
+            this.name = name == null ? null : prefixName ? name + id : name;
         }
     }
 }

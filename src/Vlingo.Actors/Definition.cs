@@ -56,7 +56,7 @@ namespace Vlingo.Actors
             Type typeOfT,
             List<object> parameters,
             string mailboxName,
-            string actorName)
+            string? actorName)
             => new Definition(typeOfT, parameters, null, mailboxName, actorName);
 
         public static Definition Has<T>(
@@ -112,7 +112,7 @@ namespace Vlingo.Actors
             List<object> parameters,
             Actor? parent,
             string mailboxName,
-            string actorName) :
+            string? actorName) :
         this(type, parameters, parent, mailboxName, actorName, null)
         {
         }
@@ -163,7 +163,7 @@ namespace Vlingo.Actors
 
         public List<object> Parameters() => new List<object>(InternalParameters());
 
-        public Actor ParentOr(Actor defaultParent) => Parent ?? defaultParent;
+        public Actor? ParentOr(Actor? defaultParent) => Parent ?? defaultParent;
 
         internal List<object> InternalParameters() => parameters;
 

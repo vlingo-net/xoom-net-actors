@@ -67,7 +67,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        public TestActor<T> ActorFor<T>(Type type, params object[] parameters)
+        public TestActor<T>? ActorFor<T>(Type type, params object[] parameters)
         {
             if (IsTerminated)
             {
@@ -77,7 +77,7 @@ namespace Vlingo.Actors.TestKit
             return World.Stage.TestActorFor<T>(type, parameters);
         }
 
-        public TestActor<T> ActorFor<T>(Definition definition)
+        public TestActor<T>? ActorFor<T>(Definition definition)
         {
             if (IsTerminated)
             {

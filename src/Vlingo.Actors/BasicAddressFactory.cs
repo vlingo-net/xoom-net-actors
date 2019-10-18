@@ -21,7 +21,7 @@ namespace Vlingo.Actors
             nextId = new AtomicLong(1);
         }
 
-        public IAddress FindableBy<T>(T id) => new BasicAddress(long.Parse(id.ToString()));
+        public IAddress FindableBy<T>(T id) => new BasicAddress(long.Parse(id!.ToString()));
 
         public IAddress From(long reservedId, string name) => new BasicAddress(reservedId, name);
 
@@ -35,11 +35,11 @@ namespace Vlingo.Actors
 
         public IAddress UniquePrefixedWith(string prefixedWith) => new BasicAddress(nextId.GetAndIncrement(), prefixedWith, true);
 
-        public IAddress UniqueWith(string name) => new BasicAddress(nextId.GetAndIncrement(), name);
+        public IAddress UniqueWith(string? name) => new BasicAddress(nextId.GetAndIncrement(), name);
 
         public IAddress WithHighId() => WithHighId(null);
 
-        public IAddress WithHighId(string name) => new BasicAddress(highId.DecrementAndGet(), name);
+        public IAddress WithHighId(string? name) => new BasicAddress(highId.DecrementAndGet(), name);
 
         IAddress IAddressFactory.None() => None;
     }
