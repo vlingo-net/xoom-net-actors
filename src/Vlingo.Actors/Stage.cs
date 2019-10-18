@@ -381,10 +381,10 @@ namespace Vlingo.Actors
         /// <returns></returns>
         internal ActorProtocolActor<T> ActorProtocolFor<T>(
             Definition definition,
-            Actor parent,
+            Actor? parent,
             IAddress maybeAddress,
-            IMailbox maybeMailbox,
-            ISupervisor maybeSupervisor,
+            IMailbox? maybeMailbox,
+            ISupervisor? maybeSupervisor,
             ILogger logger)
         {
             AssertProtocolCompliance(typeof(T));

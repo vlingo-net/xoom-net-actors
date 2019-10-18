@@ -38,8 +38,8 @@ namespace Vlingo.Actors
         private ILoggerProviderKeeper loggerProviderKeeper;
         private IMailboxProviderKeeper mailboxProviderKeeper;
 
-        private ILogger defaultLogger;
-        private ISupervisor defaultSupervisor;
+        private ILogger? defaultLogger;
+        private ISupervisor? defaultSupervisor;
 
         /// <summary>
         /// Initializes the new <c>World</c> instance with the given name and configuration.
@@ -203,7 +203,7 @@ namespace Vlingo.Actors
         /// by an <c>Actor</c>. Interested parties may register for notifications 
         /// as a <see cref="IDeadLettersListener"/> via <see cref="IDeadLetters"/> protocol.
         /// </summary>
-        public IDeadLetters DeadLetters { get; internal set; }
+        public IDeadLetters? DeadLetters { get; internal set; }
 
         /// <summary>
         /// Answers a new <see cref="ICompletesEventually"/> instance that backs the <paramref name="clientCompletes"/>.
@@ -259,7 +259,7 @@ namespace Vlingo.Actors
         /// Gets the <c>Actor</c> that serves as the default parent for this <c>World</c>.
         /// Unless overridden using <c>Configuration</c> (e.g. <c>Properties</c> or fluent <c>Configuration</c>)s
         /// </summary>
-        public Actor DefaultParent { get; private set; }
+        public Actor? DefaultParent { get; private set; }
 
         /// <summary>
         /// Answers the <c>ISupervisor</c> protocol for sending messages to the default supervisor.
@@ -272,7 +272,7 @@ namespace Vlingo.Actors
             {
                 if (defaultSupervisor == null)
                 {
-                    defaultSupervisor = DefaultParent.SelfAs<ISupervisor>();
+                    defaultSupervisor = DefaultParent!.SelfAs<ISupervisor>();
                 }
 
                 return defaultSupervisor;
@@ -489,7 +489,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Local cache for <c>DynaClassLoader</c>.
         /// </summary>
-        internal DynaClassLoader ClassLoader { get; set; }
+        internal DynaClassLoader? ClassLoader { get; set; }
 
         /// <summary>
         /// Answers the <c>IMailbox</c> instance by <paramref name="mailboxName"/> and <paramref name="hashCode"/>. (INTERNAL ONLY)
@@ -571,7 +571,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Gets the <c>PrivateRootActor</c> instance as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
-        internal IStoppable PrivateRoot { get; private set; }
+        internal IStoppable? PrivateRoot { get; private set; }
 
         private readonly object privateRootMutex = new object();
         /// <summary>
@@ -595,7 +595,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Gets the <c>PublicRootActor</c> instance as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
-        internal IStoppable PublicRoot { get; private set; }
+        internal IStoppable? PublicRoot { get; private set; }
 
         public readonly object publicRootMutex = new object();
         /// <summary>

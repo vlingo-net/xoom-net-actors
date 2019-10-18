@@ -16,7 +16,7 @@ namespace Vlingo.Actors.TestKit
     {
         private IMailboxProvider mailboxProvider;
         private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
-        internal static TestWorld Instance
+        internal static TestWorld? Instance
         {
             get
             {
@@ -24,7 +24,7 @@ namespace Vlingo.Actors.TestKit
             }
             set
             {
-                ThreadLocalInstance.Value = value;
+                ThreadLocalInstance.Value = value!;
             }
         }
 
