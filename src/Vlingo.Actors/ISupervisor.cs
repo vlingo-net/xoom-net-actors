@@ -12,7 +12,7 @@ namespace Vlingo.Actors
     public interface ISupervisor
     {
         void Inform(Exception error, ISupervised supervised);
-        ISupervisionStrategy SupervisionStrategy { get; }
+        ISupervisionStrategy? SupervisionStrategy { get; }
         ISupervisor Supervisor { get; }
     }
 }

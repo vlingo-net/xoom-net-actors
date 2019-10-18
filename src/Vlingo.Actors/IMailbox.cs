@@ -100,7 +100,7 @@ namespace Vlingo.Actors
         /// <param name="consumer">The consumer to carry out the action.</param>
         /// <param name="completes">The completes through which return values are communicated; null if void return.</param>
         /// <param name="representation">The string representation of this message invocation.</param>
-        void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation);
+        void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
     }
 
     public static class Mailbox
