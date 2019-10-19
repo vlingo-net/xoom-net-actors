@@ -43,7 +43,7 @@ namespace Vlingo.Actors
             }
 
             actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation1));
-            return null;
+            return null!;
         }
 
         public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
@@ -65,7 +65,7 @@ namespace Vlingo.Actors
             }
 
             actor.DeadLetters.FailedDelivery(new DeadLetter(actor, ActorOfRepresentation2));
-            return null;
+            return null!;
         }
     }
 }

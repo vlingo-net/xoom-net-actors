@@ -38,17 +38,15 @@ namespace Vlingo.Actors
                 {
                     return Stage.ActorAs<T>(actor);
                 }
-                else
-                {
-                    Logger.Debug($"Actor with address: {address} not found; protocol is: {typeof(T).Name}");
-                }
+
+                Logger.Debug($"Actor with address: {address} not found; protocol is: {typeof(T).Name}");
             }
             catch(Exception ex)
             {
                 Logger.Error($"Error providing protocol: {typeof(T).Name} for actor with address: {address}", ex);
             }
 
-            return default(T);
+            return default!;
         }
     }
 }
