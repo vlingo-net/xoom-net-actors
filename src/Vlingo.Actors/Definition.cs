@@ -53,7 +53,7 @@ namespace Vlingo.Actors
             => new Definition(typeof(T), parameters, null, mailboxName, actorName);
 
         public static Definition Has(
-            Type typeOfT,
+            Type? typeOfT,
             List<object> parameters,
             string mailboxName,
             string? actorName)
@@ -82,7 +82,7 @@ namespace Vlingo.Actors
             return parameters.ToList();
         }
 
-        public Type Type { get; }
+        public Type? Type { get; }
         private List<object> parameters;
         public Actor? Parent { get; }
         public string? MailboxName { get; }
@@ -91,7 +91,7 @@ namespace Vlingo.Actors
         private ILogger? Logger { get; }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
             Actor? parent,
             string? mailboxName,
@@ -108,7 +108,7 @@ namespace Vlingo.Actors
         }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
             Actor? parent,
             string mailboxName,
@@ -127,7 +127,7 @@ namespace Vlingo.Actors
         }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
             string actorName) :
         this(type, parameters, null, null, actorName, null)
