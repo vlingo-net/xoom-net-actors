@@ -29,7 +29,7 @@ namespace Vlingo.Actors
                 return actor;
             }
 
-            return null;
+            return null!;
         }
 
         internal int Count => maps.Sum(m => m.Count);
@@ -71,7 +71,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                return null; // TODO: or, throw?
+                return null!; // TODO: or, throw?
             }
         }
 
