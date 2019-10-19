@@ -68,7 +68,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             return maybeDispatcher.Mailbox;
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new ManyToOneConcurrentArrayQueuePlugin(overrideConfiguration);
     }
 }

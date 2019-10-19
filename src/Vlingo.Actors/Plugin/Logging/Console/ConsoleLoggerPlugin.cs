@@ -67,7 +67,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             }
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new ConsoleLoggerPlugin(overrideConfiguration);
     }
 }

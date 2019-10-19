@@ -51,7 +51,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public override void Close() => executorDispatcher!.Close();
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new ConcurrentQueueMailboxPlugin(overrideConfiguration);
     }
 }

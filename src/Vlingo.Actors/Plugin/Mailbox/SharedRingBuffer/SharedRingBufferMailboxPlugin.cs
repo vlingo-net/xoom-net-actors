@@ -72,7 +72,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             return maybeDispatcher.Mailbox;
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new SharedRingBufferMailboxPlugin(overrideConfiguration);
     }
 }

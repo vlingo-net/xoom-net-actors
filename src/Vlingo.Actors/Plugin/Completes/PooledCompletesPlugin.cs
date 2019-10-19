@@ -40,7 +40,7 @@ namespace Vlingo.Actors.Plugin.Completes
             registrar.Register(pooledCompletesPluginConfiguration.Name, completesEventuallyProvider!);
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new PooledCompletesPlugin(overrideConfiguration);
     }
 }

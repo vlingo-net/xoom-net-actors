@@ -43,7 +43,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             }
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new CommonSupervisorsPlugin(overrideConfiguration);
     }
 }

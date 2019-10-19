@@ -30,6 +30,6 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public override void Start(IRegistrar registrar) => registrar.Register(Name, false, this);
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration) => null!;
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration) => null!;
     }
 }
