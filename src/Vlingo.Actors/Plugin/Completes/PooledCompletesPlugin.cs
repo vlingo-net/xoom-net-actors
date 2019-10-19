@@ -11,7 +11,7 @@ namespace Vlingo.Actors.Plugin.Completes
     {
         private readonly PooledCompletesPluginConfiguration pooledCompletesPluginConfiguration;
 
-        private ICompletesEventuallyProvider completesEventuallyProvider;
+        private ICompletesEventuallyProvider? completesEventuallyProvider;
 
         public PooledCompletesPlugin()
         {
@@ -31,13 +31,13 @@ namespace Vlingo.Actors.Plugin.Completes
 
         public override void Close()
         {
-            completesEventuallyProvider.Close();
+            completesEventuallyProvider!.Close();
         }
 
         public override void Start(IRegistrar registrar)
         {
-            completesEventuallyProvider = new CompletesEventuallyPool(pooledCompletesPluginConfiguration.PoolSize, pooledCompletesPluginConfiguration.Mailbox);
-            registrar.Register(pooledCompletesPluginConfiguration.Name, completesEventuallyProvider);
+            completesEventuallyProvider = new CompletesEventuallyPool(pooledCompletesPluginConfiguration.PoolSize, pooledCompletesPluginConfiguration.Mailbox!);
+            registrar.Register(pooledCompletesPluginConfiguration.Name, completesEventuallyProvider!);
         }
 
         public override IPlugin With(IPluginConfiguration overrideConfiguration)
