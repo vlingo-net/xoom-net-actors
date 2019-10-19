@@ -41,7 +41,7 @@ namespace Vlingo.Actors
 
         public bool IsEnabled => false;
 
-        public string Name => null;
+        public string Name => null!;
 
         public void Close()
             => Send(x => x.Close(), CloseRepresentation4);
