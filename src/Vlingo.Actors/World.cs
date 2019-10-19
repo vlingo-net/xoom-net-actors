@@ -211,7 +211,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <c>clientCompletes</c></param>
         /// <returns></returns>
-        public ICompletesEventually CompletesFor(ICompletes clientCompletes)
+        public ICompletesEventually CompletesFor(ICompletes? clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(clientCompletes);
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Vlingo.Actors
         /// <param name="address">The address of the ICompletesEventually actor to reuse.</param>
         /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <code>clientCompletes</code></param>
         /// <returns></returns>
-        public ICompletesEventually CompletesFor(IAddress address, ICompletes clientCompletes)
+        public ICompletesEventually CompletesFor(IAddress address, ICompletes? clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(address, clientCompletes);
 
         /// <summary>
