@@ -79,7 +79,7 @@ namespace Vlingo.Actors
 
             ThreadLocalEnvironment.Value = environment;
 
-            Actor actor = null;
+            Actor? actor = null;
 
             int definitionParameterCount = definition.InternalParameters().Count;
 
@@ -89,7 +89,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                foreach (var ctor in definition.Type.GetConstructors())
+                foreach (var ctor in definition.Type!.GetConstructors())
                 {
                     if (ctor.GetParameters().Length != definitionParameterCount)
                         continue;
@@ -116,11 +116,11 @@ namespace Vlingo.Actors
             return actor;
         }
 
-        private static Actor Start(ConstructorInfo ctor, IAddress address, Definition definition, ILogger logger)
+        private static Actor? Start(ConstructorInfo ctor, IAddress address, Definition definition, ILogger logger)
         {
-            Actor actor = null;
-            object[] args = null;
-            Exception cause = null;
+            Actor? actor = null;
+            object[]? args = null;
+            Exception? cause = null;
 
             for (var times = 1; times <= 2; ++times)
             {
@@ -134,7 +134,6 @@ namespace Vlingo.Actors
 
                     actor = (Actor)ctor.Invoke(definition.InternalParameters().ToArray());
                     actor.LifeCycle.SendStart(actor);
-                    cause = null;
                     return actor;
                 }
                 catch (Exception ex)
@@ -142,7 +141,7 @@ namespace Vlingo.Actors
                     cause = ex.InnerException ?? ex;
                     if(times == 1)
                     {
-                        args = Unfold(args);
+                        args = Unfold(args!);
                     }
                 }
             }

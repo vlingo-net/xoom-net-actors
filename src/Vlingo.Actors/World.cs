@@ -506,20 +506,19 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="candidateMailboxName">the <c>string</c> name of the desired <c>IMailbox</c></param>
         /// <returns></returns>
-        internal string MailboxNameFrom(string candidateMailboxName)
+        internal string MailboxNameFrom(string? candidateMailboxName)
         {
             if (candidateMailboxName == null)
             {
                 return FindDefaultMailboxName();
             }
-            else if (mailboxProviderKeeper.IsValidMailboxName(candidateMailboxName))
+
+            if (mailboxProviderKeeper.IsValidMailboxName(candidateMailboxName))
             {
                 return candidateMailboxName;
             }
-            else
-            {
-                return FindDefaultMailboxName();
-            }
+
+            return FindDefaultMailboxName();
         }
 
         /// <summary>

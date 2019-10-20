@@ -16,7 +16,7 @@ namespace Vlingo.Actors
             try
             {
                 var pooled = (PooledCompletes)outcome;
-                pooled.ClientCompletes.With(pooled.Outcome);
+                pooled.ClientCompletes!.With(pooled.Outcome!);
             }
             catch (Exception ex)
             {

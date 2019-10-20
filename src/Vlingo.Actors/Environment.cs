@@ -22,8 +22,8 @@ namespace Vlingo.Actors
 
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
-        internal ISupervisor MaybeSupervisor { get; }
-        internal Actor Parent { get; }
+        internal ISupervisor? MaybeSupervisor { get; }
+        internal Actor? Parent { get; }
         private IDictionary<Type, object> ProxyCache { get; }
         internal Stage Stage { get; }
         internal Stowage Stowage { get; }
@@ -37,9 +37,9 @@ namespace Vlingo.Actors
             Stage stage,
             IAddress address,
             Definition definition,
-            Actor parent,
+            Actor? parent,
             IMailbox mailbox,
-            ISupervisor maybeSupervisor,
+            ISupervisor? maybeSupervisor,
             ILogger logger)
         {
             Stage = stage ?? throw new ArgumentNullException(nameof(stage));
