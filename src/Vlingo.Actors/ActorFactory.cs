@@ -13,7 +13,7 @@ namespace Vlingo.Actors
 {
     internal static class ActorFactory
     {
-        internal static readonly ThreadLocal<Environment> ThreadLocalEnvironment = new ThreadLocal<Environment>(false);
+        internal static readonly ThreadLocal<Environment?> ThreadLocalEnvironment = new ThreadLocal<Environment?>(false);
 
         public static Type ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
             => ActorClassWithProtocol(actorClassname, typeof(TProtocol));

@@ -144,7 +144,7 @@ namespace Vlingo.Actors
         /// <param name="maybeSupervisor">The possible supervisor of this actor.</param>
         /// <param name="logger">The logger of this actor.</param>
         /// <returns></returns>
-        public Protocols ActorFor(Type[] protocols, Definition definition, Actor parent, ISupervisor maybeSupervisor, ILogger logger)
+        public Protocols ActorFor(Type[] protocols, Definition definition, Actor parent, ISupervisor? maybeSupervisor, ILogger logger)
         {
             var all = ActorProtocolFor(protocols, definition, parent, maybeSupervisor, logger);
             return new Protocols(ActorProtocolActor<object>.ToActors(all));
