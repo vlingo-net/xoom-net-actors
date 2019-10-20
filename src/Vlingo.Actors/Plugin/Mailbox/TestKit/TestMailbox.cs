@@ -25,7 +25,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public TestMailbox()
         {
-            world = TestWorld.Instance;
+            world = TestWorld.Instance!;
             queue = new ConcurrentQueue<IMessage>();
             suspendedOverrides = new AtomicReference<Stack<List<Type>>>(new Stack<List<Type>>());
         }
@@ -46,13 +46,13 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public int PendingMessages => throw new NotSupportedException("TestMailbox does not support this operation.");
 
-        public bool IsSuspended => suspendedOverrides.Get().Count > 0;
+        public bool IsSuspended => suspendedOverrides.Get()!.Count > 0;
 
         public void Resume(string name)
         {
-            if (suspendedOverrides.Get().Count > 0)
+            if (suspendedOverrides.Get()!.Count > 0)
             {
-                suspendedOverrides.Get().Pop();
+                suspendedOverrides.Get()!.Pop();
             }
             ResumeAll();
         }
@@ -90,11 +90,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             return lifecycleMessages.Contains(representation.Substring(0, openParenIndex));
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
             => throw new NotSupportedException("Not a preallocated mailbox.");
 
         public void SuspendExceptFor(string name, params Type[] overrides)
-            => suspendedOverrides.Get().Push(overrides.ToList());
+            => suspendedOverrides.Get()!.Push(overrides.ToList());
 
         private void ResumeAll()
         {
@@ -102,7 +102,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             {
                 if(queue.TryDequeue(out var queued))
                 {
-                    var actor = queued?.Actor;
+                    var actor = queued.Actor;
                     if(actor != null)
                     {
                         actor.ViewTestStateInitialization(null);

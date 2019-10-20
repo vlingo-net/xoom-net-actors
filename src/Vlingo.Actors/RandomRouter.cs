@@ -23,7 +23,7 @@ namespace Vlingo.Actors
 
         protected internal override Routing<P> ComputeRouting() => Routing.With(NextRoutee());
 
-        protected internal virtual Routee<P> NextRoutee()
+        protected internal virtual Routee<P>? NextRoutee()
         {
             int index = random.Next(routees.Count);
             return RouteeAt(index);

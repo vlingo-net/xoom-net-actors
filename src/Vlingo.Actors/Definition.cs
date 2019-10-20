@@ -28,7 +28,7 @@ namespace Vlingo.Actors
         public static Definition Has(Type typeOfT, List<object> parameters)
             => new Definition(typeOfT, parameters);
 
-        public static Definition Has(Type typeOfT, List<object> parameters, string actorName)
+        public static Definition Has(Type? typeOfT, List<object> parameters, string actorName)
             => new Definition(typeOfT, parameters, actorName);
 
         public static Definition Has<T>(
@@ -53,10 +53,10 @@ namespace Vlingo.Actors
             => new Definition(typeof(T), parameters, null, mailboxName, actorName);
 
         public static Definition Has(
-            Type typeOfT,
+            Type? typeOfT,
             List<object> parameters,
             string mailboxName,
-            string actorName)
+            string? actorName)
             => new Definition(typeOfT, parameters, null, mailboxName, actorName);
 
         public static Definition Has<T>(
@@ -82,21 +82,21 @@ namespace Vlingo.Actors
             return parameters.ToList();
         }
 
-        public Type Type { get; }
+        public Type? Type { get; }
         private List<object> parameters;
-        public Actor Parent { get; }
-        public string MailboxName { get; }
-        public string ActorName { get; }
-        public ISupervisor Supervisor { get; }
-        private ILogger Logger { get; }
+        public Actor? Parent { get; }
+        public string? MailboxName { get; }
+        public string? ActorName { get; }
+        public ISupervisor? Supervisor { get; }
+        private ILogger? Logger { get; }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
-            Actor parent,
-            string mailboxName,
-            string actorName,
-            ILogger logger)
+            Actor? parent,
+            string? mailboxName,
+            string? actorName,
+            ILogger? logger)
         {
             Type = type;
             this.parameters = parameters;
@@ -108,11 +108,11 @@ namespace Vlingo.Actors
         }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
-            Actor parent,
+            Actor? parent,
             string mailboxName,
-            string actorName) :
+            string? actorName) :
         this(type, parameters, parent, mailboxName, actorName, null)
         {
         }
@@ -120,14 +120,14 @@ namespace Vlingo.Actors
         private Definition(
             Type type,
             List<object> parameters,
-            Actor parent,
+            Actor? parent,
             string actorName) :
         this(type, parameters, parent, null, actorName, null)
         {
         }
 
         private Definition(
-            Type type,
+            Type? type,
             List<object> parameters,
             string actorName) :
         this(type, parameters, null, null, actorName, null)
@@ -163,11 +163,11 @@ namespace Vlingo.Actors
 
         public List<object> Parameters() => new List<object>(InternalParameters());
 
-        public Actor ParentOr(Actor defaultParent) => Parent ?? defaultParent;
+        public Actor? ParentOr(Actor? defaultParent) => Parent ?? defaultParent;
 
         internal List<object> InternalParameters() => parameters;
 
-        private ISupervisor AssignSupervisor(Actor parent)
+        private ISupervisor? AssignSupervisor(Actor? parent)
         {
             if (parent != null && parent is ISupervisor)
             {

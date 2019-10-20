@@ -13,7 +13,7 @@ namespace Vlingo.Actors
 {
     internal class Stowage
     {
-        private Queue<IMessage> stowedMessages;
+        private Queue<IMessage>? stowedMessages;
         private volatile bool dispersing;
         private volatile bool stowing;
 
@@ -27,19 +27,19 @@ namespace Vlingo.Actors
         public override string ToString()
             => $"Stowage[stowing={stowing}, dispersing={dispersing}, messages={stowedMessages}]";
 
-        internal int Count => stowedMessages.Count;
+        internal int Count => stowedMessages!.Count;
 
         internal void Dump(ILogger logger)
         {
-            foreach (var message in stowedMessages)
+            foreach (var message in stowedMessages!)
             {
                 logger.Debug($"STOWED: {message}");
             }
         }
 
-        internal bool HasMessages => stowedMessages.Count > 0;
+        internal bool HasMessages => stowedMessages!.Count > 0;
 
-        internal IMessage Head
+        internal IMessage? Head
         {
             get
             {
@@ -49,7 +49,7 @@ namespace Vlingo.Actors
                     return null;
                 }
 
-                return stowedMessages.Dequeue();
+                return stowedMessages!.Dequeue();
             }
         }
 
@@ -90,7 +90,7 @@ namespace Vlingo.Actors
         {
             if (IsStowing)
             {
-                IMessage toStow = null;
+                IMessage toStow;
                 if (message.IsStowed)
                 {
                     toStow = message;
@@ -102,7 +102,7 @@ namespace Vlingo.Actors
                     toStow = (IMessage)Activator.CreateInstance(stowedLocalMsgType, message);
                 }
 
-                stowedMessages.Enqueue(toStow);
+                stowedMessages!.Enqueue(toStow);
             }
         }
 
@@ -114,7 +114,7 @@ namespace Vlingo.Actors
                 return newerMessage;
             }
 
-            var olderMessage = stowedMessages.Dequeue();
+            var olderMessage = stowedMessages!.Dequeue();
             stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)newerMessage));
             return olderMessage;
         }

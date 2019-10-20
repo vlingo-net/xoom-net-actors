@@ -22,7 +22,7 @@ namespace Vlingo.Actors
             this.mailbox = mailbox;
         }
 
-        public ISupervisionStrategy SupervisionStrategy => null;
+        public ISupervisionStrategy SupervisionStrategy => null!;
 
         public ISupervisor Supervisor => new DefaultSupervisorImpl();
 

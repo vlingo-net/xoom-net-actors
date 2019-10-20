@@ -38,8 +38,8 @@ namespace Vlingo.Actors
         private ILoggerProviderKeeper loggerProviderKeeper;
         private IMailboxProviderKeeper mailboxProviderKeeper;
 
-        private ILogger defaultLogger;
-        private ISupervisor defaultSupervisor;
+        private ILogger? defaultLogger;
+        private ISupervisor? defaultSupervisor;
 
         /// <summary>
         /// Initializes the new <c>World</c> instance with the given name and configuration.
@@ -203,7 +203,7 @@ namespace Vlingo.Actors
         /// by an <c>Actor</c>. Interested parties may register for notifications 
         /// as a <see cref="IDeadLettersListener"/> via <see cref="IDeadLetters"/> protocol.
         /// </summary>
-        public IDeadLetters DeadLetters { get; internal set; }
+        public IDeadLetters? DeadLetters { get; internal set; }
 
         /// <summary>
         /// Answers a new <see cref="ICompletesEventually"/> instance that backs the <paramref name="clientCompletes"/>.
@@ -211,7 +211,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <c>clientCompletes</c></param>
         /// <returns></returns>
-        public ICompletesEventually CompletesFor(ICompletes clientCompletes)
+        public ICompletesEventually CompletesFor(ICompletes? clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(clientCompletes);
 
         /// <summary>
@@ -221,7 +221,7 @@ namespace Vlingo.Actors
         /// <param name="address">The address of the ICompletesEventually actor to reuse.</param>
         /// <param name="clientCompletes">The <code>ICompletesEventually</code> allocated for eventual completion of <code>clientCompletes</code></param>
         /// <returns></returns>
-        public ICompletesEventually CompletesFor(IAddress address, ICompletes clientCompletes)
+        public ICompletesEventually CompletesFor(IAddress address, ICompletes? clientCompletes)
             => completesProviderKeeper.FindDefault().ProvideCompletesFor(address, clientCompletes);
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Vlingo.Actors
                     defaultLogger = LoggerProvider.StandardLoggerProvider(this, "vlingo-net").Logger;
                 }
 
-                return defaultLogger;
+                return defaultLogger!;
             }
         }
 
@@ -259,7 +259,7 @@ namespace Vlingo.Actors
         /// Gets the <c>Actor</c> that serves as the default parent for this <c>World</c>.
         /// Unless overridden using <c>Configuration</c> (e.g. <c>Properties</c> or fluent <c>Configuration</c>)s
         /// </summary>
-        public Actor DefaultParent { get; private set; }
+        public Actor? DefaultParent { get; private set; }
 
         /// <summary>
         /// Answers the <c>ISupervisor</c> protocol for sending messages to the default supervisor.
@@ -272,7 +272,7 @@ namespace Vlingo.Actors
             {
                 if (defaultSupervisor == null)
                 {
-                    defaultSupervisor = DefaultParent.SelfAs<ISupervisor>();
+                    defaultSupervisor = DefaultParent!.SelfAs<ISupervisor>();
                 }
 
                 return defaultSupervisor;
@@ -284,7 +284,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name of the logger.</param>
         /// <returns></returns>
-        public ILogger Logger(string name) => loggerProviderKeeper.FindNamed(name).Logger;
+        public ILogger Logger(string name) => loggerProviderKeeper.FindNamed(name).Logger!;
 
         /// <summary>
         /// Gets the <c>string</c> name of this <c>World</c>.
@@ -331,7 +331,7 @@ namespace Vlingo.Actors
         /// <param name="name">The <c>string</c> name of the supervisor to register.</param>
         /// <param name="supervisedProtocol">The protocol for which the supervisor will supervise.</param>
         /// <param name="supervisorClass">The <c>Type</c> (which should be a subclass of <c>Actor</c>) to register as a supervisor.</param>
-        public void RegisterCommonSupervisor(string stageName, string name, Type supervisedProtocol, Type supervisorClass)
+        public void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass)
         {
             try
             {
@@ -342,7 +342,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Error($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol.Name}", e);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register common supervisor: {supervisedProtocol!.Name}", e);
             }
         }
 
@@ -353,7 +353,7 @@ namespace Vlingo.Actors
         /// <param name="stageName">The <c>string</c> of the <c>Stage</c> in which the <paramref name="supervisorClass"/> is be registered.</param>
         /// <param name="name">The <c>string</c> name of the supervisor to register.</param>
         /// <param name="supervisorClass">The <c>Type</c> (which should be a subclass of <c>Actor</c>) to register as a supervisor.</param>
-        public void RegisterDefaultSupervisor(string stageName, string name, Type supervisorClass)
+        public void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass)
         {
             try
             {
@@ -363,7 +363,7 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                DefaultLogger.Error($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass.Name}", e);
+                DefaultLogger.Error($"vlingo-net/actors: World cannot register default supervisor override: {supervisorClass!.Name}", e);
             }
         }
 
@@ -373,12 +373,12 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>ICompletesEventuallyProviderKeeper</c> to register.</param>
         public void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper)
         {
-            if (this.completesProviderKeeper != null)
+            if (completesProviderKeeper != null)
             {
-                this.completesProviderKeeper.Close();
+                completesProviderKeeper.Close();
             }
 
-            this.completesProviderKeeper = keeper;
+            completesProviderKeeper = keeper;
         }
 
         /// <summary>
@@ -489,7 +489,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Local cache for <c>DynaClassLoader</c>.
         /// </summary>
-        internal DynaClassLoader ClassLoader { get; set; }
+        internal DynaClassLoader? ClassLoader { get; set; }
 
         /// <summary>
         /// Answers the <c>IMailbox</c> instance by <paramref name="mailboxName"/> and <paramref name="hashCode"/>. (INTERNAL ONLY)
@@ -506,20 +506,19 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="candidateMailboxName">the <c>string</c> name of the desired <c>IMailbox</c></param>
         /// <returns></returns>
-        internal string MailboxNameFrom(string candidateMailboxName)
+        internal string MailboxNameFrom(string? candidateMailboxName)
         {
             if (candidateMailboxName == null)
             {
                 return FindDefaultMailboxName();
             }
-            else if (mailboxProviderKeeper.IsValidMailboxName(candidateMailboxName))
+
+            if (mailboxProviderKeeper.IsValidMailboxName(candidateMailboxName))
             {
                 return candidateMailboxName;
             }
-            else
-            {
-                return FindDefaultMailboxName();
-            }
+
+            return FindDefaultMailboxName();
         }
 
         /// <summary>
@@ -536,7 +535,7 @@ namespace Vlingo.Actors
         /// Sets the <paramref name="defaultParent"/> <c>Actor</c> as the default for this <c>World</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="defaultParent">The <c>Actor</c> to use as default parent.</param>
-        internal void SetDefaultParent(Actor defaultParent)
+        internal void SetDefaultParent(Actor? defaultParent)
         {
             lock (defaultParentMutex)
             {
@@ -571,14 +570,14 @@ namespace Vlingo.Actors
         /// <summary>
         /// Gets the <c>PrivateRootActor</c> instance as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
-        internal IStoppable PrivateRoot { get; private set; }
+        internal IStoppable? PrivateRoot { get; private set; }
 
         private readonly object privateRootMutex = new object();
         /// <summary>
         /// Sets the <c>PrivateRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="privateRoot">The <c>IStoppable</c> protocol backed by the <c>PrivateRootActor</c></param>
-        internal void SetPrivateRoot(IStoppable privateRoot)
+        internal void SetPrivateRoot(IStoppable? privateRoot)
         {
             lock (privateRootMutex)
             {
@@ -595,14 +594,14 @@ namespace Vlingo.Actors
         /// <summary>
         /// Gets the <c>PublicRootActor</c> instance as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
-        internal IStoppable PublicRoot { get; private set; }
+        internal IStoppable? PublicRoot { get; private set; }
 
         public readonly object publicRootMutex = new object();
         /// <summary>
         /// Sets the <c>PublicRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="publicRoot">The <c>IStoppable</c> protocol backed by the <c>PublicRootActor</c></param>
-        internal void SetPublicRoot(IStoppable publicRoot)
+        internal void SetPublicRoot(IStoppable? publicRoot)
         {
             lock (publicRootMutex)
             {

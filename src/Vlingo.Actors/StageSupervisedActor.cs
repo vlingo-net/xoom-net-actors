@@ -75,7 +75,7 @@ namespace Vlingo.Actors
         public virtual Exception Error { get; }
 
         private IEnumerable<Actor> SelfWithSiblings()
-            => EnvironmentOf(EnvironmentOf(actor).Parent).Children;
+            => EnvironmentOf(EnvironmentOf(actor).Parent!).Children;
 
         private static Environment EnvironmentOf(Actor actor) => actor.LifeCycle.Environment;
 

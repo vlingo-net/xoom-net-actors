@@ -12,12 +12,12 @@ namespace Vlingo.Actors
 {
     public class LocalMessage<TActor> : IMessage
     {
-        private Actor actor;
-        private ICompletes completes;
-        private Action<TActor> consumer;
-        private string representation;
+        private Actor? actor;
+        private ICompletes? completes;
+        private Action<TActor>? consumer;
+        private string? representation;
 
-        public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes completes, string representation)
+        public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes? completes, string representation)
         {
             this.actor = actor;
             this.consumer = consumer;
@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         }
 
         public LocalMessage(LocalMessage<TActor> message)
-            : this(message.actor, message.consumer, message.completes, message.representation)
+            : this(message.actor!, message.consumer!, message.completes, message.representation!)
         {
         }
 
@@ -39,7 +39,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public virtual Actor Actor => actor;
+        public virtual Actor Actor => actor!;
 
         public virtual void Deliver() => InternalDeliver();
 
@@ -47,12 +47,12 @@ namespace Vlingo.Actors
 
         public virtual bool IsStowed => false;
 
-        public virtual string Representation => representation;
+        public virtual string Representation => representation!;
 
-        public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes completes, string representation)
+        public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes? completes, string representation)
         {
             this.actor = actor;
-            this.consumer = x => consumer.Invoke((TConsumer)(object)x);
+            this.consumer = x => consumer.Invoke(x == null ? default : (TConsumer)(object)x);
             this.representation = representation;
             this.completes = completes;
         }
@@ -61,8 +61,8 @@ namespace Vlingo.Actors
 
         private void DeadLetter()
         {
-            var deadLetter = new DeadLetter(actor, representation);
-            var deadLetters = actor.DeadLetters;
+            var deadLetter = new DeadLetter(actor!, representation!);
+            var deadLetters = actor!.DeadLetters;
             if (deadLetters != null)
             {
                 deadLetters.FailedDelivery(deadLetter);
@@ -75,7 +75,7 @@ namespace Vlingo.Actors
 
         private void InternalDeliver()
         {
-            if (actor.IsStopped)
+            if (actor!.IsStopped)
             {
                 DeadLetter();
             }
@@ -84,13 +84,13 @@ namespace Vlingo.Actors
                 try
                 {
                     actor.completes.Reset(completes);
-                    consumer.Invoke((TActor)(object)actor);
+                    consumer!.Invoke((TActor)(object)actor);
                     if (actor.completes.HasInternalOutcomeSet)
                     {
                         // USE THE FOLLOWING. this forces the same ce actor to be used for
                         // all completes outcomes such that completes outcomes cannot be
                         // delivered to the client out of order from the original ordered causes.
-                        actor.LifeCycle.Environment.CompletesEventually(actor.completes).With(actor.completes.InternalOutcome);
+                        actor.LifeCycle.Environment.CompletesEventually(actor.completes).With(actor.completes.InternalOutcome!);
 
                         // DON'T USE THE FOLLOWING. it selects ce actors in round-robin order which
                         // can easily cause clients to see outcomes of messages delivered later to

@@ -43,7 +43,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public IMailbox ProvideMailboxFor(int hashCode) => ProvideMailboxFor(hashCode, null);
 
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
+        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher? dispatcher)
         {
             RingBufferDispatcher maybeDispatcher;
 
@@ -72,7 +72,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             return maybeDispatcher.Mailbox;
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new SharedRingBufferMailboxPlugin(overrideConfiguration);
     }
 }

@@ -39,7 +39,7 @@ namespace Vlingo.Actors
 
         protected internal virtual IList<Routee<P>> Routees => new ArraySegment<Routee<P>>(routees.ToArray());
 
-        public virtual Routee<P> RouteeAt(int index) => (index < 0 || index >= routees.Count) ? null : routees.ElementAt(index);
+        public virtual Routee<P>? RouteeAt(int index) => index < 0 || index >= routees.Count ? null : routees.ElementAt(index);
 
         protected internal virtual void Subscribe(Routee<P> routee)
         {
@@ -109,7 +109,7 @@ namespace Vlingo.Actors
             RoutingFor(routable1)
                 .First
                 .ReceiveQuery(query, routable1)
-                .AndThenConsume(outcome => completesEventually.With(outcome));
+                .AndThenConsume(outcome => completesEventually.With(outcome!));
 
             return (ICompletes<R>)Completes();
         }
@@ -123,7 +123,7 @@ namespace Vlingo.Actors
             RoutingFor(routable1, routable2)
                 .First
                 .ReceiveQuery(query, routable1, routable2)
-                .AndThenConsume(outcome => completesEventually.With(outcome));
+                .AndThenConsume(outcome => completesEventually.With(outcome!));
 
             return (ICompletes<R>)Completes();
         }
@@ -138,7 +138,7 @@ namespace Vlingo.Actors
             RoutingFor(routable1, routable2, routable3)
                 .First
                 .ReceiveQuery(query, routable1, routable2, routable3)
-                .AndThenConsume(outcome => completesEventually.With(outcome));
+                .AndThenConsume(outcome => completesEventually.With(outcome!));
 
             return (ICompletes<R>)Completes();
         }
@@ -154,7 +154,7 @@ namespace Vlingo.Actors
             RoutingFor(routable1, routable2, routable3, routable4)
                 .First
                 .ReceiveQuery(query, routable1, routable2, routable3, routable4)
-                .AndThenConsume(outcome => completesEventually.With(outcome));
+                .AndThenConsume(outcome => completesEventually.With(outcome!));
 
             return (ICompletes<R>)Completes();
         }

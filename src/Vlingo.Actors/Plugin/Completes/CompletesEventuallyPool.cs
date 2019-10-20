@@ -55,13 +55,13 @@ namespace Vlingo.Actors.Plugin.Completes
             }
         }
 
-        public ICompletesEventually ProvideCompletesFor(ICompletes clientCompletes)
+        public ICompletesEventually ProvideCompletesFor(ICompletes? clientCompletes)
             => new PooledCompletes(
                 completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventually);
 
-        public ICompletesEventually ProvideCompletesFor(IAddress address, ICompletes clientCompletes)
+        public ICompletesEventually ProvideCompletesFor(IAddress address, ICompletes? clientCompletes)
             => new PooledCompletes(
                 completesEventuallyId.GetAndIncrement(),
                 clientCompletes,

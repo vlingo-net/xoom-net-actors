@@ -29,11 +29,13 @@ namespace Vlingo.Actors.Plugin.Logging.Console
         public ConsoleLoggerPlugin()
         {
             consoleLoggerPluginConfiguration = ConsoleLoggerPluginConfiguration.Define();
+            Logger = Actors.Logger.NoOpLogger;
         }
 
         private ConsoleLoggerPlugin(IPluginConfiguration configuration)
         {
             consoleLoggerPluginConfiguration = (ConsoleLoggerPluginConfiguration)configuration;
+            Logger = Actors.Logger.NoOpLogger;
         }
 
         public override string Name => consoleLoggerPluginConfiguration.Name;
@@ -65,7 +67,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             }
         }
 
-        public override IPlugin With(IPluginConfiguration overrideConfiguration)
+        public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new ConsoleLoggerPlugin(overrideConfiguration);
     }
 }

@@ -13,7 +13,7 @@ namespace Vlingo.Actors.Plugin.Mailbox
     public sealed class DefaultMailboxProviderKeeper : IMailboxProviderKeeper
     {
         private readonly IDictionary<string, MailboxProviderInfo> mailboxProviderInfos;
-        private MailboxProviderInfo defaultProvider;
+        private MailboxProviderInfo? defaultProvider;
 
         public DefaultMailboxProviderKeeper()
         {

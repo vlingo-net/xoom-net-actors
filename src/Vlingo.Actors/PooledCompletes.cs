@@ -13,13 +13,13 @@ namespace Vlingo.Actors
     {
         public long Id { get; }
 
-        public ICompletes ClientCompletes { get; }
+        public ICompletes? ClientCompletes { get; }
 
         public ICompletesEventually CompletesEventually { get; }
 
         public PooledCompletes(
             long id,
-            ICompletes clientCompletes,
+            ICompletes? clientCompletes,
             ICompletesEventually completesEventually)
         {
             Id = id;
@@ -27,7 +27,7 @@ namespace Vlingo.Actors
             CompletesEventually = completesEventually;
         }
 
-        public virtual object Outcome { get; private set; }
+        public virtual object? Outcome { get; private set; }
 
         public virtual void With(object outcome)
         {

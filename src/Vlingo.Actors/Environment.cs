@@ -16,14 +16,14 @@ namespace Vlingo.Actors
     {
         internal IAddress Address { get; }
         internal List<Actor> Children { get; }
-        internal IAddress CompletesEventuallyAddress { get; private set; }
+        internal IAddress? CompletesEventuallyAddress { get; private set; }
         internal Definition Definition { get; }
         internal FailureMark FailureMark { get; }
 
         internal ILogger Logger { get; }
         internal IMailbox Mailbox { get; }
-        internal ISupervisor MaybeSupervisor { get; }
-        internal Actor Parent { get; }
+        internal ISupervisor? MaybeSupervisor { get; }
+        internal Actor? Parent { get; }
         private IDictionary<Type, object> ProxyCache { get; }
         internal Stage Stage { get; }
         internal Stowage Stowage { get; }
@@ -31,15 +31,15 @@ namespace Vlingo.Actors
 
         private readonly AtomicBoolean secured;
         private readonly AtomicBoolean stopped;
-        private Type[] stowageOverrides;
+        private Type[]? stowageOverrides;
 
         protected internal Environment(
             Stage stage,
             IAddress address,
             Definition definition,
-            Actor parent,
+            Actor? parent,
             IMailbox mailbox,
-            ISupervisor maybeSupervisor,
+            ISupervisor? maybeSupervisor,
             ILogger logger)
         {
             Stage = stage ?? throw new ArgumentNullException(nameof(stage));
@@ -86,7 +86,7 @@ namespace Vlingo.Actors
 
         internal void CacheProxy<T>(T proxy)
         {
-            ProxyCache[proxy.GetType()] = proxy;
+            if (proxy != null) ProxyCache[proxy.GetType()] = proxy;
         }
 
         internal void CacheProxy(Type proxyType, object proxy)
@@ -94,9 +94,18 @@ namespace Vlingo.Actors
             ProxyCache[proxyType] = proxy;
         }
 
-        internal T LookUpProxy<T>() => (T)LookUpProxy(typeof(T));
+        internal T LookUpProxy<T>()
+        {
+            var lookup = LookUpProxy(typeof(T));
+            if (lookup != null && !lookup.Equals(null))
+            {
+                return (T) lookup;
+            }
 
-        internal object LookUpProxy(Type type)
+            return default!;
+        }
+
+        internal object? LookUpProxy(Type type)
             => ProxyCache.ContainsKey(type) ? ProxyCache[type] : null;
 
         internal bool IsSecured => secured.Get();

@@ -54,7 +54,7 @@ namespace Vlingo.Actors
         private static Type GetProtocolGenericDefinition(Type protocol)
             => protocol.IsGenericType ? protocol.GetGenericTypeDefinition() : protocol;
 
-        private static Type LoadProxyClassFor(string targetClassname, Actor actor)
+        private static Type? LoadProxyClassFor(string targetClassname, Actor actor)
             => ClassLoaderFor(actor).LoadClass(targetClassname);
 
         private static object TryCreate(Actor actor, IMailbox mailbox, Type protocol, string targetClassname)
@@ -69,7 +69,7 @@ namespace Vlingo.Actors
             return TryCreateWithProxyClass(proxyClass, actor, mailbox);
         }
 
-        private static object TryCreateWithProxyClass(Type proxyClass, Actor actor, IMailbox mailbox)
+        private static object TryCreateWithProxyClass(Type? proxyClass, Actor actor, IMailbox mailbox)
             => Activator.CreateInstance(proxyClass, actor, mailbox);
 
         private static object TryGenerateCreate(Type protocol, Actor actor, IMailbox mailbox, string targetClassName, string lookupTypeName)

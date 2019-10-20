@@ -16,7 +16,7 @@ namespace Vlingo.Actors
         IAddress None();
         IAddress Unique();
         IAddress UniquePrefixedWith(string prefixedWith);
-        IAddress UniqueWith(string name);
+        IAddress UniqueWith(string? name);
         IAddress WithHighId();
         IAddress WithHighId(string name);
         long TestNextIdValue();

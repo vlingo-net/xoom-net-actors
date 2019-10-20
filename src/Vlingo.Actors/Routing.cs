@@ -16,7 +16,7 @@ namespace Vlingo.Actors
     /// </summary>
     public static class Routing
     {
-        public static Routing<T> With<T>(Routee<T> routee)
+        public static Routing<T> With<T>(Routee<T>? routee)
             => new Routing<T>(new List<Routee<T>> {
                 routee ?? throw new ArgumentNullException(nameof(routee), "Routee may not be null")
             });
@@ -45,7 +45,7 @@ namespace Vlingo.Actors
         {
         }
 
-        internal Routing(ICollection<Routee<P>> routees)
+        internal Routing(ICollection<Routee<P>>? routees)
         {
             var routeesCollection = routees ?? new List<Routee<P>>();
             this.routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());

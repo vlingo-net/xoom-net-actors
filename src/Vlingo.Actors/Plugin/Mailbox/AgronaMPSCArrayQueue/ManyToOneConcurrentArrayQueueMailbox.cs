@@ -67,7 +67,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public IMessage Receive() => queue.Take();
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
             throw new NotSupportedException("Not a preallocated mailbox.");
         }

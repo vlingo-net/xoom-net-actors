@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
 
     <!-- NuGet Metadata -->
     <IsPackable>true</IsPackable>
-    <PackageVersion>0.4.7</PackageVersion>
+    <PackageVersion>0.4.8</PackageVersion>
     <PackageId>Vlingo.Actors</PackageId>
     <Authors>Vlingo</Authors>
     <Description>
@@ -25,7 +27,7 @@
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.5.5" />
+    <PackageReference Include="Vlingo.Common" Version="0.5.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
   </ItemGroup>
 </Project>

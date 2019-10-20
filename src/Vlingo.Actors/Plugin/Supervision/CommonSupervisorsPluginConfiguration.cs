@@ -35,9 +35,9 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         public string StageName(int index) => Supervisors[index].StageName;
 
-        public Type SupervisedProtocol(int index) => Supervisors[index].SupervisedProtocol;
+        public Type? SupervisedProtocol(int index) => Supervisors[index].SupervisedProtocol;
 
-        public Type SupervisorClass(int index) => Supervisors[index].SupervisorClass;
+        public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
 
         public string Name => SupervisorName(0);
 

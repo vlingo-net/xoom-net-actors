@@ -1,0 +1,18 @@
+language: csharp
+jobs:
+  include:
+    - os: linux
+      dotnet: 3.0.100
+      mono: none
+    - os: osx
+      osx_image: xcode11
+      dotnet: 3.0.100
+      mono: none
+sudo: false  # use the new container-based Travis infrastructure
+script:
+  - dotnet restore ./src/Vlingo.Actors.sln;
+    dotnet build ./src/Vlingo.Actors.sln;
+    dotnet test ./src/Vlingo.Actors.Tests/Vlingo.Actors.Tests.csproj;
+
+notifications:
+  slack: vlingo-platform-net:kwiEEBuUpRnz2rYYYstTBpXr

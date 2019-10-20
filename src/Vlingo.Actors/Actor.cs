@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         /// Answers the <c>DeadLetters</c> for this <c>Actor</c>.
         /// </summary>
         /// <value>Gets the <c>DeadLetters</c> for this <c>Actor</c>.</value>
-        public virtual IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
+        public virtual IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters!;
 
         /// <summary>
         /// Answers the <c>Scheduler</c> for this <c>Actor</c>.
@@ -79,7 +79,7 @@ namespace Vlingo.Actors
         /// before each <code>TestMailbox</code> delivery.
         /// </summary>
         /// <param name="context">The TestContext.</param>
-        public virtual void ViewTestStateInitialization(TestContext context) { }
+        public virtual void ViewTestStateInitialization(TestContext? context) { }
 
         /// <summary>
         /// Answers the <c>TestState</c> for this <c>Actor</c>. Override to provide a snapshot of the current <c>Actor</c> state.
@@ -127,7 +127,7 @@ namespace Vlingo.Actors
                     throw new InvalidOperationException("A secured actor cannot provide its parent.");
                 }
 
-                return LifeCycle.Environment.Parent;
+                return LifeCycle.Environment.Parent!;
             }
         }
 
@@ -231,7 +231,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Completes is not available for this protocol behavior; return type must not be void.");
             }
 
-            return completes.ClientCompletes();
+            return completes.ClientCompletes()!;
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("A secured actor cannot provide its parent.");
             }
 
-            var parent = LifeCycle.Environment.Parent;
+            var parent = LifeCycle.Environment.Parent!;
             return LifeCycle.Environment.Stage.ActorProxyFor<T>(parent, parent.LifeCycle.Environment.Mailbox);
         }
 

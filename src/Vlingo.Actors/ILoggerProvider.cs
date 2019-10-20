@@ -13,7 +13,7 @@ namespace Vlingo.Actors
     public interface ILoggerProvider
     {
         void Close();
-        ILogger Logger { get; }
+        ILogger? Logger { get; }
     }
 
     internal static class LoggerProvider

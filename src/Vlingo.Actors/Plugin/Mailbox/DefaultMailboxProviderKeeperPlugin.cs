@@ -38,7 +38,7 @@ namespace Vlingo.Actors.Plugin.Mailbox
 
         public void Start(IRegistrar registrar) => registrar.RegisterMailboxProviderKeeper(keeper);
 
-        public IPlugin With(IPluginConfiguration overrideConfiguration)
+        public IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new DefaultMailboxProviderKeeperPlugin(overrideConfiguration, this);
     }
 }
