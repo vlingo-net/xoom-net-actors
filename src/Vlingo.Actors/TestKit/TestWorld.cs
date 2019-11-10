@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
@@ -28,7 +29,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        private readonly IDictionary<long, IList<IMessage>> actorMessages;
+        private readonly ConcurrentDictionary<long, IList<IMessage>> actorMessages;
 
         public static TestWorld Start(string name)
         {
@@ -151,7 +152,7 @@ namespace Vlingo.Actors.TestKit
         {
             World = world;
             mailboxProvider = new TestMailboxPlugin(World);
-            actorMessages = new Dictionary<long, IList<IMessage>>();
+            actorMessages = new ConcurrentDictionary<long, IList<IMessage>>();
             Instance = this;
         }
 
