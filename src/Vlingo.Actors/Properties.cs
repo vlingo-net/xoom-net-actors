@@ -5,7 +5,6 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using Vlingo.Common;
