@@ -6,7 +6,7 @@
 
     <!-- NuGet Metadata -->
     <IsPackable>true</IsPackable>
-    <PackageVersion>0.4.10</PackageVersion>
+    <PackageVersion>0.4.11</PackageVersion>
     <PackageId>Vlingo.Actors</PackageId>
     <Authors>Vlingo</Authors>
     <Description>
@@ -25,9 +25,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.0" />
+    <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.1" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Vlingo.Common" Version="0.5.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="vlingo-actors.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
