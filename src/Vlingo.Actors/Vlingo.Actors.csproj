@@ -15,7 +15,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/vlingo-net/vlingo-net-actors</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/vlingo-net/vlingo-net-actors/master/vlingo-64x64.png</PackageIconUrl>
+    <PackageIcon>vlingo-64x64.png</PackageIcon>
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
   </PropertyGroup>
   <ItemGroup>
@@ -27,6 +27,7 @@
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
     <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.0" />
     <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.1" />
+    <None Include="..\..\vlingo-64x64.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Vlingo.Common" Version="0.5.8" />
