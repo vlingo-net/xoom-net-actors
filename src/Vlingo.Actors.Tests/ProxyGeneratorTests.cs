@@ -56,17 +56,17 @@ namespace Vlingo.Actors.Tests
         public void ShouldCreateAProxyWithInnerInterface()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
-            var result = generator.GenerateFor(typeof(MyClass.IMyInterface));
-            Assert.Contains("public class MyInterface__Proxy : Vlingo.Actors.Tests.MyClass.IMyInterface", result.Source);
+            var result = generator.GenerateFor(typeof(ClassWithNestedInterface.INestedInterface));
+            Assert.Contains("public class NestedInterface__Proxy : Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface", result.Source);
         }
 
         [Fact]
         public void ShouldCreateAProxyWithReferenceToInnerInterface()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
-            var result = generator.GenerateFor(typeof(IMyInterface));
-            Assert.Contains("public class MyInterface__Proxy : Vlingo.Actors.Tests.IMyInterface", result.Source);
-            Assert.Contains("public void DoSomethingWith(Vlingo.Actors.Tests.MyOuterClass.MyInnerClass obj)", result.Source);
+            var result = generator.GenerateFor(typeof(IOuterInnerClassInterface));
+            Assert.Contains("public class OuterInnerClassInterface__Proxy : Vlingo.Actors.Tests.IOuterInnerClassInterface", result.Source);
+            Assert.Contains("public void DoSomethingWith(Vlingo.Actors.Tests.OuterClass.InnerClass obj)", result.Source);
         }
     }
 
@@ -100,34 +100,34 @@ namespace Vlingo.Actors.Tests
         void Write<TSource>(string id, int state) where TSource : IProxyGenTestInterface, IProxyGenTestSecondInterface;
     }
 
-    public class MyClass
+    public class ClassWithNestedInterface
     {
-        public interface IMyInterface
+        public interface INestedInterface
         {
             void DoSomething();
         }
     }
 
-    public class MyActor : Actor, MyClass.IMyInterface
+    public class ActorForNestedInterface : Actor, ClassWithNestedInterface.INestedInterface
     {
         public void DoSomething() { }
     }
 
 
-    public class MyOuterClass
+    public class OuterClass
     {
-        public class MyInnerClass
+        public class InnerClass
         {
         }
     }
 
-    public interface IMyInterface
+    public interface IOuterInnerClassInterface
     {
-        void DoSomethingWith(MyOuterClass.MyInnerClass obj);
+        void DoSomethingWith(OuterClass.InnerClass obj);
     }
 
-    public class MySecondActor : Actor, IMyInterface
+    public class ActorForNestedClass : Actor, IOuterInnerClassInterface
     {
-        public void DoSomethingWith(MyOuterClass.MyInnerClass obj) { }
+        public void DoSomethingWith(OuterClass.InnerClass obj) { }
     }
 }
