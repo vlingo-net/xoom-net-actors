@@ -12,7 +12,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 {
     public class ConsoleLogger : ILogger
     {
-        internal ConsoleLogger(string name, ConsoleLoggerPluginConfiguration configuration)
+        internal ConsoleLogger(string name)
         {
             Name = name;
         }
@@ -26,7 +26,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             var configuration = Configuration.Define();
             var loggerConfiguration = ConsoleLoggerPluginConfiguration.Define();
             loggerConfiguration.Build(configuration);
-            return new ConsoleLogger(loggerConfiguration.Name, loggerConfiguration);
+            return new ConsoleLogger(loggerConfiguration.Name);
         }
 
         public static ILogger TestInstance() => BasicInstance();
