@@ -189,7 +189,7 @@ namespace Vlingo.Actors
 
         private string GetPropertyDefinition(PropertyInfo property)
         {
-            var declaration = $"  public {GetSimpleTypeName(property.PropertyType)} {property.Name}";
+            var declaration = $"  public {GetSimpleTypeName(property.PropertyType)} {PrefixParameterName(property.Name)}";
 
             if(property.CanRead && property.CanWrite)
             {
@@ -215,7 +215,7 @@ namespace Vlingo.Actors
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
 
-            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {p.Name}"));
+            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {PrefixParameterName(p.Name)}"));
             var methodSignature = string.Format("  public {0} {1}({2}){3}",
                 GetSimpleTypeName(method.ReturnType),
                 GetMethodName(method),
@@ -411,6 +411,14 @@ namespace Vlingo.Actors
             [typeof(ushort)] = "ushort"
         };
 
+        private static readonly string[] ReservedKeywords = new string[4]
+        {
+            "object",
+            "event",
+            "struct",
+            "class"
+        };
+
         private string GetSimpleTypeName(Type type)
         {
             if(SimpleTypeNames.ContainsKey(type))
@@ -432,6 +440,16 @@ namespace Vlingo.Actors
             }
 
             return type.FullName ?? type.Name;
+        }
+
+        private string PrefixParameterName(string name)
+        {
+            if(ReservedKeywords.Contains(name))
+            {
+                return $"@{name}";
+            }
+
+            return name;
         }
 
         private string GetMethodName(MethodInfo info)
@@ -487,7 +505,14 @@ namespace Vlingo.Actors
                     .GetGenericArguments()
                     .Select(i => (i.Name, string.Join(", ", i.GetGenericParameterConstraints().Select(c => c.FullName))));
 
-                var constraints = constraintPairs.Select(p => $" where {p.Item1} : {p.Item2}");
+                var validConstraints = constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2));
+                
+                if (validConstraints.Count() == 0)
+                {
+                    return string.Empty;
+                }
+
+                var constraints = validConstraints.Select(p => $" where {p.Item1} : {p.Item2}");
                 return string.Join(" ", constraints);
             }
 

@@ -1,0 +1,64 @@
+{
+  "plugin": {
+    "name": {
+      "pooledCompletes": true,
+      "ringMailbox": true,
+      "arrayQueueMailbox": true,
+      "queueMailbox": true,
+      "consoleLogger": true,
+      "common_supervisors": true,
+      "override_supervisor": true
+    },
+    "pooledCompletes": {
+      "classname": "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin",
+      "pool": 10,
+      "mailbox": "queueMailbox"
+    },
+    "ringMailbox": {
+      "classname": "Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer.SharedRingBufferMailboxPlugin",
+      "defaultMailbox": false,
+      "size": 65535,
+      "fixedBackoff": 2,
+      "dispatcherThrottlingCount": 1
+    },
+    "arrayQueueMailbox": {
+      "classname": "Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin",
+      "defaultMailbox": false,
+      "size": 65535,
+      "fixedBackoff": 2,
+      "dispatcherThrottlingCount": 1,
+      "sendRetires": 10
+    },
+    "queueMailbox": {
+      "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
+      "defaultMailbox": true,
+      "numberOfDispatchersFactor": 1.5,
+      "dispatcherThrottlingCount": 1
+    },
+    "consoleLogger": {
+      "classname": "Vlingo.Actors.Plugin.Logging.Console.ConsoleLoggerPlugin",
+      "name": "vlingo-net/actors",
+      "defaultLogger": true
+    },
+    "common_supervisors": {
+      "classname": "Vlingo.Actors.Plugin.Supervision.CommonSupervisorsPlugin",
+      "//": "[stage=default name=pingSupervisor protocol=Vlingo.Actors.Supervision.Ping supervisor=Vlingo.Actors.Supervision.PingSupervisorActor][stage=default name=pongSupervisor protocol=Vlingo.Actors.Supervision.Pong supervisor=Vlingo.Actors.Supervision.PongSupervisorActor]"
+    },
+    "override_supervisor": {
+      "classname": "Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverridePlugin",
+      "types": "[stage=default name=overrideSupervisor supervisor=Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverride]"
+    }
+  },
+  "proxy": {
+    "generated": {
+      "classes": {
+        "main": "target/classes/",
+        "test": "target/test-classes/"
+      },
+      "sources": {
+        "main": "target/generated-sources/",
+        "test": "target/generated-test-sources/"
+      }
+    }
+  }
+}

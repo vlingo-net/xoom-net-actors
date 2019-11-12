@@ -19,10 +19,67 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenTestInterface));
             Assert.Contains("System.Threading.Tasks.Task t", result.Source);
         }
+
+        [Fact]
+        public void ShouldNotIncludeGenericContraintForMethod()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IProxyGenericMethodWithoutConstraint));
+            Assert.Contains("public void Write<TSource>(string id, int state)", result.Source);
+        }
+
+        [Fact]
+        public void ShouldCorrectlyGenerateParameterName()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IProxyGenTestReservedInterface));
+            Assert.Contains("public void DoSomething(object @object)", result.Source);
+        }
+
+        [Fact]
+        public void ShouldIncludeGenericContraintForMethod()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IProxyGenericMethodWithConstraint));
+            Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface", result.Source);
+        }
+
+        [Fact]
+        public void ShouldIncludeMultipleGenericContraintForMethod()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IProxyGenericMethodWithMultipleConstraint));
+            Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface, Vlingo.Actors.Tests.IProxyGenTestSecondInterface", result.Source);
+        }
     }
 
     public interface IProxyGenTestInterface
     {
         void DoSomething(Task t);
+    }
+
+    public interface IProxyGenTestSecondInterface
+    {
+        void DoSomething(Task t);
+    }
+
+    public interface IProxyGenTestReservedInterface
+    {
+        void DoSomething(object @object);
+    }
+
+    public interface IProxyGenericMethodWithoutConstraint
+    {
+        void Write<TSource>(string id, int state);
+    }
+
+    public interface IProxyGenericMethodWithConstraint
+    {
+        void Write<TSource>(string id, int state) where TSource : IProxyGenTestInterface;
+    }
+
+    public interface IProxyGenericMethodWithMultipleConstraint
+    {
+        void Write<TSource>(string id, int state) where TSource : IProxyGenTestInterface, IProxyGenTestSecondInterface;
     }
 }
