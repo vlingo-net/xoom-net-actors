@@ -51,6 +51,23 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithMultipleConstraint));
             Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface, Vlingo.Actors.Tests.IProxyGenTestSecondInterface", result.Source);
         }
+
+        [Fact]
+        public void ShouldCreateAProxyWithInnerInterface()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(MyClass.IMyInterface));
+            Assert.Contains("public class MyInterface__Proxy : Vlingo.Actors.Tests.MyClass.IMyInterface", result.Source);
+        }
+
+        [Fact]
+        public void ShouldCreateAProxyWithReferenceToInnerInterface()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IMyInterface));
+            Assert.Contains("public class MyInterface__Proxy : Vlingo.Actors.Tests.IMyInterface", result.Source);
+            Assert.Contains("public void DoSomethingWith(Vlingo.Actors.Tests.MyOuterClass.MyInnerClass obj)", result.Source);
+        }
     }
 
     public interface IProxyGenTestInterface
@@ -81,5 +98,36 @@ namespace Vlingo.Actors.Tests
     public interface IProxyGenericMethodWithMultipleConstraint
     {
         void Write<TSource>(string id, int state) where TSource : IProxyGenTestInterface, IProxyGenTestSecondInterface;
+    }
+
+    public class MyClass
+    {
+        public interface IMyInterface
+        {
+            void DoSomething();
+        }
+    }
+
+    public class MyActor : Actor, MyClass.IMyInterface
+    {
+        public void DoSomething() { }
+    }
+
+
+    public class MyOuterClass
+    {
+        public class MyInnerClass
+        {
+        }
+    }
+
+    public interface IMyInterface
+    {
+        void DoSomethingWith(MyOuterClass.MyInnerClass obj);
+    }
+
+    public class MySecondActor : Actor, IMyInterface
+    {
+        public void DoSomethingWith(MyOuterClass.MyInnerClass obj) { }
     }
 }
