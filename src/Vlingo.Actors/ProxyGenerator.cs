@@ -505,12 +505,14 @@ namespace Vlingo.Actors
                     .GetGenericArguments()
                     .Select(i => (i.Name, string.Join(", ", i.GetGenericParameterConstraints().Select(c => c.FullName))));
 
-                if(constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2)).Count() == 0)
+                var validConstraints = constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2));
+                
+                if (validConstraints.Count() == 0)
                 {
                     return string.Empty;
                 }
 
-                var constraints = constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2)).Select(p => $" where {p.Item1} : {p.Item2}");
+                var constraints = validConstraints.Select(p => $" where {p.Item1} : {p.Item2}");
                 return string.Join(" ", constraints);
             }
 
