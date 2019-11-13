@@ -116,7 +116,7 @@ namespace Vlingo.Actors
         private string ClassStatement(Type protocolInterface)
             => string.Format("public class {0} : {1}{2}\n{{",
                 ClassNameFor(protocolInterface, "__Proxy"),
-                GetSimpleTypeName(protocolInterface),
+                TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                 GetGenericConstraints(protocolInterface));
 
         private string Constructor(Type protocolInterface)
@@ -178,7 +178,7 @@ namespace Vlingo.Actors
                                     method.Name,
                                     ++count,
                                     GetMethodName(method),
-                                    string.Join(", ", method.GetParameters().Select(p => GetSimpleTypeName(p.ParameterType))));
+                                    string.Join(", ", method.GetParameters().Select(p => TypeFullNameToString(GetSimpleTypeName(p.ParameterType)))));
 
                     builder.Append(statement);
                 }
@@ -189,7 +189,7 @@ namespace Vlingo.Actors
 
         private string GetPropertyDefinition(PropertyInfo property)
         {
-            var declaration = $"  public {GetSimpleTypeName(property.PropertyType)} {PrefixParameterName(property.Name)}";
+            var declaration = $"  public {TypeFullNameToString(GetSimpleTypeName(property.PropertyType))} {PrefixParameterName(property.Name)}";
 
             if(property.CanRead && property.CanWrite)
             {
@@ -215,9 +215,9 @@ namespace Vlingo.Actors
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
 
-            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{GetSimpleTypeName(p.ParameterType)} {PrefixParameterName(p.Name)}"));
+            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{TypeFullNameToString(GetSimpleTypeName(p.ParameterType))} {PrefixParameterName(p.Name)}"));
             var methodSignature = string.Format("  public {0} {1}({2}){3}",
-                GetSimpleTypeName(method.ReturnType),
+                TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
                 GetMethodName(method),
                 methodParamSignature,
                 GetGenericConstraints(method));
@@ -226,15 +226,15 @@ namespace Vlingo.Actors
             var consumerStatement = isTask ?
                 string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
                               "      Action<{1}> cons128873 = __ => tcs.SetResult(__.{2}({3}));",
-                    GetSimpleTypeName(method.ReturnType),
-                    GetSimpleTypeName(protocolInterface),
+                    TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
+                    TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
                     string.Join(", ", method.GetParameters().Select(p => p.Name))) : 
                 string.Format("      Action<{0}> cons128873 = __ => __.{1}({2});",
-                    GetSimpleTypeName(protocolInterface),
+                    TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
                     string.Join(", ", method.GetParameters().Select(p => p.Name)));
-            var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", GetSimpleTypeName(method.ReturnType.GetGenericArguments().First())) : "";
+            var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", TypeFullNameToString(GetSimpleTypeName(method.ReturnType.GetGenericArguments().First()))) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
                 "      if(this.mailbox.IsPreallocated)\n" +
@@ -247,7 +247,7 @@ namespace Vlingo.Actors
                 "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
-                GetSimpleTypeName(protocolInterface),
+                TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                 isACompletes ? "completes, " : "");
             var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
             var taskReturnStatement = isTask ? "      return tcs.Task.Unwrap();\n" : "";
@@ -440,6 +440,11 @@ namespace Vlingo.Actors
             }
 
             return type.FullName ?? type.Name;
+        }
+
+        private string TypeFullNameToString(string typeFullName)
+        {
+            return typeFullName.Replace("+", ".");
         }
 
         private string PrefixParameterName(string name)

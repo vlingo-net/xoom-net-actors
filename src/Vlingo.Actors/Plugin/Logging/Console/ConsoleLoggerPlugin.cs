@@ -56,7 +56,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             // pass 0 or 1 is bootstrap, pass 2 is for reals
             if (pass < 2)
             {
-                Logger = new ConsoleLogger(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration);
+                Logger = new ConsoleLogger(consoleLoggerPluginConfiguration.Name);
                 registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
                 pass = 2;
             }
