@@ -132,6 +132,19 @@ namespace Vlingo.Actors.TestKit
         }
 
         /// <summary>
+        /// Answer me with <paramref name="supplier"/> registered for reading.
+        /// </summary>
+        /// <typeparam name="T">The type of the supplier to register.</typeparam>
+        /// <param name="name">The name of the supplier to register.</param>
+        /// <param name="supplier">The <code>System.Action&lt;T&gt;</code> to register as supplier.</param>
+        /// <returns></returns>
+        public virtual AccessSafely ReadingWith<T>(string name, Action<T> supplier)
+        {
+            suppliers[name] = supplier;
+            return this;
+        }
+
+        /// <summary>
         /// Answer me with <paramref name="consumer"/> registered for writing.
         /// </summary>
         /// <typeparam name="T">The type of the consumer parameter.</typeparam>
