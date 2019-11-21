@@ -8,7 +8,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
@@ -28,7 +27,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             isShuttingDown = new AtomicBoolean(false);
         }
 
-        public async void Execute(IRunnable task)
+        public void Execute(IRunnable task)
         {
             if (isShuttingDown.Get())
             {
@@ -37,7 +36,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             }
 
             queue.Enqueue(task);
-            await TryStartExecution();
+            TryStartExecution();
         }
 
         public void Shutdown()
@@ -45,15 +44,15 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             isShuttingDown.Set(true);
         }
 
-        private async Task TryStartExecution()
+        private void TryStartExecution()
         {
             if (!queue.IsEmpty && TryIncreaseRunningThreadCount())
             {
-                await Task.Run(() => ThreadStartMethod());
+                ThreadPool.QueueUserWorkItem(new WaitCallback(_ => ThreadStartMethod()));
             }
         }
 
-        private async void ThreadStartMethod()
+        private void ThreadStartMethod()
         {
             if (queue.TryDequeue(out IRunnable task))
             {
@@ -64,7 +63,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 finally
                 {
                     DecreaseRunningThreadCount();
-                    await TryStartExecution();
+                    TryStartExecution();
                 }
             }
         }
