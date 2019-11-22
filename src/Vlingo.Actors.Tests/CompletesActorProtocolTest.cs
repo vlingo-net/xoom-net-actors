@@ -44,8 +44,6 @@ namespace Vlingo.Actors.Tests
                 .AndThen(hello => new Hello(Prefix + hello.greeting))
                 .AndThenConsume(hello => greetingsTestResults.SetGreeting(hello.greeting));
 
-            helloCompletes.Await();
-            
             Assert.NotEqual(Hello, greetingsTestResults.GetGreeting());
             Assert.NotEqual(Hello, helloCompletes.Outcome.greeting);
             Assert.Equal(Prefix + Hello, greetingsTestResults.GetGreeting());
@@ -56,8 +54,6 @@ namespace Vlingo.Actors.Tests
             one
                 .AndThen(value => value + 1)
                 .AndThenConsume(value => valueTestResults.SetValue(value));
-
-            one.Await();
 
             Assert.NotEqual(1, valueTestResults.GetValue());
             Assert.NotEqual(1, one.Outcome);
@@ -83,23 +79,20 @@ namespace Vlingo.Actors.Tests
                 .AndThenConsume(TimeSpan.FromMilliseconds(1), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
                 .Otherwise<Hello>(failedHello =>
                 {
-                    greetingsTestResults.SetGreeting(failedHello.greeting);
+                    greetingsTestResults.SetGreeting(failedHello.greeting, true);
                     return failedHello;
                 });
-
-
-            helloCompletes.Await(TimeSpan.FromSeconds(10));
             
-            Assert.NotEqual(Hello, greetingsTestResults.GetGreeting());
+            Assert.NotEqual(Hello, greetingsTestResults.GetGreeting(true));
             Assert.Equal(HelloNot, helloCompletes.Outcome.greeting);
 
             var valueTestResults = TestResults.AfterCompleting(1);
 
             var oneCompletes = uc.GetOne()
-                .AndThenConsume(TimeSpan.FromMilliseconds(2), 0, value => valueTestResults.SetValue(value))
+                .AndThenConsume(TimeSpan.FromMilliseconds(1), 0, value => valueTestResults.SetValue(value))
                 .Otherwise<int>(value =>
                 {
-                    valueTestResults.SetValue(value);
+                    valueTestResults.SetValue(value, true);
                     return 0;
                 });
 
@@ -110,10 +103,8 @@ namespace Vlingo.Actors.Tests
             });
             thread.Start();
 
-            oneCompletes.Await(TimeSpan.FromSeconds(10));
-            
-            Assert.NotEqual(1, valueTestResults.GetValue());
-            Assert.Equal(0, valueTestResults.GetValue());
+            Assert.NotEqual(1, valueTestResults.GetValue(true));
+            Assert.Equal(0, valueTestResults.GetValue(true));
             Assert.Equal(0, oneCompletes.Outcome);
         }
 
@@ -192,7 +183,9 @@ namespace Vlingo.Actors.Tests
         private class TestResults
         {
             private readonly AtomicReference<string> receivedGreeting = new AtomicReference<string>(null);
+            private readonly AtomicReference<string> receivedFailedGreeting = new AtomicReference<string>(null);
             private readonly AtomicInteger receivedValue = new AtomicInteger(0);
+            private readonly AtomicInteger receivedFailedValue = new AtomicInteger(0);
             internal readonly AccessSafely received;
             private readonly AtomicBoolean exceptionThrown = new AtomicBoolean(false);
 
@@ -206,20 +199,24 @@ namespace Vlingo.Actors.Tests
                 var testResults = new TestResults(AccessSafely.AfterCompleting(times));
                 testResults.received.WritingWith<string>("receivedGreeting", s => testResults.receivedGreeting.Set(s));
                 testResults.received.ReadingWith("receivedGreeting", testResults.receivedGreeting.Get);
+                testResults.received.WritingWith<string>("receivedFailedGreeting", s => testResults.receivedFailedGreeting.Set(s));
+                testResults.received.ReadingWith("receivedFailedGreeting", testResults.receivedFailedGreeting.Get);
                 testResults.received.WritingWith<int>("receivedValue", v => testResults.receivedValue.Set(v));
                 testResults.received.ReadingWith("receivedValue", testResults.receivedValue.Get);
+                testResults.received.WritingWith<int>("receivedFailedValue", v => testResults.receivedFailedValue.Set(v));
+                testResults.received.ReadingWith("receivedFailedValue", testResults.receivedFailedValue.Get);
                 testResults.received.WritingWith<bool>("exceptionThrown", e => testResults.exceptionThrown.Set(e));
                 testResults.received.ReadingWith("exceptionThrown", testResults.exceptionThrown.Get);
                 return testResults;
             }
 
-            public void SetGreeting(String greeting) => received.WriteUsing("receivedGreeting", greeting);
+            public void SetGreeting(string greeting, bool isFailed = false) => received.WriteUsing(isFailed ? "receivedFailedGreeting" : "receivedGreeting", greeting);
 
-            public void SetValue(int value) => received.WriteUsing("receivedValue", value);
+            public void SetValue(int value, bool isFailed = false) => received.WriteUsing("receivedValue", value);
 
-            public string GetGreeting() => received.ReadFrom<string>("receivedGreeting");
+            public string GetGreeting(bool isFailed = false) => received.ReadFrom<string>(isFailed ? "receivedFailedGreeting" : "receivedGreeting");
 
-            public int GetValue() => received.ReadFrom<int>("receivedValue");
+            public int GetValue(bool isFailed = false) => received.ReadFrom<int>("receivedValue");
 
             public bool GetExceptionThrown() => received.ReadFrom<bool>("exceptionThrown");
         }
