@@ -44,6 +44,8 @@ namespace Vlingo.Actors.Tests
                 .AndThen(hello => new Hello(Prefix + hello.greeting))
                 .AndThenConsume(hello => greetingsTestResults.SetGreeting(hello.greeting));
 
+            helloCompletes.Await();
+            
             Assert.NotEqual(Hello, greetingsTestResults.GetGreeting());
             Assert.NotEqual(Hello, helloCompletes.Outcome.greeting);
             Assert.Equal(Prefix + Hello, greetingsTestResults.GetGreeting());
@@ -54,6 +56,8 @@ namespace Vlingo.Actors.Tests
             one
                 .AndThen(value => value + 1)
                 .AndThenConsume(value => valueTestResults.SetValue(value));
+
+            one.Await();
 
             Assert.NotEqual(1, valueTestResults.GetValue());
             Assert.NotEqual(1, one.Outcome);
@@ -84,6 +88,8 @@ namespace Vlingo.Actors.Tests
                 });
 
 
+            helloCompletes.Await(TimeSpan.FromSeconds(10));
+            
             Assert.NotEqual(Hello, greetingsTestResults.GetGreeting());
             Assert.Equal(HelloNot, helloCompletes.Outcome.greeting);
 
@@ -103,6 +109,8 @@ namespace Vlingo.Actors.Tests
                 oneCompletes.With(1); 
             });
             thread.Start();
+
+            oneCompletes.Await(TimeSpan.FromSeconds(10));
             
             Assert.NotEqual(1, valueTestResults.GetValue());
             Assert.Equal(0, valueTestResults.GetValue());
