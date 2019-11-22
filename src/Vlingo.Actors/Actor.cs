@@ -284,7 +284,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <typeparam name="T">The protocol type</typeparam>
         /// <returns>This <c>Actor</c> as <typeparamref name="T"/></returns>
-        protected internal virtual T SelfAs<T>()
+        protected internal T SelfAs<T>()
         {
             return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
         }
