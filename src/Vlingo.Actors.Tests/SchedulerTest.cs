@@ -66,6 +66,7 @@ namespace Vlingo.Actors.Tests
             }
         }
 
+        // TODO: This implementation is wrong, and needs to be changed.
         private class OnceScheduled : Actor, IFinalCountQuery, IScheduled<int>
         {
             private ICompletesEventually completesEventually;
@@ -108,7 +109,7 @@ namespace Vlingo.Actors.Tests
             private void Schedule()
             {
                 ++count;
-                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.FromMilliseconds(count == 1 ? 1000 : 10), TimeSpan.FromMilliseconds(1));
+                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(1));
             }
         }
 
