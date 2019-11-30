@@ -17,7 +17,9 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenTestInterface));
+            Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(System.Threading.Tasks.Task)\";", result.Source);
             Assert.Contains("System.Threading.Tasks.Task t", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestInterface> cons128873 = __ => __.DoSomething(t);", result.Source);
         }
 
         [Fact]
@@ -25,7 +27,9 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithoutConstraint));
+            Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state)", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithoutConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -53,7 +57,9 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithConstraint));
+            Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -61,7 +67,9 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithMultipleConstraint));
+            Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface, Vlingo.Actors.Tests.IProxyGenTestSecondInterface", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithMultipleConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -69,7 +77,9 @@ namespace Vlingo.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(ClassWithNestedInterface.INestedInterface));
+            Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething()\";", result.Source);
             Assert.Contains("public class NestedInterface__Proxy : Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface> cons128873 = __ => __.DoSomething();", result.Source);
         }
 
         [Fact]
