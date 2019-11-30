@@ -189,7 +189,7 @@ namespace Vlingo.Actors
 
         private string GetPropertyDefinition(PropertyInfo property)
         {
-            var declaration = $"  public {TypeFullNameToString(GetSimpleTypeName(property.PropertyType))} {PrefixParameterName(property.Name)}";
+            var declaration = $"  public {TypeFullNameToString(GetSimpleTypeName(property.PropertyType))} {PrefixReservedKeywords(property.Name)}";
 
             if(property.CanRead && property.CanWrite)
             {
@@ -215,7 +215,7 @@ namespace Vlingo.Actors
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
 
-            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{TypeFullNameToString(GetSimpleTypeName(p.ParameterType))} {PrefixParameterName(p.Name)}"));
+            var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{TypeFullNameToString(GetSimpleTypeName(p.ParameterType))} {PrefixReservedKeywords(p.Name)}"));
             var methodSignature = string.Format("  public {0} {1}({2}){3}",
                 TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
                 GetMethodName(method),
@@ -229,11 +229,11 @@ namespace Vlingo.Actors
                     TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
                     TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
-                    string.Join(", ", method.GetParameters().Select(p => p.Name))) : 
+                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name)))) : 
                 string.Format("      Action<{0}> cons128873 = __ => __.{1}({2});",
                     TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
-                    string.Join(", ", method.GetParameters().Select(p => p.Name)));
+                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))));
             var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", TypeFullNameToString(GetSimpleTypeName(method.ReturnType.GetGenericArguments().First()))) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
@@ -411,12 +411,21 @@ namespace Vlingo.Actors
             [typeof(ushort)] = "ushort"
         };
 
-        private static readonly string[] ReservedKeywords = new string[4]
+        private static readonly string[] ReservedKeywords = new string[13]
         {
             "object",
             "event",
             "struct",
-            "class"
+            "class",
+            "const",
+            "delegate",
+            "interface",
+            "protected",
+            "static",
+            "sealed",
+            "string",
+            "double",
+            "checked"
         };
 
         private string GetSimpleTypeName(Type type)
@@ -447,7 +456,7 @@ namespace Vlingo.Actors
             return typeFullName.Replace("+", ".");
         }
 
-        private string PrefixParameterName(string name)
+        private string PrefixReservedKeywords(string name)
         {
             if(ReservedKeywords.Contains(name))
             {

@@ -29,11 +29,23 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void ShouldCorrectlyGenerateParameterName()
+        public void ShouldCorrectlyGenerateParameterNameWithReservedKeywords()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenTestReservedInterface));
+            Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(object)\";", result.Source);
             Assert.Contains("public void DoSomething(object @object)", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestReservedInterface> cons128873 = __ => __.DoSomething(@object);", result.Source);
+        }
+
+        [Fact]
+        public void ShouldCorrectlyGenerateParameterNameWithReservedKeywordsAddtional()
+        {
+            var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
+            var result = generator.GenerateFor(typeof(IProxyGenTestReservedKeyword));
+            Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(object, bool)\";", result.Source);
+            Assert.Contains("public void DoSomething(object @object, bool @event)", result.Source);
+            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestReservedKeyword> cons128873 = __ => __.DoSomething(@object, @event);", result.Source);
         }
 
         [Fact]
@@ -85,6 +97,11 @@ namespace Vlingo.Actors.Tests
         void DoSomething(object @object);
     }
 
+    public interface IProxyGenTestReservedKeyword
+    {
+        void DoSomething(object @object, bool @event);
+    }
+
     public interface IProxyGenericMethodWithoutConstraint
     {
         void Write<TSource>(string id, int state);
@@ -112,7 +129,6 @@ namespace Vlingo.Actors.Tests
     {
         public void DoSomething() { }
     }
-
 
     public class OuterClass
     {
