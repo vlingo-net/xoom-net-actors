@@ -23,7 +23,7 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void ShouldNotIncludeGenericContraintForMethod()
+        public void ShouldNotIncludeGenericConstraintForMethod()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithoutConstraint));
@@ -53,7 +53,7 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void ShouldIncludeGenericContraintForMethod()
+        public void ShouldIncludeGenericConstraintForMethod()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithConstraint));
@@ -63,7 +63,7 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void ShouldIncludeMultipleGenericContraintForMethod()
+        public void ShouldIncludeMultipleGenericConstraintForMethod()
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithMultipleConstraint));
