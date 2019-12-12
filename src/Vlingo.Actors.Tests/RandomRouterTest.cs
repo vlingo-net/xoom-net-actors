@@ -23,7 +23,6 @@ namespace Vlingo.Actors.Tests
             var results = new Results(messagesToSend);
 
             var router = World.ActorFor<IOneArgSupplierProtocol>(Definition.Has<TestSupplierActor>(Definition.Parameters(poolSize)));
-            var answers = new int[messagesToSend];
             for (var i = 0; i < messagesToSend; i++)
             {
                 var round = i;
@@ -146,8 +145,8 @@ namespace Vlingo.Actors.Tests
             {
                 Access = AccessSafely
                     .AfterCompleting(steps)
-                    .WritingWith("answers", (int answer) => answers[index++] = answer)
-                    .ReadingWith("answers", (int index) => answers[index]);
+                    .WritingWith<int>("answers", answer => answers[index++] = answer)
+                    .ReadingWith<int, int>("answers", indx => answers[indx]);
 
                 return Access;
             }
