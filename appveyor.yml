@@ -18,7 +18,7 @@ test_script:
 deploy:
 - provider: NuGet
   api_key:
-    secure: GY5qebP1DmiaJBQ431Q88vHOIk3ol1zyAmPEScNgMgV/dylC1Stjtf5nxnj3hu60
+    secure: S7SGXqFTXTOVbVLP45Ofyf/iTsIOr9o0F/QEeQkaUMqb/PkwWjXK6+CF4WAqbfWr
   skip_symbols: true
   artifact: /.*\.nupkg/
   on:
