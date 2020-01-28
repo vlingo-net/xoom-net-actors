@@ -98,7 +98,7 @@ namespace Vlingo.Actors.Tests
 
             var thread = new Thread(() =>
             {
-                Thread.Sleep(100);
+                Thread.Sleep(150);
                 oneCompletes.With(1); 
             });
             thread.Start();
