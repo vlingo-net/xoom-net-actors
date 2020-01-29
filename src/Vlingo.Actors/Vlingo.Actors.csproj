@@ -6,7 +6,7 @@
 
     <!-- NuGet Metadata -->
     <IsPackable>true</IsPackable>
-    <PackageVersion>0.6.4.3</PackageVersion>
+    <PackageVersion>0.6.4.4</PackageVersion>
     <PackageId>Vlingo.Actors</PackageId>
     <Authors>Vlingo</Authors>
     <Description>
@@ -30,7 +30,7 @@
     <None Include="..\..\vlingo-64x64.png" Pack="true" PackagePath="\" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.6.4.3" />
+    <PackageReference Include="Vlingo.Common" Version="0.6.4.4" />
   </ItemGroup>
   <ItemGroup>
     <None Update="vlingo-actors.json">
