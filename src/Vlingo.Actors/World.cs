@@ -425,7 +425,16 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            return (TDependency)this.dynamicDependencies[name];
+            try
+            {
+                return (TDependency)this.dynamicDependencies[name];
+            }
+            catch (KeyNotFoundException)
+            {
+#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
+                return default;
+#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
+            }
         }
 
         /// <summary>

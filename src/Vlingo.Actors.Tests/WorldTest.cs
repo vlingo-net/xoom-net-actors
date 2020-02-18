@@ -76,6 +76,14 @@ namespace Vlingo.Actors.Tests
             Assert.Same(dep, result);
         }
 
+        [Fact]
+        public void TestThatResolvingAMissingDependencyReturnsNull()
+        {
+            var name = Guid.NewGuid().ToString();
+            var result = World.ResolveDynamic<IAnyDependecy>(name);
+            Assert.Null(result);
+        }
+
         [Fact(DisplayName = "TestTermination")]
         public override void Dispose()
         {
