@@ -18,6 +18,7 @@ namespace Vlingo.Actors
 {
     /// <summary>
     /// The <c>World</c> of the actor runtime through which all Stage and Actor instances are created and run.
+    /// The <c>World</c> of the actor runtime through which all Stage and Actor instances are created and run.
     /// All plugins and all default facilities are registered through the <c>World</c>.
     /// </summary>
     public sealed class World : IRegistrar
@@ -431,9 +432,7 @@ namespace Vlingo.Actors
             }
             catch (KeyNotFoundException)
             {
-#pragma warning disable CS8653 // A default expression introduces a null value for a type parameter.
-                return default;
-#pragma warning restore CS8653 // A default expression introduces a null value for a type parameter.
+                return default!;
             }
         }
 
