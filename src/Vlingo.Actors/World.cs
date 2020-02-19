@@ -425,14 +425,17 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            try
-            {
-                return (TDependency)this.dynamicDependencies[name];
-            }
-            catch (KeyNotFoundException)
+            if(!this.dynamicDependencies.TryGetValue(name, out object value))
             {
                 return default!;
             }
+
+            if(value is TDependency)
+            {
+                return (TDependency) value;
+            }
+
+            return default!;
         }
 
         /// <summary>

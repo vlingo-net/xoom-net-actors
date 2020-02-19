@@ -77,11 +77,33 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void TestThatResolvingAMissingDependencyReturnsNull()
+        public void TestThatResolvesAMissingDependencyReturnsNull()
         {
             var name = Guid.NewGuid().ToString();
             var result = World.ResolveDynamic<IAnyDependecy>(name);
             Assert.Null(result);
+        }
+
+        [Fact]
+        public void TestThatResolvesWrongByRefTypeReturnsNull()
+        {
+            var name = Guid.NewGuid().ToString();
+            var dep = 5;
+            World.RegisterDynamic(name, dep);
+
+            var result = World.ResolveDynamic<string>(name);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void TestThatResolvesWrongByValTypeReturnsDefault()
+        {
+            var name = Guid.NewGuid().ToString();
+            var dep = "teststring";
+            World.RegisterDynamic(name, dep);
+
+            var result = World.ResolveDynamic<int>(name);
+            Assert.Equal(0, result);
         }
 
         [Fact(DisplayName = "TestTermination")]
