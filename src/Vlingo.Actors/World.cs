@@ -425,12 +425,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            if(!this.dynamicDependencies.TryGetValue(name, out object value))
-            {
-                return default!;
-            }
-
-            if(value is TDependency)
+            if(this.dynamicDependencies.TryGetValue(name, out object value))
             {
                 return (TDependency) value;
             }
