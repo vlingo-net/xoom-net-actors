@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012-2019 Vaughn Vernon. All rights reserved.
+﻿// Copyright (c) 2012-2020 Vaughn Vernon. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the
 // Mozilla Public License, v. 2.0. If a copy of the MPL
@@ -233,17 +233,15 @@ namespace Vlingo.Actors.TestKit
         public virtual T ReadFromExpecting<T>(string name, T expected, long retries)
         {
             var supplier = GetRequiredSupplier<T>(name);
-
-            until.Completes();
-
+            T value = default;
             using (var waiter = new AutoResetEvent(false))
             {
                 for (long count = 0; count < retries; ++count)
                 {
                     lock (@lock)
                     {
-                        var value = (supplier as Func<T>).Invoke();
-                        if (object.Equals(expected, value))
+                        value = supplier.Invoke();
+                        if (Equals(expected, value))
                         {
                             return value;
                         }
@@ -257,7 +255,7 @@ namespace Vlingo.Actors.TestKit
                 }
             }
 
-            throw new InvalidOperationException($"Did not reach expected value: {expected}");
+            throw new InvalidOperationException($"Did not reach expected value: {expected}. Reached {value}");
         }
 
         /// <summary>

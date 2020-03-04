@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012-2019 Vaughn Vernon. All rights reserved.
+﻿// Copyright (c) 2012-2020 Vaughn Vernon. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the
 // Mozilla Public License, v. 2.0. If a copy of the MPL
@@ -74,6 +74,14 @@ namespace Vlingo.Actors.Tests
 
             var result = World.ResolveDynamic<IAnyDependecy>(name);
             Assert.Same(dep, result);
+        }
+
+        [Fact]
+        public void TestThatResolvesAMissingDependencyReturnsNull()
+        {
+            var name = Guid.NewGuid().ToString();
+            var result = World.ResolveDynamic<IAnyDependecy>(name);
+            Assert.Null(result);
         }
 
         [Fact(DisplayName = "TestTermination")]

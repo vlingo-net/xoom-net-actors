@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2012-2019 Vaughn Vernon. All rights reserved.
+﻿// Copyright (c) 2012-2020 Vaughn Vernon. All rights reserved.
 //
 // This Source Code Form is subject to the terms of the
 // Mozilla Public License, v. 2.0. If a copy of the MPL
@@ -425,7 +425,12 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            return (TDependency)this.dynamicDependencies[name];
+            if(this.dynamicDependencies.TryGetValue(name, out object value))
+            {
+                return (TDependency) value;
+            }
+
+            return default!;
         }
 
         /// <summary>
