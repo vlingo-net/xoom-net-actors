@@ -17,6 +17,7 @@
     <PackageProjectUrl>https://github.com/vlingo-net/vlingo-net-actors</PackageProjectUrl>
     <PackageIcon>vlingo-64x64.png</PackageIcon>
     <RepositoryUrl>https://github.com/vlingo-net/vlingo-net-actors</RepositoryUrl>
+    <Configurations>Debug;Release;Debug With Project References</Configurations>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
@@ -29,9 +30,19 @@
     <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.1" />
     <None Include="..\..\vlingo-64x64.png" Pack="true" PackagePath="\" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Vlingo.Common" Version="0.6.4.1" />
-  </ItemGroup>
+  <Choose>
+    <When Condition="'$(Configuration)' == 'Debug With Project References'">
+      <ItemGroup>
+        <ProjectReference Include="..\..\..\vlingo-net-common\src\Vlingo.Common\Vlingo.Common.csproj" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Vlingo.Common" Version="0.6.4.1" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+
   <ItemGroup>
     <None Update="vlingo-actors.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
