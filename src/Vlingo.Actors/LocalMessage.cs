@@ -83,14 +83,14 @@ namespace Vlingo.Actors
             {
                 try
                 {
-                    actor.completes.Reset(completes);
+                    actor.CompletesImpl.Reset(completes);
                     consumer!.Invoke((TActor)(object)actor);
-                    if (actor.completes.HasInternalOutcomeSet)
+                    if (actor.CompletesImpl.HasInternalOutcomeSet)
                     {
                         // USE THE FOLLOWING. this forces the same ce actor to be used for
                         // all completes outcomes such that completes outcomes cannot be
                         // delivered to the client out of order from the original ordered causes.
-                        actor.LifeCycle.Environment.CompletesEventually(actor.completes).With(actor.completes.InternalOutcome!);
+                        actor.LifeCycle.Environment.CompletesEventually(actor.CompletesImpl).With(actor.CompletesImpl.InternalOutcome!);
 
                         // DON'T USE THE FOLLOWING. it selects ce actors in round-robin order which
                         // can easily cause clients to see outcomes of messages delivered later to

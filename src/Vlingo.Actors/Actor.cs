@@ -18,7 +18,7 @@ namespace Vlingo.Actors
     /// </summary>
     public abstract class Actor : IStartable, IStoppable, ITestStateView
     {
-        internal readonly ResultCompletes completes;
+        internal readonly ResultCompletes CompletesImpl;
         internal LifeCycle LifeCycle { get; }
 
         /// <summary>
@@ -139,7 +139,7 @@ namespace Vlingo.Actors
             var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
             LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
             ActorFactory.ThreadLocalEnvironment.Value = null;
-            completes = new ResultCompletes<object>();
+            CompletesImpl = new ResultCompletes<object>();
         }
 
         /// <summary>
@@ -226,12 +226,12 @@ namespace Vlingo.Actors
         /// <returns><c>ICompletes</c> or <c>null</c>, depending on the current <c>IMessage</c> delivered.</returns>
         protected internal virtual ICompletes Completes()
         {
-            if (completes == null || completes.InternalClientCompletes == null)
+            if (CompletesImpl == null || CompletesImpl.InternalClientCompletes == null)
             {
                 throw new InvalidOperationException("Completes is not available for this protocol behavior; return type must not be void.");
             }
 
-            return completes.ClientCompletes()!;
+            return CompletesImpl.ClientCompletes()!;
         }
 
         /// <summary>
@@ -241,7 +241,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <returns>A <c>ICompletesEventually</c> instance.</returns>
         protected internal virtual ICompletesEventually CompletesEventually()
-            => LifeCycle.Environment.CompletesEventually(completes);
+            => LifeCycle.Environment.CompletesEventually(CompletesImpl);
 
         /// <summary>
         /// Answers the <c>Definition</c> of this <c>Actor</c>.

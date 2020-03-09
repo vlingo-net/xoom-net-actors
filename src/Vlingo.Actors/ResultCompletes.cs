@@ -7,33 +7,34 @@
 
 using System;
 using Vlingo.Common;
+using Vlingo.Common.Completion.Tasks;
 
 namespace Vlingo.Actors
 {
     internal abstract class ResultCompletes : ICompletes
     {
-        private ICompletes? internalClientCompletes;
+        private ICompletes? _internalClientCompletes;
         internal ICompletes? InternalClientCompletes
         {
-            get => resultHolder!.internalClientCompletes;
-            set => resultHolder!.internalClientCompletes = value;
+            get => ResultHolder!._internalClientCompletes;
+            set => ResultHolder!._internalClientCompletes = value;
         }
 
         private object? _internalOutcome;
         internal object? InternalOutcome
         {
-            get => resultHolder!._internalOutcome;
-            set => resultHolder!._internalOutcome = value;
+            get => ResultHolder!._internalOutcome;
+            set => ResultHolder!._internalOutcome = value;
         }
 
         private bool _hasInternalOutcome;
         internal bool HasInternalOutcomeSet
         {
-            get => resultHolder!._hasInternalOutcome;
-            set => resultHolder!._hasInternalOutcome = value;
+            get => ResultHolder!._hasInternalOutcome;
+            set => ResultHolder!._hasInternalOutcome = value;
         }
 
-        protected ResultCompletes? resultHolder;
+        protected ResultCompletes? ResultHolder;
 
         public abstract ICompletes<O> With<O>(O outcome);
         public abstract ICompletes? ClientCompletes();
@@ -58,7 +59,7 @@ namespace Vlingo.Actors
 
         private ResultCompletes(ICompletes? clientCompletes, object? internalOutcome, bool hasOutcomeSet)
         {
-            resultHolder = this;
+            ResultHolder = this;
             InternalClientCompletes = clientCompletes;
             InternalOutcome = internalOutcome;
             HasInternalOutcomeSet = hasOutcomeSet;
@@ -69,12 +70,12 @@ namespace Vlingo.Actors
             HasInternalOutcomeSet = true;
             InternalOutcome = outcome;
 
-            if (!resultHolder!.IsOfSameGenericType<O>())
+            if (!ResultHolder!.IsOfSameGenericType<O>())
             {
-                resultHolder = new ResultCompletes<O>(InternalClientCompletes, InternalOutcome, HasInternalOutcomeSet);
+                ResultHolder = new ResultCompletes<O>(InternalClientCompletes, InternalOutcome, HasInternalOutcomeSet);
             }
 
-            return (ICompletes<O>)resultHolder;
+            return (ICompletes<O>)ResultHolder;
         }
 
         public override ICompletes? ClientCompletes()
@@ -133,6 +134,11 @@ namespace Vlingo.Actors
         }
 
         public ICompletes<T> AndThenConsume(Action<T> consumer)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ICompletes<T> AndThenConsume(Action consumer)
         {
             throw new NotImplementedException();
         }
@@ -233,6 +239,21 @@ namespace Vlingo.Actors
         }
 
         public ICompletes<T> Repeat()
+        {
+            throw new NotImplementedException();
+        }
+
+        public CompletesAwaiter<T> GetAwaiter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetException(Exception exception)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetResult(T result)
         {
             throw new NotImplementedException();
         }
