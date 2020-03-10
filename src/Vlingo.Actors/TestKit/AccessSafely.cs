@@ -233,7 +233,7 @@ namespace Vlingo.Actors.TestKit
         public virtual T ReadFromExpecting<T>(string name, T expected, long retries)
         {
             var supplier = GetRequiredSupplier<T>(name);
-            T value = default;
+            T value = default!;
             using (var waiter = new AutoResetEvent(false))
             {
                 for (long count = 0; count < retries; ++count)
