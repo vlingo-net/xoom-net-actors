@@ -17,11 +17,11 @@ namespace Vlingo.Actors
 {
     public class Stage : IStoppable
     {
-        private readonly IDictionary<Type, ISupervisor> commonSupervisors;
-        private readonly Directory directory;
-        private IDirectoryScanner? directoryScanner;
-        private readonly Scheduler scheduler;
-        private AtomicBoolean stopped;
+        private readonly IDictionary<Type, ISupervisor> _commonSupervisors;
+        private readonly Directory _directory;
+        private IDirectoryScanner? _directoryScanner;
+        private readonly Scheduler _scheduler;
+        private readonly AtomicBoolean _stopped;
 
         /// <summary>
         /// Initializes the new <c>Stage</c> of the world and with name. (INTERNAL ONLY)
@@ -32,10 +32,10 @@ namespace Vlingo.Actors
         {
             World = world;
             Name = name;
-            directory = new Directory(world.AddressFactory.None());
-            commonSupervisors = new Dictionary<Type, ISupervisor>();
-            scheduler = new Scheduler();
-            stopped = new AtomicBoolean(false);
+            _directory = new Directory(world.AddressFactory.None());
+            _commonSupervisors = new Dictionary<Type, ISupervisor>();
+            _scheduler = new Scheduler();
+            _stopped = new AtomicBoolean(false);
         }
 
         /// <summary>
@@ -187,7 +187,7 @@ namespace Vlingo.Actors
         /// <typeparam name="T">The protocol supported by the backing <c>Actor</c>.</typeparam>
         /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
-        public ICompletes<T> ActorOf<T>(IAddress address) => directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
+        public ICompletes<T> ActorOf<T>(IAddress address) => _directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
 
         /// <summary>
         /// Answer the protocol reference of the actor with <paramref name="address"/> as a non-empty
@@ -198,7 +198,7 @@ namespace Vlingo.Actors
         /// <param name="address">The address of the actor to find.</param>
         /// <returns></returns>
         public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
-            => directoryScanner!.MaybeActorOf<T>(address).AndThen(proxy => proxy);
+            => _directoryScanner!.MaybeActorOf<T>(address).AndThen(proxy => proxy);
 
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Gets the count of the number of <c>Actor</c> instances contained in this <c>Stage</c>.
         /// </summary>
-        public int Count => directory.Count;
+        public int Count => _directory.Count;
 
         /// <summary>
         /// A debugging tool used to print information about the <c>Actor</c> instances contained in this <c>Stage</c>.
@@ -283,7 +283,7 @@ namespace Vlingo.Actors
             if (logger.IsEnabled)
             {
                 logger.Debug($"STAGE: {Name}");
-                directory.Dump(logger);
+                _directory.Dump(logger);
             }
         }
 
@@ -299,18 +299,18 @@ namespace Vlingo.Actors
         /// <param name="common"></param>
         public void RegisterCommonSupervisor(Type? protocol, ISupervisor common)
         {
-            if (protocol != null) commonSupervisors[protocol] = common;
+            if (protocol != null) _commonSupervisors[protocol] = common;
         }
 
         /// <summary>
         /// Gets the <c>Scheduler</c> of this <c>Stage</c>.
         /// </summary>
-        public Scheduler Scheduler => scheduler;
+        public Scheduler Scheduler => _scheduler;
 
         /// <summary>
         /// Gets whether or not this <c>Stage</c> has been stopped or is in the process of stopping.
         /// </summary>
-        public bool IsStopped => stopped.Get();
+        public bool IsStopped => _stopped.Get();
 
         public void Conclude() => Stop();
 
@@ -319,7 +319,7 @@ namespace Vlingo.Actors
         /// </summary>
         public void Stop()
         {
-            if (!stopped.CompareAndSet(false, true))
+            if (!_stopped.CompareAndSet(false, true))
             {
                 return;
             }
@@ -332,7 +332,7 @@ namespace Vlingo.Actors
                 try { Thread.Sleep(10); } catch (Exception) { }
             }
 
-            scheduler.Close();
+            _scheduler.Close();
         }
 
         /// <summary>
@@ -489,7 +489,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         internal ISupervisor CommonSupervisorOr<T>(ISupervisor defaultSupervisor)
         {
-            if (commonSupervisors.TryGetValue(typeof(T), out ISupervisor value))
+            if (_commonSupervisors.TryGetValue(typeof(T), out ISupervisor value))
             {
                 return value;
             }
@@ -500,7 +500,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Answers my Directory instance. (INTERNAL ONLY)
         /// </summary>
-        internal Directory Directory => directory;
+        internal Directory Directory => _directory;
 
         /// <summary>
         /// Handles a failure by suspending the Actor and dispatching to the Supervisor. (INTERNAL ONLY)
@@ -517,9 +517,9 @@ namespace Vlingo.Actors
         /// </summary>
         internal void StartDirectoryScanner()
         {
-            directoryScanner = ActorFor<IDirectoryScanner>(
+            _directoryScanner = ActorFor<IDirectoryScanner>(
                 Definition.Has<DirectoryScannerActor>(
-                    Definition.Parameters(directory)));
+                    Definition.Parameters(_directory)));
         }
 
         /// <summary>
@@ -529,13 +529,15 @@ namespace Vlingo.Actors
         /// <param name="actor">The <c>Actor</c> to stop.</param>
         internal void Stop(Actor actor)
         {
-            var removedActor = directory.Remove(actor.Address);
+            var removedActor = _directory.Remove(actor.Address);
 
             if (actor == removedActor)
             {
                 removedActor.LifeCycle.Stop(actor);
             }
         }
+        
+        protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
 
         /// <summary>
         /// Answers an Address for an Actor. If maybeAddress is allocated answer it; otherwise
@@ -607,7 +609,7 @@ namespace Vlingo.Actors
             }
 
             var address = maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
-            if (directory.IsRegistered(address))
+            if (_directory.IsRegistered(address))
             {
                 throw new InvalidOperationException("Address already exists: " + address);
             }
@@ -627,7 +629,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException($"Actor instantiation failed because: {e.Message}", e);
             }
 
-            directory.Register(actor.Address, actor);
+            _directory.Register(actor.Address, actor);
             actor.LifeCycle.BeforeStart(actor);
 
             return actor;
