@@ -44,18 +44,19 @@ namespace Vlingo.Actors
 
     internal class ResultCompletes<T> : ResultCompletes, ICompletes<T>
     {
-        public bool IsCompleted => throw new NotImplementedException();
+        private ICompletes<T> _completes = Common.Completes.Using<T>(new Scheduler());
+        
+        public bool IsCompleted => Completes().IsCompleted;
 
-        public bool HasFailed => throw new NotImplementedException();
+        public bool HasFailed => Completes().HasFailed;
 
-        public void Failed(Exception exception) => throw new NotImplementedException();
+        public void Failed(Exception exception) => Completes().Failed(exception);
 
-        public bool HasOutcome => throw new NotImplementedException();
+        public bool HasOutcome => Completes().HasOutcome;
 
-        public T Outcome => throw new NotImplementedException();
+        public T Outcome => Completes().Outcome;
 
-        public ResultCompletes()
-            : this(null, null, false)
+        public ResultCompletes() : this(null, null, false)
         {
         }
 
@@ -95,169 +96,174 @@ namespace Vlingo.Actors
         public override bool IsOfSameGenericType<TOtherType>()
             => typeof(T) == typeof(TOtherType);
 
-        public ICompletes<T> With(T outcome)
+        public ICompletes<T> With(T outcome) => Completes().With(outcome);
+
+        public ICompletes<TNewResult> AndThen<TNewResult>(TimeSpan timeout, TNewResult failedOutcomeValue, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            _completes.AndThen(timeout, failedOutcomeValue, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>)_completes;
         }
 
-        public ICompletes<TO> AndThen<TO>(TimeSpan timeout, TO failedOutcomeValue, Func<T, TO> function)
+        public ICompletes<TNewResult> AndThen<TNewResult>(TNewResult failedOutcomeValue, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            _completes.AndThen(failedOutcomeValue, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>)_completes;
         }
 
-        public ICompletes<TO> AndThen<TO>(TO failedOutcomeValue, Func<T, TO> function)
+        public ICompletes<TNewResult> AndThen<TNewResult>(TimeSpan timeout, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            _completes.AndThen(timeout, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>)_completes;
         }
 
-        public ICompletes<TO> AndThen<TO>(TimeSpan timeout, Func<T, TO> function)
+        public ICompletes<TNewResult> AndThen<TNewResult>(Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
-        }
-
-        public ICompletes<TO> AndThen<TO>(Func<T, TO> function)
-        {
-            throw new NotImplementedException();
+            _completes.AndThen(function);
+            SetOutcome();
+            return (ICompletes<TNewResult>)_completes;
         }
 
         public ICompletes<T> AndThenConsume(TimeSpan timeout, T failedOutcomeValue, Action<T> consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().AndThenConsume(timeout, failedOutcomeValue, consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public ICompletes<T> AndThenConsume(T failedOutcomeValue, Action<T> consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().AndThenConsume(failedOutcomeValue, consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public ICompletes<T> AndThenConsume(TimeSpan timeout, Action<T> consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().AndThenConsume(timeout, consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public ICompletes<T> AndThenConsume(Action<T> consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().AndThenConsume(consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public ICompletes<T> AndThenConsume(Action consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().AndThenConsume(consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public TNewResult AndThenTo<TNewResult>(TimeSpan timeout, TNewResult failedOutcomeValue, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            var completes = Completes().AndThenTo(timeout, failedOutcomeValue, function);
+            SetOutcome();
+            return completes;
         }
 
         public ICompletes<TNewResult> AndThenTo<TNewResult>(TimeSpan timeout, TNewResult failedOutcomeValue, Func<T, ICompletes<TNewResult>> function)
         {
-            throw new NotImplementedException();
+            _completes = (ICompletes<T>)Completes().AndThenTo(timeout, failedOutcomeValue, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>) _completes;
         }
 
         public TNewResult AndThenTo<TNewResult>(TNewResult failedOutcomeValue, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            var completes = Completes().AndThenTo(failedOutcomeValue, function);
+            SetOutcome();
+            return completes;
         }
 
         public ICompletes<TNewResult> AndThenTo<TNewResult>(TNewResult failedOutcomeValue, Func<T, ICompletes<TNewResult>> function)
         {
-            throw new NotImplementedException();
+            _completes = (ICompletes<T>)Completes().AndThenTo(failedOutcomeValue, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>) _completes;
         }
 
-        public TO AndThenTo<TF, TO>(TimeSpan timeout, TF failedOutcomeValue, Func<T, TO> function)
+        public TNewResult AndThenTo<TNewResult>(TimeSpan timeout, Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
-        }
-
-        public TO AndThenTo<TF, TO>(TF failedOutcomeValue, Func<T, TO> function)
-        {
-            throw new NotImplementedException();
-        }
-
-        public TO AndThenTo<TO>(TimeSpan timeout, Func<T, TO> function)
-        {
-            throw new NotImplementedException();
+            var completes = Completes().AndThenTo(timeout, function);
+            SetOutcome();
+            return completes;
         }
 
         public ICompletes<TNewResult> AndThenTo<TNewResult>(TimeSpan timeout, Func<T, ICompletes<TNewResult>> function)
         {
-            throw new NotImplementedException();
+            _completes = (ICompletes<T>)Completes().AndThenTo(timeout, function);
+            SetOutcome();
+            return (ICompletes<TNewResult>) _completes;
         }
 
-        public TO AndThenTo<TO>(Func<T, TO> function)
+        public TNewResult AndThenTo<TNewResult>(Func<T, TNewResult> function)
         {
-            throw new NotImplementedException();
+            var completes = Completes().AndThenTo(function);
+            SetOutcome();
+            return completes;
         }
 
         public ICompletes<TNewResult> AndThenTo<TNewResult>(Func<T, ICompletes<TNewResult>> function)
         {
-            throw new NotImplementedException();
+            _completes = (ICompletes<T>)Completes().AndThenTo(function);
+            SetOutcome();
+            return (ICompletes<TNewResult>) _completes;
         }
 
         public ICompletes<TFailedOutcome> Otherwise<TFailedOutcome>(Func<TFailedOutcome, TFailedOutcome> function)
         {
-            throw new NotImplementedException();
-        }
-
-        public ICompletes<T> Otherwise(Func<T, T> function)
-        {
-            throw new NotImplementedException();
+            var completes = Completes().Otherwise(function);
+            SetOutcome();
+            return completes;
         }
 
         public ICompletes<T> OtherwiseConsume(Action<T> consumer)
         {
-            throw new NotImplementedException();
+            _completes = Completes().OtherwiseConsume(consumer);
+            SetOutcome();
+            return _completes;
         }
 
         public ICompletes<T> RecoverFrom(Func<Exception, T> function)
         {
-            throw new NotImplementedException();
+            _completes = Completes().RecoverFrom(function);
+            SetOutcome();
+            return _completes;
         }
 
-        public T Await()
-        {
-            throw new NotImplementedException();
-        }
+        public T Await() => Completes().Await();
 
-        public TO Await<TO>()
-        {
-            throw new NotImplementedException();
-        }
+        public TNewResult Await<TNewResult>() => Completes().Await<TNewResult>();
 
-        public T Await(TimeSpan timeout)
-        {
-            throw new NotImplementedException();
-        }
+        public T Await(TimeSpan timeout) => Completes().Await(timeout);
 
-        public TO Await<TO>(TimeSpan timeout)
-        {
-            throw new NotImplementedException();
-        }
+        public TNewResult Await<TNewResult>(TimeSpan timeout) => Completes().Await<TNewResult>(timeout);
 
-        public void Failed()
-        {
-            throw new NotImplementedException();
-        }
+        public void Failed() => Completes().Failed();
 
-        public ICompletes<T> Repeat()
-        {
-            throw new NotImplementedException();
-        }
+        public ICompletes<T> Repeat() => Completes().Repeat();
 
-        public CompletesAwaiter<T> GetAwaiter()
-        {
-            throw new NotImplementedException();
-        }
+        public CompletesAwaiter<T> GetAwaiter() => new CompletesAwaiter<T>(this);
 
-        public void SetException(Exception exception)
-        {
-            throw new NotImplementedException();
-        }
+        public void SetException(Exception exception) => Completes().SetException(exception);
 
-        public void SetResult(T result)
+        public void SetResult(T result) => Completes().SetResult(result);
+
+        private ICompletes<T> Completes() => _completes;
+
+        private void SetOutcome()
         {
-            throw new NotImplementedException();
+            if (HasInternalOutcomeSet && !_completes.HasOutcome)
+            {
+                _completes.With(Outcome);
+            }
         }
     }
 }
