@@ -101,7 +101,8 @@ namespace Vlingo.Actors
                 }
                 catch(Exception ex)
                 {
-                    _actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {_actor} sending: {_representation}", ex);
+                    // Logging here duplicates logging provided by supervisor.
+                    // _actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {_actor} sending: {_representation}", ex);
                     _actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(_actor, ex));
                 }
             }
