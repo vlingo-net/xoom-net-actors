@@ -11,7 +11,7 @@ The vlingo-actors toolkit is nearly full featured, so don't be fooled by the see
 
 License (See LICENSE file for full license)
 -------------------------------------------
-Copyright © 2012-2018 Vaughn Vernon. All rights reserved.
+Copyright © 2012-2018 VLINGO LABS. All rights reserved.
 
 This Source Code Form is subject to the terms of the
 Mozilla Public License, v. 2.0. If a copy of the MPL
