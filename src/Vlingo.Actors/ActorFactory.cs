@@ -86,6 +86,7 @@ namespace Vlingo.Actors
             if (definitionParameterCount == 0)
             {
                 actor = (Actor)Activator.CreateInstance(definition.Type);
+                actor.LifeCycle.SendStart(actor);
             }
             else
             {

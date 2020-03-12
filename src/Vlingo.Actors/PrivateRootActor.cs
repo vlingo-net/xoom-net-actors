@@ -18,24 +18,29 @@ namespace Vlingo.Actors
         public PrivateRootActor()
         {
             SupervisionStrategy = new PrivateRootActorSupervisionStrategy();
+        }
+
+        protected internal override void BeforeStart()
+        {
+            base.BeforeStart();
 
             Stage.World.SetPrivateRoot(SelfAs<IStoppable>());
 
             Stage.ActorProtocolFor<INoProtocol>(
-              Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
-              this,
-              Stage.World.AddressFactory.From(World.PublicRootId, World.PublicRootName),
-              null,
-              null,
-              Logger);
+                Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
+                this,
+                Stage.World.AddressFactory.From(World.PublicRootId, World.PublicRootName),
+                null,
+                null,
+                Logger);
 
             Stage.ActorProtocolFor<IDeadLetters>(
-              Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
-              this,
-              Stage.World.AddressFactory.From(World.DeadLettersId, World.DeadLettersName),
-              null,
-              null,
-              Logger);
+                Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
+                this,
+                Stage.World.AddressFactory.From(World.DeadLettersId, World.DeadLettersName),
+                null,
+                null,
+                Logger);
         }
 
         protected internal override void AfterStop()

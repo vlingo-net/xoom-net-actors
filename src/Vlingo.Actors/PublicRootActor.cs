@@ -16,8 +16,6 @@ namespace Vlingo.Actors
         {
             SupervisionStrategy = new PublicRootActorSupervisionStrategy();
             Supervisor = SelfAs<ISupervisor>();
-            Stage.World.SetDefaultParent(this);
-            Stage.World.SetPublicRoot(SelfAs<IStoppable>());
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; }
@@ -28,6 +26,13 @@ namespace Vlingo.Actors
         {
             Logger.Error($"PublicRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Restarting.", error);
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
+        }
+
+        protected internal override void BeforeStart()
+        {
+            base.BeforeStart();
+            Stage.World.SetDefaultParent(this);
+            Stage.World.SetPublicRoot(SelfAs<IStoppable>());
         }
 
         protected internal override void AfterStop()

@@ -12,19 +12,15 @@ namespace Vlingo.Actors
 {
     public sealed class DeadLettersActor : Actor, IDeadLetters
     {
-        private readonly IList<IDeadLettersListener> listeners;
+        private readonly IList<IDeadLettersListener> _listeners;
 
-        public DeadLettersActor()
-        {
-            listeners = new List<IDeadLettersListener>();
-            Stage.World.DeadLetters = SelfAs<IDeadLetters>();
-        }
+        public DeadLettersActor() => _listeners = new List<IDeadLettersListener>();
 
         public void FailedDelivery(DeadLetter deadLetter)
         {
             Logger.Debug(deadLetter.ToString());
 
-            foreach (var listener in listeners)
+            foreach (var listener in _listeners)
             {
                 try
                 {
@@ -38,14 +34,17 @@ namespace Vlingo.Actors
             }
         }
 
-        public void RegisterListener(IDeadLettersListener listener)
+        public void RegisterListener(IDeadLettersListener listener) => _listeners.Add(listener);
+
+        protected internal override void BeforeStart()
         {
-            listeners.Add(listener);
+            base.BeforeStart();
+            Stage.World.SetDeadLetters(SelfAs<IDeadLetters>());
         }
 
         protected internal override void AfterStop()
         {
-            Stage.World.DeadLetters = null;
+            Stage.World.SetDeadLetters(null);
             base.AfterStop();
         }
     }
