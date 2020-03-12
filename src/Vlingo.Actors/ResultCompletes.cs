@@ -48,6 +48,8 @@ namespace Vlingo.Actors
 
         public bool HasFailed => throw new NotImplementedException();
 
+        public void Failed(Exception exception) => throw new NotImplementedException();
+
         public bool HasOutcome => throw new NotImplementedException();
 
         public T Outcome => throw new NotImplementedException();

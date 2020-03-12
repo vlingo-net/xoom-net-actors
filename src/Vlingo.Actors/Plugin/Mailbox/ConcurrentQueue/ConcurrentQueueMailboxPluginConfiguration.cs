@@ -37,8 +37,16 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             NumberOfDispatchersFactor = numberOfDispatchersFactor;
             return this;
         }
+        
+        public ConcurrentQueueMailboxPluginConfiguration WithNumberOfDispatchers(int numberOfDispatchers)
+        {
+            NumberOfDispatchers = numberOfDispatchers;
+            return this;
+        }
 
         public float NumberOfDispatchersFactor { get; private set; }
+        
+        public int NumberOfDispatchers { get; private set; }
 
         public string Name { get; private set; }
 

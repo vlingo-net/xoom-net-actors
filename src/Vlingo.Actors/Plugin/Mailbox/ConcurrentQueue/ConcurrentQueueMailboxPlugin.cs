@@ -11,33 +11,33 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
-        private readonly ConcurrentQueueMailboxPluginConfiguration configuration;
-        private IDispatcher? executorDispatcher;
+        private readonly ConcurrentQueueMailboxPluginConfiguration _configuration;
+        private IDispatcher? _executorDispatcher;
 
         public ConcurrentQueueMailboxPlugin()
         {
-            configuration = ConcurrentQueueMailboxPluginConfiguration.Define();
+            _configuration = ConcurrentQueueMailboxPluginConfiguration.Define();
         }
 
         private ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration)
         {
-            this.configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
+            this._configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
         }
 
-        public override string Name => configuration.Name;
+        public override string Name => _configuration.Name;
 
         public override int Pass => 1;
 
-        public override IPluginConfiguration Configuration => configuration;
+        public override IPluginConfiguration Configuration => _configuration;
 
         public override void Start(IRegistrar registrar)
         {
-            executorDispatcher = new ExecutorDispatcher(System.Environment.ProcessorCount, configuration.NumberOfDispatchersFactor);
-            registrar.Register(configuration.Name, configuration.IsDefaultMailbox, this);
+            _executorDispatcher = new ExecutorDispatcher(System.Environment.ProcessorCount, _configuration.NumberOfDispatchersFactor);
+            registrar.Register(_configuration.Name, _configuration.IsDefaultMailbox, this);
         }
 
         public IMailbox ProvideMailboxFor(int hashCode) 
-            => new ConcurrentQueueMailbox(executorDispatcher!, configuration.DispatcherThrottlingCount);
+            => new ConcurrentQueueMailbox(_executorDispatcher!, _configuration.DispatcherThrottlingCount);
 
         public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
         {
@@ -46,10 +46,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 throw new ArgumentNullException(nameof(dispatcher));
             }
 
-            return new ConcurrentQueueMailbox(dispatcher, configuration.DispatcherThrottlingCount);
+            return new ConcurrentQueueMailbox(dispatcher, _configuration.DispatcherThrottlingCount);
         }
 
-        public override void Close() => executorDispatcher!.Close();
+        public override void Close() => _executorDispatcher!.Close();
 
         public override IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new ConcurrentQueueMailboxPlugin(overrideConfiguration);

@@ -42,6 +42,7 @@ namespace Vlingo.Actors.Tests
                         .Define()
                         .WithDefaultMailbox()
                         .WithNumberOfDispatchersFactor(1.5f)
+                        .WithNumberOfDispatchers(0)
                         .WithDispatcherThrottlingCount(10))
                 .With(ConsoleLoggerPluginConfiguration
                         .Define()
