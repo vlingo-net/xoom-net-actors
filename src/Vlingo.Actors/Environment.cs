@@ -29,9 +29,9 @@ namespace Vlingo.Actors
         internal Stowage Stowage { get; }
         internal Stowage Suspended { get; }
 
-        private readonly AtomicBoolean secured;
-        private readonly AtomicBoolean stopped;
-        private Type[]? stowageOverrides;
+        private readonly AtomicBoolean _secured;
+        private readonly AtomicBoolean _stopped;
+        private Type[]? _stowageOverrides;
 
         protected internal Environment(
             Stage stage,
@@ -58,13 +58,13 @@ namespace Vlingo.Actors
             FailureMark = new FailureMark();
             Logger = logger;
             Children = new List<Actor>();
-            ProxyCache = new Dictionary<Type, object>();
+            ProxyCache = new Dictionary<Type, object>(1);
             Stowage = new Stowage();
-            stowageOverrides = null;
+            _stowageOverrides = null;
             Suspended = new Stowage();
 
-            secured = new AtomicBoolean(false);
-            stopped = new AtomicBoolean(false);
+            _secured = new AtomicBoolean(false);
+            _stopped = new AtomicBoolean(false);
         }
 
         internal void AddChild(Actor child)
@@ -108,18 +108,18 @@ namespace Vlingo.Actors
         internal object? LookUpProxy(Type type)
             => ProxyCache.ContainsKey(type) ? ProxyCache[type] : null;
 
-        internal bool IsSecured => secured.Get();
+        internal bool IsSecured => _secured.Get();
 
         internal void SetSecured()
         {
-            secured.Set(true);
+            _secured.Set(true);
         }
 
-        internal bool IsStopped => stopped.Get();
+        internal bool IsStopped => _stopped.Get();
 
         internal void Stop()
         {
-            if (stopped.CompareAndSet(false, true))
+            if (_stopped.CompareAndSet(false, true))
             {
                 StopChildren();
                 Suspended.Reset();
@@ -130,9 +130,9 @@ namespace Vlingo.Actors
 
         internal bool IsStowageOverride(Type protocol)
         {
-            if (stowageOverrides != null)
+            if (_stowageOverrides != null)
             {
-                return stowageOverrides.Contains(protocol);
+                return _stowageOverrides.Contains(protocol);
             }
 
             return false;
@@ -140,7 +140,7 @@ namespace Vlingo.Actors
 
         internal void StowageOverrides(params Type[] overrides)
         {
-            stowageOverrides = overrides;
+            _stowageOverrides = overrides;
         }
 
         private void StopChildren()
