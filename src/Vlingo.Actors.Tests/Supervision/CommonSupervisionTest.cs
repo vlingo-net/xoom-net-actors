@@ -39,10 +39,9 @@ namespace Vlingo.Actors.Tests.Supervision
                 Definition.Has<PingActor>(
                     Definition.Parameters(testResults), "ping"));
             
-            var supervisorResults = PingSupervisorActor.Instance.Value.TestResults;
+            var supervisorResults = PingSupervisorActor.Instance.Value.TestResults.Get();
             var pingAccess = testResults.AfterCompleting(5);
             var supervisorAccess = supervisorResults.AfterCompleting(5);
-
 
             for (var idx = 0; idx < 5; ++idx)
             {
@@ -54,6 +53,7 @@ namespace Vlingo.Actors.Tests.Supervision
             Assert.Equal(5, supervisorAccess.ReadFrom<int>("informedCount"));
 
             pingAccess = testResults.AfterCompleting(2);
+            supervisorAccess = supervisorResults.AfterCompleting(1);
 
             ping.Actor.Ping();
 

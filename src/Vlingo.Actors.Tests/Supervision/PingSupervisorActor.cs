@@ -16,11 +16,11 @@ namespace Vlingo.Actors.Tests.Supervision
     {
         public static readonly ThreadLocal<PingSupervisorActor> Instance = new ThreadLocal<PingSupervisorActor>();
 
-        internal readonly PingSupervisorTestResults TestResults;
+        internal readonly AtomicReference<PingSupervisorTestResults> TestResults;
 
         public PingSupervisorActor()
         {
-            TestResults = new PingSupervisorTestResults();
+            TestResults = new AtomicReference<PingSupervisorTestResults>(new PingSupervisorTestResults());
             Instance.Value = this;
         }
 
@@ -31,7 +31,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            TestResults.Access.WriteUsing("informedCount", 1);
+            TestResults.Get().Access.WriteUsing("informedCount", 1);
         }
 
         internal class PingSupervisorTestResults
