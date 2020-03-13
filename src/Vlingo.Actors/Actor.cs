@@ -141,6 +141,19 @@ namespace Vlingo.Actors
             ActorFactory.ThreadLocalEnvironment.Value = null;
             CompletesImpl = new ResultCompletes<object>();
         }
+        
+        /// <summary>
+        /// Answer my internal <see cref="ICompletes"/> from <c>Completes()</c> after preparing
+        /// for the <paramref name="eventualOutcome"/> to be set in my <c>CompletesEventually()</c>.
+        /// </summary>
+        /// <param name="eventualOutcome">The <see cref="ICompletes"/> the provides an eventual outcome</param>
+        /// <typeparam name="R">The return type of <see cref="ICompletes"/></typeparam>
+        /// <returns><see cref="ICompletes"/> of type <typeparamref name="R"/></returns>
+        protected internal ICompletes<R> AnswerFrom<R>(ICompletes<R> eventualOutcome)
+        {
+            eventualOutcome.AndThenConsume(value => CompletesEventually().With(value));
+            return (ICompletes<R>)Completes();
+        }
 
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol for the child <c>Actor</c> to be created by this parent <c>Actor</c>.
