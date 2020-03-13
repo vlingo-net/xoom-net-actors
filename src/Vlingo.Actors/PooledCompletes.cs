@@ -29,7 +29,7 @@ namespace Vlingo.Actors
 
         public virtual object? Outcome { get; private set; }
 
-        public virtual void With(object outcome)
+        public virtual void With(object? outcome)
         {
             Outcome = outcome;
             CompletesEventually.With(this);

@@ -29,7 +29,7 @@ namespace Vlingo.Actors
         /// <param name="completes">The CompletesEventually through which the eventual outcome is sent</param>
         /// <typeparam name="TNewResult">The return type of the given supplier, if any</typeparam>
         /// <returns><see cref="CompletionSupplier{TNewResult}"/></returns>
-        public static CompletionSupplier<TNewResult> SupplierOrNull<TNewResult>(Func<TNewResult> supplier, ICompletesEventually completes)
+        public static CompletionSupplier<TNewResult>? SupplierOrNull<TNewResult>(Func<TNewResult> supplier, ICompletesEventually completes)
         {
             if (supplier == null)
             {

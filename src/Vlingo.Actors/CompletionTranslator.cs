@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         /// <typeparam name="TOutcome">The outcome type of the given translator, if any</typeparam>
         /// <typeparam name="TReturn">The return type of the given translator, if any</typeparam>
         /// <returns><see cref="CompletionSupplier{TReturn}"/></returns>
-        public static CompletionTranslator<TOutcome, TReturn> TranslatorOrNull(Func<TOutcome, TReturn> translator, ICompletesEventually completes)
+        public static CompletionTranslator<TOutcome, TReturn>? TranslatorOrNull(Func<TOutcome, TReturn> translator, ICompletesEventually completes)
         {
             if (translator == null)
             {

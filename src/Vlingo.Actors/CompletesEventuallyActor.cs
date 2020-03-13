@@ -11,11 +11,11 @@ namespace Vlingo.Actors
 {
     public class CompletesEventuallyActor : Actor, ICompletesEventually
     {
-        public virtual void With(object outcome)
+        public virtual void With(object? outcome)
         {
             try
             {
-                var pooled = (PooledCompletes)outcome;
+                var pooled = (PooledCompletes)outcome!;
                 pooled.ClientCompletes!.With(pooled.Outcome!);
             }
             catch (Exception ex)

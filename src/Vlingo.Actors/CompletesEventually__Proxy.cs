@@ -68,7 +68,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void With(object outcome)
+        public void With(object? outcome)
         {
             if (!actor.IsStopped)
             {
