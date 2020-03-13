@@ -15,34 +15,36 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ConcurrentQueueMailbox : IMailbox
     {
-        private readonly AtomicBoolean delivering;
-        private readonly IDispatcher dispatcher;
-        private readonly AtomicReference<SuspendedDeliveryOverrides> suspendedDeliveryOverrides;
-        private readonly ConcurrentQueue<IMessage> queue;
-        private readonly byte throttlingCount;
+        private readonly AtomicBoolean _delivering;
+        private readonly IDispatcher _dispatcher;
+        private readonly AtomicReference<SuspendedDeliveryOverrides> _suspendedDeliveryOverrides;
+        private readonly ConcurrentQueue<IMessage> _queue;
+        private readonly byte _throttlingCount;
 
         internal ConcurrentQueueMailbox(IDispatcher dispatcher, int throttlingCount)
         {
-            this.dispatcher = dispatcher;
-            delivering = new AtomicBoolean(false);
-            suspendedDeliveryOverrides = new AtomicReference<SuspendedDeliveryOverrides>(new SuspendedDeliveryOverrides());
-            queue = new ConcurrentQueue<IMessage>();
-            this.throttlingCount = (byte)throttlingCount;
+            _dispatcher = dispatcher;
+            _delivering = new AtomicBoolean(false);
+            _suspendedDeliveryOverrides = new AtomicReference<SuspendedDeliveryOverrides>(new SuspendedDeliveryOverrides());
+            _queue = new ConcurrentQueue<IMessage>();
+            _throttlingCount = (byte)throttlingCount;
         }
 
         public void Close()
         {
-            // queue.Clear();
-            dispatcher.Close();
+            while (_queue.TryDequeue(out _))
+            {
+                // do nothing
+            }
         }
 
-        public bool IsClosed => dispatcher.IsClosed;
+        public bool IsClosed => _dispatcher.IsClosed;
 
         public void Resume(string name)
         {
-            if (suspendedDeliveryOverrides.Get()!.Pop(name))
+            if (_suspendedDeliveryOverrides.Get()!.Pop(name))
             {
-                dispatcher.Execute(this);
+                _dispatcher.Execute(this);
             }
         }
 
@@ -50,35 +52,35 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         {
             if (IsSuspended)
             {
-                if (suspendedDeliveryOverrides.Get()!.MatchesTop(message.Protocol))
+                if (_suspendedDeliveryOverrides.Get()!.MatchesTop(message.Protocol))
                 {
-                    dispatcher.Execute(new ResumingMailbox(message));
-                    if (!queue.IsEmpty)
+                    _dispatcher.Execute(new ResumingMailbox(message));
+                    if (!_queue.IsEmpty)
                     {
-                        dispatcher.Execute(this);
+                        _dispatcher.Execute(this);
                     }
                     return;
                 }
-                queue.Enqueue(message);
+                _queue.Enqueue(message);
             }
             else
             {
-                queue.Enqueue(message);
+                _queue.Enqueue(message);
                 if (!IsDelivering)
                 {
-                    dispatcher.Execute(this);
+                    _dispatcher.Execute(this);
                 }
             }
         }
 
         public void SuspendExceptFor(string name, params Type[] overrides)
-            => suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
+            => _suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
 
-        public bool IsSuspended => !suspendedDeliveryOverrides.Get()!.IsEmpty;
+        public bool IsSuspended => !_suspendedDeliveryOverrides.Get()!.IsEmpty;
 
         public IMessage? Receive()
         {
-            if(queue.TryDequeue(out IMessage result))
+            if(_queue.TryDequeue(out IMessage result))
             {
                 return result;
             }
@@ -86,17 +88,17 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             return null;
         }
 
-        public bool IsDelivering => delivering.Get();
+        public bool IsDelivering => _delivering.Get();
 
         public bool IsPreallocated => false;
 
-        public int PendingMessages => queue.Count;
+        public int PendingMessages => _queue.Count;
 
         public void Run()
         {
-            if(delivering.CompareAndSet(false, true))
+            if(_delivering.CompareAndSet(false, true))
             {
-                var total = throttlingCount;
+                var total = _throttlingCount;
                 for(var count = 0; count < total; ++count)
                 {
                     if (IsSuspended)
@@ -115,10 +117,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                         break;
                     }
                 }
-                delivering.Set(false);
-                if (!queue.IsEmpty)
+                _delivering.Set(false);
+                if (!_queue.IsEmpty)
                 {
-                    dispatcher.Execute(this);
+                    _dispatcher.Execute(this);
                 }
             }
         }
