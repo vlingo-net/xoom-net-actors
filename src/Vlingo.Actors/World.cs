@@ -22,14 +22,15 @@ namespace Vlingo.Actors
     /// </summary>
     public sealed class World : IRegistrar
     {
+        private const string PrivateRootName = "#private";
+        private const string DefaultStage = "__defaultStage";
+
         internal const long PrivateRootId = long.MaxValue;
-        internal const string PrivateRootName = "#private";
         internal const long PublicRootId = PrivateRootId - 1;
         internal const string PublicRootName = "#public";
         internal const long DeadLettersId = PublicRootId - 1;
         internal const string DeadLettersName = "#deadLetters";
         public const long HighRootId = DeadLettersId - 1;
-        internal const string DefaultStage = "__defaultStage";
 
         private readonly IDictionary<string, object> _dynamicDependencies;
         private readonly IDictionary<string, Stage> _stages;
@@ -165,7 +166,7 @@ namespace Vlingo.Actors
 
         /// <summary>
         /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
-        /// newly created <c>Actor</c> according to <paramref name="definition"/>.
+        /// newly created <c>Actor</c> according to <paramref name="parameters"/>.
         /// </summary>
         /// <param name="protocols">The array of protocols that the <c>Actor</c> supports.</param>
         /// <param name="type">The type of the <code>Actor</code> to be created.</param>
@@ -241,9 +242,7 @@ namespace Vlingo.Actors
                 if (_loggerProviderKeeper != null)
                 {
                     var maybeLoggerProvider = _loggerProviderKeeper.FindDefault();
-                    _defaultLogger = maybeLoggerProvider != null ?
-                        maybeLoggerProvider.Logger :
-                        LoggerProvider.NoOpLoggerProvider().Logger;
+                    _defaultLogger = maybeLoggerProvider.Logger;
                 }
 
                 if (_defaultLogger == null)
@@ -438,7 +437,8 @@ namespace Vlingo.Actors
         /// </summary>
         public Stage Stage => StageNamed(DefaultStage);
 
-        private readonly object stageNamedMutex = new object();
+        private readonly object _stageNamedMutex = new object();
+        
         /// <summary>
         /// Answers the <c>Stage</c> named by <paramref name="name"/>, or the newly created <c>Stage</c> instance named by <paramref name="name"/>
         /// if the {@code Stage} does not already exist.
@@ -447,7 +447,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public Stage StageNamed(string name)
         {
-            lock (stageNamedMutex)
+            lock (_stageNamedMutex)
             {
                 if (!_stages.TryGetValue(name, out Stage stage))
                 {
@@ -475,9 +475,12 @@ namespace Vlingo.Actors
         {
             if (!IsTerminated)
             {
-                foreach (var stage in _stages.Values)
+                lock (_stageNamedMutex)
                 {
-                    stage.Stop();
+                    foreach (var stage in _stages.Values)
+                    {
+                        stage.Stop();
+                    }
                 }
 
                 _loggerProviderKeeper.Close();
@@ -535,14 +538,14 @@ namespace Vlingo.Actors
             return _mailboxProviderKeeper.FindDefault();
         }
 
-        private readonly object defaultParentMutex = new object();
+        private readonly object _defaultParentMutex = new object();
         /// <summary>
         /// Sets the <paramref name="defaultParent"/> <c>Actor</c> as the default for this <c>World</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="defaultParent">The <c>Actor</c> to use as default parent.</param>
         internal void SetDefaultParent(Actor? defaultParent)
         {
-            lock (defaultParentMutex)
+            lock (_defaultParentMutex)
             {
                 if (defaultParent != null && DefaultParent != null)
                 {
@@ -553,14 +556,14 @@ namespace Vlingo.Actors
             }
         }
 
-        private readonly object deadLettersMutex = new object();
+        private readonly object _deadLettersMutex = new object();
         /// <summary>
         /// Sets the <paramref name="deadLetters"/> as the default for this <c>World</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="deadLetters">The <c>IDeadLetters</c> to use as the default.</param>
         internal void SetDeadLetters(IDeadLetters? deadLetters)
         {
-            lock (deadLettersMutex)
+            lock (_deadLettersMutex)
             {
                 if (deadLetters != null && DeadLetters != null)
                 {
@@ -577,14 +580,14 @@ namespace Vlingo.Actors
         /// </summary>
         internal IStoppable? PrivateRoot { get; private set; }
 
-        private readonly object privateRootMutex = new object();
+        private readonly object _privateRootMutex = new object();
         /// <summary>
         /// Sets the <c>PrivateRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="privateRoot">The <c>IStoppable</c> protocol backed by the <c>PrivateRootActor</c></param>
         internal void SetPrivateRoot(IStoppable? privateRoot)
         {
-            lock (privateRootMutex)
+            lock (_privateRootMutex)
             {
                 if (privateRoot != null && PrivateRoot != null)
                 {
@@ -601,14 +604,15 @@ namespace Vlingo.Actors
         /// </summary>
         internal IStoppable? PublicRoot { get; private set; }
 
-        public readonly object publicRootMutex = new object();
+        private readonly object _publicRootMutex = new object();
+        
         /// <summary>
         /// Sets the <c>PublicRootActor</c> instances as a <c>IStoppable</c>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="publicRoot">The <c>IStoppable</c> protocol backed by the <c>PublicRootActor</c></param>
         internal void SetPublicRoot(IStoppable? publicRoot)
         {
-            lock (publicRootMutex)
+            lock (_publicRootMutex)
             {
                 if (publicRoot != null && PublicRoot != null)
                 {
