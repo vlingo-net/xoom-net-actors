@@ -73,6 +73,9 @@ namespace Vlingo.Actors
 
         public T ActorFor<T>(Expression<Func<T>> factory)
             => ActorFor<T>(Definition.Has(factory));
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, string actorName)
+            => ActorFor<T>(Definition.Has(factory, actorName));
 
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
@@ -146,6 +149,12 @@ namespace Vlingo.Actors
         
         public T ActorFor<T>(Expression<Func<T>> factory, IAddress address)
             => ActorFor<T>(Definition.Has(factory), address);
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, string mailboxName, string actorName)
+            => ActorFor<T>(Definition.Has(factory, mailboxName, actorName));
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, string mailboxName, string actorName, IAddress address, ILogger logger)
+            => ActorFor<T>(Definition.Has(factory, mailboxName, actorName), address, logger);
 
         /// <summary>
         /// Answers a <code>Protocols</code> that provides one or more supported <paramref name="protocols"/> for the
