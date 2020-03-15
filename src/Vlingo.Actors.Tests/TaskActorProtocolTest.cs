@@ -32,7 +32,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public async Task TestThatTaskLikeCompletesCanBeAwaited()
         {
-            var uc = World.ActorFor<IUsesTask>(typeof(UsesTaskActor));
+            var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var two = await uc.GetTwoAsync();
             Assert.Equal(2, two);
         }

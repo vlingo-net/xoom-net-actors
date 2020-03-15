@@ -36,7 +36,7 @@ namespace Vlingo.Actors.Tests
         public void TestWorldActorForDefintion()
         {
             var testResults = new TestResults(1);
-            var simple = World.ActorFor<ISimpleWorld>(Definition.Has<SimpleActor>(Definition.Parameters(testResults)));
+            var simple = World.ActorFor<ISimpleWorld>(() => new SimpleActor(testResults));
 
             simple.SimpleSay();
 
@@ -47,7 +47,7 @@ namespace Vlingo.Actors.Tests
         public void TestWorldActorForFlat()
         {
             var testResults = new TestResults(1);
-            var simple = World.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
+            var simple = World.ActorFor<ISimpleWorld>(Definition.Has(() => new SimpleActor(testResults)));
 
             simple.SimpleSay();
 
@@ -94,31 +94,32 @@ namespace Vlingo.Actors.Tests
 
         internal class SimpleActor : Actor, ISimpleWorld
         {
-            private readonly TestResults testResults;
+            private readonly TestResults _testResults;
 
             public SimpleActor(TestResults testResults)
             {
-                this.testResults = testResults;
+                _testResults = testResults;
             }
 
-            public void SimpleSay() => testResults.SetInvoked(true);
+            public void SimpleSay() => _testResults.SetInvoked(true);
         }
 
         internal class TestResults
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
+            
             public TestResults(int times)
             {
                 var invoked = new AtomicBoolean(false);
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(times)
                     .WritingWith<bool>("invoked", val => invoked.Set(val))
                     .ReadingWith("invoked", invoked.Get);
             }
 
-            public bool Invoked => safely.ReadFrom<bool>("invoked");
+            public bool Invoked => _safely.ReadFrom<bool>("invoked");
 
-            public void SetInvoked(bool invoked) => safely.WriteUsing("invoked", invoked);
+            public void SetInvoked(bool invoked) => _safely.WriteUsing("invoked", invoked);
         }
 
         public interface IAnyDependecy { }

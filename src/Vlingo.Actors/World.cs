@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Logging;
 using Vlingo.Actors.Plugin.Mailbox;
@@ -85,10 +86,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">the <c>string</c> name to assign to the new <c>World</c> instance.</param>
         /// <returns>A <c>World</c> instance.</returns>
-        public static World Start(string name)
-        {
-            return Start(name, Properties.Instance);
-        }
+        public static World Start(string name) => Start(name, Properties.Instance);
 
         /// <summary>
         /// Answers a new <c>World</c> with the given <paramref name="name"/> and that is configured with
@@ -97,10 +95,7 @@ namespace Vlingo.Actors
         /// <param name="name">The <c>string</c> name to assign to the new <c>World</c> instance.</param>
         /// <param name="properties">The <see cref="Properties"/> used for configuration.</param>
         /// <returns>A <c>World</c> instance.</returns>
-        public static World Start(string name, Properties properties)
-        {
-            return Start(name, Configuration.DefineWith(properties));
-        }
+        public static World Start(string name, Properties properties) => Start(name, Configuration.DefineWith(properties));
 
         /// <summary>
         /// Answers a new <c>World</c> with the given <paramref name="name"/> and that is configured with
@@ -125,10 +120,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name to assign to the new <c>World</c> instance.</param>
         /// <returns>A <c>World</c> instance.</returns>
-        public static World StartWithDefaults(string name)
-        {
-            return Start(name, Configuration.Define());
-        }
+        public static World StartWithDefaults(string name) => Start(name, Configuration.Define());
 
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol of the newly created <code>Actor</code> that implements the <code>protocol</code>.
@@ -163,6 +155,8 @@ namespace Vlingo.Actors
 
             return Stage.ActorFor<T>(definition);
         }
+
+        public T ActorFor<T>(Expression<Func<T>> factory) => ActorFor<T>(Definition.Has(factory));
 
         /// <summary>
         /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
@@ -386,11 +380,11 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>ILoggerProviderKeeper</c> to register.</param>
         public void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper)
         {
-            if (this._loggerProviderKeeper != null)
+            if (_loggerProviderKeeper != null)
             {
-                this._loggerProviderKeeper.Close();
+                _loggerProviderKeeper.Close();
             }
-            this._loggerProviderKeeper = keeper;
+            _loggerProviderKeeper = keeper;
         }
 
         /// <summary>
@@ -399,11 +393,11 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>IMailboxProviderKeeper</c> to register.</param>
         public void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper)
         {
-            if (this._mailboxProviderKeeper != null)
+            if (_mailboxProviderKeeper != null)
             {
-                this._mailboxProviderKeeper.Close();
+                _mailboxProviderKeeper.Close();
             }
-            this._mailboxProviderKeeper = keeper;
+            _mailboxProviderKeeper = keeper;
         }
 
         /// <summary>
@@ -411,10 +405,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name of the dynamic dependency.</param>
         /// <param name="dep">The dependency <c>object</c> to register.</param>
-        public void RegisterDynamic(string name, object dep)
-        {
-            this._dynamicDependencies[name] = dep;
-        }
+        public void RegisterDynamic(string name, object dep) => _dynamicDependencies[name] = dep;
 
         /// <summary>
         /// Answers the <typeparamref name="TDependency"/> instance of the <paramref name="name"/> named dependency.
@@ -424,7 +415,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            if(this._dynamicDependencies.TryGetValue(name, out object value))
+            if(_dynamicDependencies.TryGetValue(name, out object value))
             {
                 return (TDependency) value;
             }

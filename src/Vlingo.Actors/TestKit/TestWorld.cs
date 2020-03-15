@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 
@@ -15,7 +16,7 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {
-        private IMailboxProvider mailboxProvider;
+        private IMailboxProvider _mailboxProvider;
         private static ThreadLocal<TestWorld> ThreadLocalInstance { get; } = new ThreadLocal<TestWorld>();
         internal static TestWorld Instance
         {
@@ -29,7 +30,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        private readonly ConcurrentDictionary<long, IList<IMessage>> actorMessages;
+        private readonly ConcurrentDictionary<long, IList<IMessage>> _actorMessages;
 
         public static TestWorld Start(string name)
         {
@@ -37,10 +38,10 @@ namespace Vlingo.Actors.TestKit
             return new TestWorld(world, name);
         }
 
-        private static readonly object startNamePropMutex = new object();
+        private static readonly object StartNamePropMutex = new object();
         public static TestWorld Start(string name, Properties properties)
         {
-            lock (startNamePropMutex)
+            lock (StartNamePropMutex)
             {
                 var world = World.Start(name, properties);
                 return new TestWorld(world, name);
@@ -59,10 +60,10 @@ namespace Vlingo.Actors.TestKit
         public static TestWorld StartWith(World world)
             => new TestWorld(world, world.Name);
 
-        private static readonly object startWithDefaultMutex = new object();
+        private static readonly object StartWithDefaultMutex = new object();
         public static TestWorld StartWithDefaults(string name)
         {
-            lock (startWithDefaultMutex)
+            lock (StartWithDefaultMutex)
             {
                 return new TestWorld(World.Start(name, Configuration.Define()), name);
             }
@@ -87,6 +88,10 @@ namespace Vlingo.Actors.TestKit
 
             return World.Stage.TestActorFor<T>(definition);
         }
+
+        public TestActor<T>? ActorFor<T>(Expression<Func<T>> factory) => ActorFor<T>(Definition.Has(factory));
+        
+        public TestActor<T>? ActorFor<T>(Expression<Func<T>> factory, string actorName) => ActorFor<T>(Definition.Has(factory, actorName));
         
         public Protocols ActorFor(Type[] protocols, Definition definition)
         {
@@ -100,7 +105,7 @@ namespace Vlingo.Actors.TestKit
 
         public IList<IMessage> AllMessagesFor(IAddress address)
         {
-            if(actorMessages.TryGetValue(address.Id, out var all))
+            if(_actorMessages.TryGetValue(address.Id, out var all))
             {
                 return all;
             }
@@ -116,7 +121,7 @@ namespace Vlingo.Actors.TestKit
             }
         }
 
-        public void ClearTrackedMessages() => actorMessages.Clear();
+        public void ClearTrackedMessages() => _actorMessages.Clear();
 
         public ILogger DefaultLogger => World.DefaultLogger;
 
@@ -132,18 +137,18 @@ namespace Vlingo.Actors.TestKit
         {
             World.Terminate();
             Instance = null!;
-            actorMessages.Clear();
+            _actorMessages.Clear();
         }
 
         public void Track(IMessage message)
         {
             var id = message.Actor.Address.Id;
-            if (!actorMessages.ContainsKey(id))
+            if (!_actorMessages.ContainsKey(id))
             {
-                actorMessages[id] = new List<IMessage>();
+                _actorMessages[id] = new List<IMessage>();
             }
 
-            actorMessages[id].Add(message);
+            _actorMessages[id].Add(message);
         }
 
         public World World { get; }
@@ -151,8 +156,8 @@ namespace Vlingo.Actors.TestKit
         private TestWorld(World world, string name)
         {
             World = world;
-            mailboxProvider = new TestMailboxPlugin(World);
-            actorMessages = new ConcurrentDictionary<long, IList<IMessage>>();
+            _mailboxProvider = new TestMailboxPlugin(World);
+            _actorMessages = new ConcurrentDictionary<long, IList<IMessage>>();
             Instance = this;
         }
 

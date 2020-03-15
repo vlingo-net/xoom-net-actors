@@ -27,14 +27,14 @@ namespace Vlingo.Actors.Tests
 
         private class SimpleActor : Actor, ISimpleWorldForDefaultConfig
         {
-            private readonly WorldTest.TestResults testResults;
+            private readonly WorldTest.TestResults _testResults;
 
             public SimpleActor(WorldTest.TestResults testResults)
             {
-                this.testResults = testResults;
+                _testResults = testResults;
             }
 
-            public void SimplySay() => testResults.SetInvoked(true);
+            public void SimplySay() => _testResults.SetInvoked(true);
         }
     }
 

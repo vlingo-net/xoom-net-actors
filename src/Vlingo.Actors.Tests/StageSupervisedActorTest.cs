@@ -17,9 +17,7 @@ namespace Vlingo.Actors.Tests
         public void TestExpectedAttributes()
         {
             var testResults = new FailureControlActor.FailureControlTestResults();
-            var failure = TestWorld.ActorFor<IFailureControl>(
-                Definition.Has<FailureControlActor>(
-                    Definition.Parameters(testResults), "failure"));
+            var failure = TestWorld.ActorFor<IFailureControl>(() => new FailureControlActor(testResults), "failure");
             var exception = new ApplicationException("Failed");
 
             var supervised = new StageSupervisedActor<IFailureControl>(failure.ActorInside, exception);

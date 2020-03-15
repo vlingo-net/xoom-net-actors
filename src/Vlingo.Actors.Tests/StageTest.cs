@@ -32,7 +32,7 @@ namespace Vlingo.Actors.Tests
         public void TestActorForNoDefinitionAndProtocol()
         {
             var testResults = new TestResults(1);
-            var simple = World.Stage.ActorFor<ISimpleWorld>(typeof(SimpleActor), testResults);
+            var simple = World.Stage.ActorFor<ISimpleWorld>(() => new SimpleActor(testResults));
             simple.SimpleSay();
 
             Assert.True(testResults.Invoked);
@@ -214,13 +214,13 @@ namespace Vlingo.Actors.Tests
 
         private class ScanResult
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
 
             public ScanResult(int times)
             {
                 var foundCount = new AtomicInteger(0);
                 var notFoundCount = new AtomicInteger(0);
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(times)
                     .WritingWith<int>("foundCount", _ => foundCount.IncrementAndGet())
                     .ReadingWith("foundCount", foundCount.Get)
@@ -228,13 +228,13 @@ namespace Vlingo.Actors.Tests
                     .ReadingWith("notFoundCount", notFoundCount.Get);
             }
 
-            public int FoundCount => safely.ReadFrom<int>("foundCount");
+            public int FoundCount => _safely.ReadFrom<int>("foundCount");
 
-            public int NotFoundCount => safely.ReadFrom<int>("notFoundCount");
+            public int NotFoundCount => _safely.ReadFrom<int>("notFoundCount");
 
-            public void Found() => safely.WriteUsing("foundCount", 1);
+            public void Found() => _safely.WriteUsing("foundCount", 1);
 
-            public void NotFound() => safely.WriteUsing("notFoundCount", 1);
+            public void NotFound() => _safely.WriteUsing("notFoundCount", 1);
         }
     }
 }

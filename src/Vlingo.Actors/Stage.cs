@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Vlingo.Actors.TestKit;
@@ -70,6 +71,9 @@ namespace Vlingo.Actors
                 definition.Supervisor,
                 definition.LoggerOr(World.DefaultLogger));
 
+        public T ActorFor<T>(Expression<Func<T>> factory)
+            => ActorFor<T>(Definition.Has(factory));
+
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
         /// that will be assigned the specific <paramref name="address"/> and <paramref name="address"/>.
@@ -94,6 +98,9 @@ namespace Vlingo.Actors
 
             return actor!.ProtocolActor;
         }
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, IAddress address, ILogger logger)
+            => ActorFor<T>(Definition.Has(factory), address, logger);
 
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
@@ -109,6 +116,9 @@ namespace Vlingo.Actors
                 definition.ParentOr(World.DefaultParent),
                 definition.Supervisor,
                 logger);
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, ILogger logger)
+            => ActorFor<T>(Definition.Has(factory), logger);
 
         /// <summary>
         /// Answers the <typeparamref name="T"/> protocol of the newly created <c>Actor</c> that implements the protocol and
@@ -133,6 +143,9 @@ namespace Vlingo.Actors
 
             return actor!.ProtocolActor;
         }
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, IAddress address)
+            => ActorFor<T>(Definition.Has(factory), address);
 
         /// <summary>
         /// Answers a <code>Protocols</code> that provides one or more supported <paramref name="protocols"/> for the
@@ -237,6 +250,9 @@ namespace Vlingo.Actors
 
             return null;
         }
+        
+        public TestActor<T>? TestActorFor<T>(Expression<Func<T>> factory)
+            => TestActorFor<T>(Definition.Has(factory));
 
         public TestActor<T>? TestActorFor<T>(Type actorType, params object[] parameters)
             => TestActorFor<T>(Definition.Has(actorType, parameters.ToList()));
@@ -326,10 +342,17 @@ namespace Vlingo.Actors
 
             Sweep();
 
-            int retries = 0;
+            var retries = 0;
             while (Count > 1 && ++retries < 10)
             {
-                try { Thread.Sleep(10); } catch (Exception) { }
+                try
+                {
+                    Thread.Sleep(10);
+                }
+                catch (Exception)
+                {
+                    // nothing to do
+                }
             }
 
             _scheduler.Close();
@@ -355,20 +378,8 @@ namespace Vlingo.Actors
             return actor!.ProtocolActor;
         }
 
-        /// <summary>
-        /// Answers the <c>ActorProtocolActor&lt;object&gt;[]</c> for the newly created Actor instance. (INTERNAL ONLY)
-        /// </summary>
-        /// <param name="protocols">The protocols of the <c>Actor</c>.</param>
-        /// <param name="definition">The <c>Definition</c> of the <c>Actor</c>.</param>
-        /// <param name="parent">The <c>Actor</c> parent of this <c>Actor</c>.</param>
-        /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
-        /// <param name="logger">Teh logger for this <c>Actor</c>.</param>
-        /// <returns></returns>
-        internal ActorProtocolActor<object>[]? ActorProtocolFor(Type[] protocols, Definition definition, Actor? parent, ISupervisor? maybeSupervisor, ILogger logger)
-        {
-            AssertProtocolCompliance(protocols);
-            return ActorProtocolFor(protocols, definition, parent, null, null, maybeSupervisor, logger);
-        }
+        internal T ActorFor<T>(Expression<Func<T>> factory, Actor? parent, ISupervisor? maybeSupervisor, ILogger logger)
+            => ActorFor<T>(Definition.Has(factory), parent, maybeSupervisor, logger);
 
         /// <summary>
         /// Answers the ActorProtocolActor for the newly created Actor instance. (INTERNAL ONLY)
@@ -407,41 +418,6 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
-        /// Answers the ActorProtocolActor[] for the newly created Actor instance. (INTERNAL ONLY)
-        /// </summary>
-        /// <param name="protocols"></param>
-        /// <param name="definition"></param>
-        /// <param name="parent"></param>
-        /// <param name="maybeAddress"></param>
-        /// <param name="maybeMailbox"></param>
-        /// <param name="maybeSupervisor"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
-        internal ActorProtocolActor<object>[]? ActorProtocolFor(
-            Type[] protocols,
-            Definition definition,
-            Actor? parent,
-            IAddress? maybeAddress,
-            IMailbox? maybeMailbox,
-            ISupervisor? maybeSupervisor,
-            ILogger logger)
-        {
-            AssertProtocolCompliance(protocols);
-            try
-            {
-                var actor = CreateRawActor(definition, parent, maybeAddress, maybeMailbox, maybeSupervisor, logger);
-                var protocolActors = ActorProxyFor(protocols, actor, actor.LifeCycle.Environment.Mailbox);
-                return ActorProtocolActor<object>.AllOf(protocolActors, actor);
-            }
-            catch (Exception e)
-            {
-                World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
-            }
-
-            return null;
-        }
-
-        /// <summary>
         /// Answers the <typeparamref name="T"/> protocol proxy for this newly created Actor. (INTERNAL ONLY)
         /// </summary>
         /// <typeparam name="T">The protocol of the Actor</typeparam>
@@ -450,35 +426,6 @@ namespace Vlingo.Actors
         /// <returns></returns>
         internal T ActorProxyFor<T>(Actor actor, IMailbox mailbox)
             => ActorProxy.CreateFor<T>(actor, mailbox);
-
-        /// <summary>
-        /// Answers the <paramref name="protocol"/> proxy for this newly created Actor. (INTERNAL ONLY)
-        /// </summary>
-        /// <param name="protocol">The protocol of the Actor</param>
-        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
-        /// <param name="mailbox">The Mailbox instance of this Actor</param>
-        /// <returns></returns>
-        internal object ActorProxyFor(Type protocol, Actor actor, IMailbox mailbox)
-            => ActorProxy.CreateFor(protocol, actor, mailbox);
-
-        /// <summary>
-        /// Answers the <c>object[]</c> protocol proxies for this newly created Actor. (INTERNAL ONLY)
-        /// </summary>
-        /// <param name="protocols">The protocols of the Actor</param>
-        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
-        /// <param name="mailbox">The Mailbox instance of this Actor</param>
-        /// <returns></returns>
-        internal object[] ActorProxyFor(Type[] protocols, Actor actor, IMailbox mailbox)
-        {
-            var proxies = new object[protocols.Length];
-
-            for (int idx = 0; idx < protocols.Length; ++idx)
-            {
-                proxies[idx] = ActorProxyFor(protocols[idx], actor, mailbox);
-            }
-
-            return proxies;
-        }
 
         /// <summary>
         /// Answers the common Supervisor for the given protocol or the defaultSupervisor if there is
@@ -515,12 +462,10 @@ namespace Vlingo.Actors
         /// <summary>
         /// Start the directory scan process in search for a given Actor instance. (INTERNAL ONLY)
         /// </summary>
-        internal void StartDirectoryScanner()
-        {
+        internal void StartDirectoryScanner() =>
             _directoryScanner = ActorFor<IDirectoryScanner>(
                 Definition.Has<DirectoryScannerActor>(
                     Definition.Parameters(_directory)));
-        }
 
         /// <summary>
         /// Stop the given Actor and all its children. The Actor instance is first removed from
@@ -531,13 +476,92 @@ namespace Vlingo.Actors
         {
             var removedActor = _directory.Remove(actor.Address);
 
-            if (actor == removedActor)
+            if (Equals(actor, removedActor))
             {
                 removedActor.LifeCycle.Stop(actor);
             }
         }
         
         protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
+        
+        /// <summary>
+        /// Answers the ActorProtocolActor[] for the newly created Actor instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocols"></param>
+        /// <param name="definition"></param>
+        /// <param name="parent"></param>
+        /// <param name="maybeAddress"></param>
+        /// <param name="maybeMailbox"></param>
+        /// <param name="maybeSupervisor"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
+        private ActorProtocolActor<object>[]? ActorProtocolFor(
+            Type[] protocols,
+            Definition definition,
+            Actor? parent,
+            IAddress? maybeAddress,
+            IMailbox? maybeMailbox,
+            ISupervisor? maybeSupervisor,
+            ILogger logger)
+        {
+            AssertProtocolCompliance(protocols);
+            try
+            {
+                var actor = CreateRawActor(definition, parent, maybeAddress, maybeMailbox, maybeSupervisor, logger);
+                var protocolActors = ActorProxyFor(protocols, actor, actor.LifeCycle.Environment.Mailbox);
+                return ActorProtocolActor<object>.AllOf(protocolActors, actor);
+            }
+            catch (Exception e)
+            {
+                World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Answers the <paramref name="protocol"/> proxy for this newly created Actor. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocol">The protocol of the Actor</param>
+        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
+        /// <param name="mailbox">The Mailbox instance of this Actor</param>
+        /// <returns></returns>
+        private object ActorProxyFor(Type protocol, Actor actor, IMailbox mailbox)
+            => ActorProxy.CreateFor(protocol, actor, mailbox);
+
+        /// <summary>
+        /// Answers the <c>object[]</c> protocol proxies for this newly created Actor. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocols">The protocols of the Actor</param>
+        /// <param name="actor">The Actor instance that backs the proxy protocol</param>
+        /// <param name="mailbox">The Mailbox instance of this Actor</param>
+        /// <returns></returns>
+        private object[] ActorProxyFor(Type[] protocols, Actor actor, IMailbox mailbox)
+        {
+            var proxies = new object[protocols.Length];
+
+            for (int idx = 0; idx < protocols.Length; ++idx)
+            {
+                proxies[idx] = ActorProxyFor(protocols[idx], actor, mailbox);
+            }
+
+            return proxies;
+        }
+        
+        /// <summary>
+        /// Answers the <c>ActorProtocolActor&lt;object&gt;[]</c> for the newly created Actor instance. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="protocols">The protocols of the <c>Actor</c>.</param>
+        /// <param name="definition">The <c>Definition</c> of the <c>Actor</c>.</param>
+        /// <param name="parent">The <c>Actor</c> parent of this <c>Actor</c>.</param>
+        /// <param name="maybeSupervisor">The possible supervisor of this <c>Actor</c>.</param>
+        /// <param name="logger">Teh logger for this <c>Actor</c>.</param>
+        /// <returns></returns>
+        private ActorProtocolActor<object>[]? ActorProtocolFor(Type[] protocols, Definition definition, Actor? parent, ISupervisor? maybeSupervisor, ILogger logger)
+        {
+            AssertProtocolCompliance(protocols);
+            return ActorProtocolFor(protocols, definition, parent, null, null, maybeSupervisor, logger);
+        }
 
         /// <summary>
         /// Answers an Address for an Actor. If maybeAddress is allocated answer it; otherwise
@@ -653,11 +677,11 @@ namespace Vlingo.Actors
     /// <typeparam name="T">The protocol type.</typeparam>
     internal class ActorProtocolActor<T>
     {
-        private readonly Actor actor;
+        private readonly Actor _actor;
 
         internal ActorProtocolActor(Actor actor, T protocol)
         {
-            this.actor = actor;
+            _actor = actor;
             ProtocolActor = protocol;
         }
 
@@ -704,12 +728,12 @@ namespace Vlingo.Actors
             return testActors;
         }
 
-        internal TestActor<T> ToTestActor() => new TestActor<T>(actor, ProtocolActor, actor.Address);
+        internal TestActor<T> ToTestActor() => new TestActor<T>(_actor, ProtocolActor, _actor.Address);
 
         private object ToTestActor(Type protocol)
         {
             var type = typeof(TestActor<>).MakeGenericType(protocol);
-            return Activator.CreateInstance(type, actor, ProtocolActor, actor.Address);
+            return Activator.CreateInstance(type, _actor, ProtocolActor, _actor.Address);
         }
     }
 }

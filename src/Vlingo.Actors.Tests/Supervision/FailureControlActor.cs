@@ -14,65 +14,65 @@ namespace Vlingo.Actors.Tests.Supervision
 {
     public class FailureControlActor : Actor, IFailureControl
     {
-        public static ThreadLocal<FailureControlActor> Instance = new ThreadLocal<FailureControlActor>();
-        private readonly FailureControlTestResults testResults;
+        public static readonly ThreadLocal<FailureControlActor> Instance = new ThreadLocal<FailureControlActor>();
+        private readonly FailureControlTestResults _testResults;
 
         public FailureControlActor(FailureControlTestResults testResults)
         {
-            this.testResults = testResults;
+            _testResults = testResults;
             Instance.Value = this;
             testResults.Access = testResults.AfterCompleting(0);
         }
 
         public void AfterFailure()
         {
-            testResults.Access.WriteUsing("afterFailureCount", 1);
+            _testResults.Access.WriteUsing("afterFailureCount", 1);
         }
 
         public void AfterFailureCount(int count)
         {
-            testResults.Access.WriteUsing("afterFailureCountCount", 1);
+            _testResults.Access.WriteUsing("afterFailureCountCount", 1);
         }
 
         public void FailNow()
         {
-            testResults.Access.WriteUsing("failNowCount", 1);
+            _testResults.Access.WriteUsing("failNowCount", 1);
             throw new ApplicationException("Intended failure.");
         }
 
         protected internal override void BeforeStart()
         {
-            testResults.Access.WriteUsing("beforeStartCount", 1);
+            _testResults.Access.WriteUsing("beforeStartCount", 1);
             base.BeforeStart();
         }
 
         protected internal override void AfterStop()
         {
-            testResults.Access.WriteUsing("afterStopCount", 1);
+            _testResults.Access.WriteUsing("afterStopCount", 1);
             base.AfterStop();
         }
 
         protected internal override void BeforeRestart(Exception reason)
         {
-            testResults.Access.WriteUsing("beforeRestartCount", 1);
+            _testResults.Access.WriteUsing("beforeRestartCount", 1);
             base.BeforeRestart(reason);
         }
 
         protected internal override void AfterRestart(Exception reason)
         {
             base.AfterRestart(reason);
-            testResults.Access.WriteUsing("afterRestartCount", 1);
+            _testResults.Access.WriteUsing("afterRestartCount", 1);
         }
 
         protected internal override void BeforeResume(Exception reason)
         {
-            testResults.Access.WriteUsing("beforeResume", 1);
+            _testResults.Access.WriteUsing("beforeResume", 1);
             base.BeforeResume(reason);
         }
 
         public override void Stop()
         {
-            testResults.Access.WriteUsing("stoppedCount", 1);
+            _testResults.Access.WriteUsing("stoppedCount", 1);
             base.Stop();
         }
 

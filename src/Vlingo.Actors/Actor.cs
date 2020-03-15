@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
@@ -183,6 +184,9 @@ namespace Vlingo.Actors
 
             return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
         }
+
+        protected internal virtual T ChildActorFor<T>(Expression<Func<T>> factory)
+            => ChildActorFor<T>(Definition.Has(factory));
 
         /// <summary>
         /// Answers the protocol for the child <c>Actor</c> to be created by this parent <c>Actor</c>.

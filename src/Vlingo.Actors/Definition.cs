@@ -8,12 +8,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Vlingo.Actors
 {
     // TODO: possible removal/cleanup of overloaded ctors
     public sealed class Definition
     {
+        private readonly List<object> _parameters;
+        private ILogger? Logger { get; }
+        
         public static readonly List<object> NoParameters = new List<object>();
 
         public static Definition Has<T>(List<object> parameters) where T : Actor 
@@ -30,6 +34,39 @@ namespace Vlingo.Actors
 
         public static Definition Has(Type? typeOfT, List<object> parameters, string actorName)
             => new Definition(typeOfT, parameters, actorName);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory)
+            => Has(factory, null, null, null, null);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, string? actorName)
+            => Has(factory, null, null, actorName, null);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, string? actorName, ILogger? logger)
+            => Has(factory, null, null, actorName, logger);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? actorName)
+            => Has(factory, parent, null, actorName, null);
+
+        public static Definition Has<T>(Expression<Func<T>> factory, string? mailboxName, string? actorName)
+            => Has(factory, null, mailboxName, actorName, null);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName)
+            => Has(factory, parent, mailboxName, actorName, null);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName, ILogger? logger)
+        {
+            var newExpression = factory.Body as NewExpression;
+            if (newExpression == null)
+                throw new ArgumentException("The create function must be a 'new T (parameters)' expression");
+
+            var expressionType = newExpression.Type;
+            if (!typeof(Actor).IsAssignableFrom(expressionType))
+                throw new ArgumentException($"The type '{expressionType.FullName}' must be instance of an actor. Derive it from Actor class.");
+
+            var parameters = newExpression.GetArguments().ToList();
+
+            return new Definition(expressionType, parameters, parent, mailboxName, actorName, logger);
+        }
 
         public static Definition Has<T>(
             List<object> parameters,
@@ -83,12 +120,10 @@ namespace Vlingo.Actors
         }
 
         public Type? Type { get; }
-        private List<object> parameters;
         public Actor? Parent { get; }
         public string? MailboxName { get; }
         public string? ActorName { get; }
         public ISupervisor? Supervisor { get; }
-        private ILogger? Logger { get; }
 
         private Definition(
             Type? type,
@@ -99,7 +134,7 @@ namespace Vlingo.Actors
             ILogger? logger)
         {
             Type = type;
-            this.parameters = parameters;
+            _parameters = parameters;
             Parent = parent;
             MailboxName = mailboxName;
             ActorName = actorName;
@@ -165,7 +200,7 @@ namespace Vlingo.Actors
 
         public Actor? ParentOr(Actor? defaultParent) => Parent ?? defaultParent;
 
-        internal List<object> InternalParameters() => parameters;
+        internal List<object> InternalParameters() => _parameters;
 
         private ISupervisor? AssignSupervisor(Actor? parent)
         {

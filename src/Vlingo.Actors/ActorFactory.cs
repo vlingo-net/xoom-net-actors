@@ -18,7 +18,7 @@ namespace Vlingo.Actors
         public static Type ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
             => ActorClassWithProtocol(actorClassname, typeof(TProtocol));
 
-        public static Type ActorClassWithProtocol(string actorClassname, Type protocolClass)
+        private static Type ActorClassWithProtocol(string actorClassname, Type protocolClass)
         {
             try
             {
@@ -81,7 +81,7 @@ namespace Vlingo.Actors
 
             Actor? actor = null;
 
-            int definitionParameterCount = definition.InternalParameters().Count;
+            var definitionParameterCount = definition.InternalParameters().Count;
 
             if (definitionParameterCount == 0)
             {
@@ -119,7 +119,7 @@ namespace Vlingo.Actors
 
         private static Actor? Start(ConstructorInfo ctor, IAddress address, Definition definition, ILogger logger)
         {
-            Actor? actor = null;
+            Actor? actor;
             object[]? args = null;
             Exception? cause = null;
 
@@ -147,7 +147,7 @@ namespace Vlingo.Actors
                 }
             }
 
-            if(cause != null)
+            if (cause != null)
             {
                 logger.Error("ActorFactory: failed actor creation. "
                                 + "This is sometimes cause by the constructor parameter types not matching "
@@ -162,7 +162,7 @@ namespace Vlingo.Actors
                 throw new ArgumentException($"ActorFactory failed actor creation for: {address}");
             }
 
-            return actor;
+            return null;
         }
 
         private static object[] Unfold(object[] args)
