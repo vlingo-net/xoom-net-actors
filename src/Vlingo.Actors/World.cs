@@ -157,6 +157,8 @@ namespace Vlingo.Actors
         }
 
         public T ActorFor<T>(Expression<Func<T>> factory) => ActorFor<T>(Definition.Has(factory));
+        
+        public T ActorFor<T>(Expression<Func<T>> factory, string actorName) => ActorFor<T>(Definition.Has(factory, actorName));
 
         /// <summary>
         /// Answers a <c>Protocols</c> that provides one or more supported <paramref name="protocols"/> for the
