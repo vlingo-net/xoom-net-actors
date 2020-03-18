@@ -12,23 +12,23 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ExecutorDispatcher : IDispatcher
     {
-        private readonly AtomicBoolean closed;
-        private readonly ThreadPoolExecutor executor;
+        private readonly AtomicBoolean _closed;
+        private readonly ThreadPoolExecutor _executor;
 
         internal ExecutorDispatcher(int availableThreads, float numberOfDispatchersFactor)
         {
             var maxAllowedConcurrentThreads = (int)(availableThreads * numberOfDispatchersFactor);
-            closed = new AtomicBoolean(false);
-            executor = new ThreadPoolExecutor(maxAllowedConcurrentThreads, HandleRejection);
+            _closed = new AtomicBoolean(false);
+            _executor = new ThreadPoolExecutor(maxAllowedConcurrentThreads, HandleRejection);
         }
 
         public void Close()
         {
-            closed.Set(true);
-            executor.Shutdown();
+            _closed.Set(true);
+            _executor.Shutdown();
         }
 
-        public bool IsClosed => closed.Get();
+        public bool IsClosed => _closed.Get();
 
         public bool RequiresExecutionNotification => false;
 
@@ -36,7 +36,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         {
             if (!IsClosed)
             {
-                executor.Execute(mailbox);
+                _executor.Execute(mailbox);
             }
         }
 

@@ -21,7 +21,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         private ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration)
         {
-            this._configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
+            _configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
         }
 
         public override string Name => _configuration.Name;
