@@ -14,7 +14,7 @@ namespace Vlingo.Actors.Tests
 {
     public class TaskActorProtocolTest : ActorsTest
     {
-        [Fact(Skip = "Mailbox suspension is not implemented yet")]
+        [Fact]
         public async Task TestThatMailboxDoesntDeliverWhileAwaiting()
         {
             var uc = World.ActorFor<IUsesTask>(typeof(UsesTaskActor));
