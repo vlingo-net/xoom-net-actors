@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
@@ -34,6 +35,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             queue.CompleteAdding();
             Dispose(true);
         }
+        
+        public TaskScheduler TaskScheduler { get; }
 
         public bool IsClosed => dispatcher.IsClosed;
 
@@ -105,7 +108,5 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
       
             disposed = true;
         }
-
-        
     }
 }

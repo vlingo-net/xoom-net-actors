@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Common;
@@ -17,7 +18,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public async Task TestThatMailboxDoesntDeliverWhileAwaiting()
         {
-            var uc = World.ActorFor<IUsesTask>(typeof(UsesTaskActor));
+            var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var thread = new Thread(() =>
             {
                 Thread.Sleep(1000);
@@ -27,6 +28,21 @@ namespace Vlingo.Actors.Tests
             
             var one = await uc.GetOne();
             Assert.Equal(1, one);
+        }
+        
+        [Fact]
+        public async Task TestThatExceptionIsCorrectlyHandled()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesFailingTaskActor());
+
+            try
+            {
+                await uc.GetOne();
+            }
+            catch (Exception e)
+            {
+                Assert.Equal("Cannot perform the operation", e.Message);
+            }
         }
         
         [Fact]
@@ -57,6 +73,25 @@ namespace Vlingo.Actors.Tests
         public void Change(int newOne)
         {
             _one = newOne;
+        }
+    }
+    
+    public class UsesFailingTaskActor : Actor, IUsesTask
+    {
+        public async Task<int> GetOne()
+        {
+            await Task.Delay(100);
+            throw new Exception("Cannot perform the operation");
+        }
+
+        public async ICompletes<int> GetTwoAsync()
+        {
+            await Task.Delay(100);
+            throw new Exception("Cannot perform the operation");
+        }
+
+        public void Change(int newOne)
+        {
         }
     }
 

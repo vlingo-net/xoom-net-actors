@@ -6,19 +6,19 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public class ResumingMailbox : IMailbox
     {
-        private readonly IMessage message;
+        private readonly IMessage _message;
 
-        public ResumingMailbox(IMessage message)
-        {
-            this.message = message;
-        }
+        public ResumingMailbox(IMessage message) => _message = message;
 
+        public TaskScheduler TaskScheduler { get; }
+        
         public bool IsClosed => false;
 
         public bool IsDelivering => true;
@@ -39,7 +39,7 @@ namespace Vlingo.Actors
         {
         }
 
-        public void Run() => message.Deliver();
+        public void Run() => _message.Deliver();
 
         public void Send(IMessage message)
         {

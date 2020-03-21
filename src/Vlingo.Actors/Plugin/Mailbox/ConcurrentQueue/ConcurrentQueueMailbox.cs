@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
@@ -17,6 +18,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
     {
         private readonly AtomicBoolean _delivering;
         private readonly IDispatcher _dispatcher;
+        private readonly AtomicReference<ExecutorDispatcherAsync> _dispatcherAsync;
         private readonly AtomicReference<SuspendedDeliveryOverrides> _suspendedDeliveryOverrides;
         private readonly ConcurrentQueue<IMessage> _queue;
         private readonly byte _throttlingCount;
@@ -24,11 +26,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         internal ConcurrentQueueMailbox(IDispatcher dispatcher, int throttlingCount)
         {
             _dispatcher = dispatcher;
+            _dispatcherAsync = new AtomicReference<ExecutorDispatcherAsync>(new ExecutorDispatcherAsync(this));
             _delivering = new AtomicBoolean(false);
             _suspendedDeliveryOverrides = new AtomicReference<SuspendedDeliveryOverrides>(new SuspendedDeliveryOverrides());
             _queue = new ConcurrentQueue<IMessage>();
             _throttlingCount = (byte)throttlingCount;
         }
+
+        public TaskScheduler TaskScheduler => _dispatcherAsync.Get();
 
         public void Close()
         {
@@ -80,7 +85,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public IMessage? Receive()
         {
-            if(_queue.TryDequeue(out IMessage result))
+            if(_queue.TryDequeue(out var result))
             {
                 return result;
             }
@@ -108,7 +113,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
                     var message = Receive();
 
-                    if(message != null)
+                    if (message != null)
                     {
                         message.Deliver();
                     }
@@ -130,25 +135,24 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             throw new NotSupportedException("Not a preallocated mailbox.");
         }
 
-
         private class SuspendedDeliveryOverrides
         {
-            private readonly AtomicBoolean accessible;
-            private readonly IList<Overrides> overrides;
+            private readonly AtomicBoolean _accessible;
+            private readonly IList<Overrides> _overrides;
 
             public SuspendedDeliveryOverrides()
             {
-                accessible = new AtomicBoolean(false);
-                overrides = new List<Overrides>();
+                _accessible = new AtomicBoolean(false);
+                _overrides = new List<Overrides>();
             }
 
-            public bool IsEmpty => overrides.Count == 0;
+            public bool IsEmpty => _overrides.Count == 0;
 
             public bool MatchesTop(Type messageType)
             {
                 var overrides = Peek();
 
-                if(overrides != null)
+                if (overrides != null)
                 {
                     return overrides.Types.Contains(messageType);
                 }
@@ -161,14 +165,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 var retries = 0;
                 while (true)
                 {
-                    if(accessible.CompareAndSet(false, true))
+                    if(_accessible.CompareAndSet(false, true))
                     {
                         Overrides? temp = null;
                         if (!IsEmpty)
                         {
-                            temp = overrides[0];
+                            temp = _overrides[0];
                         }
-                        accessible.Set(false);
+                        _accessible.Set(false);
                         return temp;
                     }
 
@@ -185,24 +189,24 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 var retries = 0;
                 while (true)
                 {
-                    if(accessible.CompareAndSet(false, true))
+                    if(_accessible.CompareAndSet(false, true))
                     {
-                        var elements = overrides.Count;
+                        var elements = _overrides.Count;
                         for(var index=0; index < elements; ++index)
                         {
-                            if (name.Equals(overrides[index].Name))
+                            if (name.Equals(_overrides[index].Name))
                             {
                                 if(index == 0)
                                 {
-                                    overrides.RemoveAt(index);
+                                    _overrides.RemoveAt(index);
                                     popped = true;
                                     --elements;
 
                                     while(index < elements)
                                     {
-                                        if (overrides[index].Obsolete)
+                                        if (_overrides[index].Obsolete)
                                         {
-                                            overrides.RemoveAt(index);
+                                            _overrides.RemoveAt(index);
                                             --elements;
                                         }
                                         else
@@ -213,10 +217,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                                 }
                                 else
                                 {
-                                    overrides[index].Obsolete = true;
+                                    _overrides[index].Obsolete = true;
                                 }
 
-                                accessible.Set(false);
+                                _accessible.Set(false);
                                 break;
                             }
                         }
@@ -239,10 +243,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
                 while (true)
                 {
-                    if(accessible.CompareAndSet(false, true))
+                    if(_accessible.CompareAndSet(false, true))
                     {
-                        this.overrides.Add(overrides);
-                        accessible.Set(false);
+                        this._overrides.Add(overrides);
+                        _accessible.Set(false);
                         break;
                     }
 
@@ -252,7 +256,6 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                     }
                 }
             }
-
         }
 
         private class Overrides

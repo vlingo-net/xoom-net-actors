@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 
@@ -33,6 +34,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         public void Run()
             => throw new NotSupportedException("TestMailbox does not support this operation.");
 
+        public TaskScheduler TaskScheduler { get; }
+        
         public void Close()
         {
             IsClosed = true;

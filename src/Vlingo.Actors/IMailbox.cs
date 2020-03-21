@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors
@@ -87,9 +88,7 @@ namespace Vlingo.Actors
         /// Answer whether or not I am a <code>IMailbox</code> with pre-allocated and reusable message elements.
         /// </summary>
         bool IsPreallocated { get; }
-
         
-
         /// <summary>
         /// Arrange for <code>IMessage</code> to be sent by setting the pre-allocated
         /// and reusable element with the parameters. This manner of sending
@@ -101,6 +100,11 @@ namespace Vlingo.Actors
         /// <param name="completes">The completes through which return values are communicated; null if void return.</param>
         /// <param name="representation">The string representation of this message invocation.</param>
         void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
+        
+        /// <summary>
+        /// Gets the mailbox task scheduler for executing <see cref="Task"/> based asynchronous operations.
+        /// </summary>
+        TaskScheduler TaskScheduler { get; }
     }
 
     public static class Mailbox
@@ -108,5 +112,6 @@ namespace Vlingo.Actors
         public const string Exceptional = "#exceptional";
         public const string Paused = "#paused";
         public const string Stopping = "#stopping";
+        public const string Task = "#task";
     }
 }

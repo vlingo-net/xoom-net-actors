@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
@@ -106,6 +107,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 this.logger = logger;
                 queue = new ConcurrentQueue<IMessage>();
             }
+            
+            public TaskScheduler TaskScheduler { get; }
 
             public bool IsClosed => false;
 

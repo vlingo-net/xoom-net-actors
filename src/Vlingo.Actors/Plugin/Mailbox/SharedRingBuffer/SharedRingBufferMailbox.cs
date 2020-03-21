@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading.Tasks;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
@@ -42,6 +43,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 dispatcher.Close();
             }
         }
+        
+        public TaskScheduler TaskScheduler { get; }
 
         public virtual bool IsClosed => closed.Get();
 

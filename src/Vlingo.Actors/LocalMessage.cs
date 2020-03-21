@@ -99,7 +99,7 @@ namespace Vlingo.Actors
                         // actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.InternalOutcome);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     // Logging here duplicates logging provided by supervisor.
                     // _actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {_actor} sending: {_representation}", ex);
