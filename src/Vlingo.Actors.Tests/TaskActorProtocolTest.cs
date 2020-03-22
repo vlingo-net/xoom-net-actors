@@ -76,13 +76,13 @@ namespace Vlingo.Actors.Tests
             Assert.Equal(2, two);
         }
         
-        [Fact(Skip = "Doesn't work because client completes in null on Actor")]
+        [Fact]
         public async Task TestThatMailboxDoesntDeliverForCompletesWhileAwaiting()
         {
             var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var thread = new Thread(() =>
             {
-                Thread.Sleep(100);
+                Thread.Sleep(5000);
                 uc.Change(10);
             });
             thread.Start();
@@ -91,7 +91,7 @@ namespace Vlingo.Actors.Tests
             Assert.Equal(2, one);
         }
         
-        [Fact(Skip = "Doesn't work because client completes in null on Actor")]
+        [Fact]
         public async Task TestThatSchedulesLongRunningOperationsForCompletesAndSuspendMailbox()
         {
             var uc = World.ActorFor<IUsesTask>(() => new UsesLongRunningTaskActor());
@@ -164,12 +164,14 @@ namespace Vlingo.Actors.Tests
         public async ICompletes<int> GetTwoAsync()
         {
             await Task.Delay(100);
-            return await Task<int>.Factory.StartNew(() =>
+            var result = await Task<int>.Factory.StartNew(() =>
             {
                 Task.Delay(2000).Wait();
-                return 2;
+                return _one;
             }, TaskCreationOptions.LongRunning)
                 .ContinueWith(t => t.Result + 1);
+
+            return await Completes().With(result);
         }
 
         public void Change(int newOne)
