@@ -21,7 +21,7 @@ namespace Vlingo.Actors.Tests
             var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var thread = new Thread(() =>
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(100);
                 uc.Change(10);
             });
             thread.Start();
@@ -46,11 +46,64 @@ namespace Vlingo.Actors.Tests
         }
         
         [Fact]
+        public async Task TestThatSchedulesLongRunningOperations()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesLongRunningTaskActor());
+            var one = await uc.GetOne();
+            Assert.Equal(1, one);
+        }
+        
+        [Fact]
+        public async Task TestThatSchedulesLongRunningOperationsAndSuspendMailbox()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesLongRunningTaskActor());
+            var thread = new Thread(() =>
+            {
+                Thread.Sleep(100);
+                uc.Change(10);
+            });
+            thread.Start();
+            
+            var one = await uc.GetOne();
+            Assert.Equal(1, one);
+        }
+        
+        [Fact]
         public async Task TestThatTaskLikeCompletesCanBeAwaited()
         {
             var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var two = await uc.GetTwoAsync();
             Assert.Equal(2, two);
+        }
+        
+        [Fact(Skip = "Doesn't work because client completes in null on Actor")]
+        public async Task TestThatMailboxDoesntDeliverForCompletesWhileAwaiting()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
+            var thread = new Thread(() =>
+            {
+                Thread.Sleep(100);
+                uc.Change(10);
+            });
+            thread.Start();
+            
+            var one = await uc.GetTwoAsync();
+            Assert.Equal(2, one);
+        }
+        
+        [Fact(Skip = "Doesn't work because client completes in null on Actor")]
+        public async Task TestThatSchedulesLongRunningOperationsForCompletesAndSuspendMailbox()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesLongRunningTaskActor());
+            var thread = new Thread(() =>
+            {
+                Thread.Sleep(100);
+                uc.Change(10);
+            });
+            thread.Start();
+            
+            var one = await uc.GetTwoAsync();
+            Assert.Equal(2, one);
         }
     }
     
@@ -60,14 +113,14 @@ namespace Vlingo.Actors.Tests
         
         public async Task<int> GetOne()
         {
-            await Task.Delay(5000);
+            await Task.Delay(1000);
             return _one;
         }
 
         public async ICompletes<int> GetTwoAsync()
         {
-            await Task.Delay(5000);
-            return await Completes().With(2);
+            await Task.Delay(1000);
+            return await Completes().With(_one + 1);
         }
 
         public void Change(int newOne)
@@ -92,6 +145,36 @@ namespace Vlingo.Actors.Tests
 
         public void Change(int newOne)
         {
+        }
+    }
+    
+    public class UsesLongRunningTaskActor : Actor, IUsesTask
+    {
+        private int _one = 1;
+        
+        public Task<int> GetOne()
+        {
+            return Task<int>.Factory.StartNew(() =>
+            {
+                Task.Delay(2000).Wait();
+                return _one;
+            }, TaskCreationOptions.LongRunning);
+        }
+
+        public async ICompletes<int> GetTwoAsync()
+        {
+            await Task.Delay(100);
+            return await Task<int>.Factory.StartNew(() =>
+            {
+                Task.Delay(2000).Wait();
+                return 2;
+            }, TaskCreationOptions.LongRunning)
+                .ContinueWith(t => t.Result + 1);
+        }
+
+        public void Change(int newOne)
+        {
+            _one = newOne;
         }
     }
 

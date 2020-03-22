@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Vlingo.Actors
 {
-    internal interface IAsyncMessage {}
+    public interface IAsyncMessage {}
     
     public class ExecutorDispatcherAsync : TaskScheduler
     {
@@ -60,11 +60,10 @@ namespace Vlingo.Actors
                 }, mailbox.TaskScheduler);
         }
         
-        private void ScheduleTask(Task task)
-        {            
-            //_mailbox.Send(new LocalMessage<>())
-        }
-        
+        internal void ExecuteTask(Task task) => TryExecuteTask(task);
+
+        private void ScheduleTask(Task task) => _mailbox.Send(new LocalMessageAsync(this, task));
+
         private static Exception? ExceptionFor(Task task)
         {
             switch (task.Status)
