@@ -49,7 +49,6 @@ namespace Vlingo.Actors.Tests
                 Action<IUsesTask> asyncWrapper = m =>
                 {
                     Task Wrap() => cons128873(m);
-                    mailbox.SuspendExceptFor(Mailbox.Task, typeof(IAsyncMessage));
                     ExecutorDispatcherAsync.RunTask<IUsesTask>(Wrap, mailbox, actor);
                 };
                 if (mailbox.IsPreallocated)
