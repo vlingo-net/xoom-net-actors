@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
 using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests
@@ -67,22 +66,17 @@ namespace Vlingo.Actors.Tests
             if (!actor.IsStopped)
             {
                 var tcs = new TaskCompletionSource<ICompletes<int>>();
-                Func<IUsesTask, ICompletes<int>> cons128873 = m =>
-                {
-                    tcs.SetResult(m.GetTwoAsync());
-                    return tcs.Task.Result;
-                };
+                Func<IUsesTask, ICompletes<int>> cons128873 = m => m.GetTwoAsync();
                 Action<IUsesTask> asyncWrapper = m =>
                 {
                     mailbox.SuspendExceptFor(Mailbox.Task, typeof(IAsyncMessage));
-                    cons128873(m).AndThenConsume(() => mailbox.Resume(Mailbox.Task));
+                    tcs.SetResult(cons128873(m));
                 };
-                var completes = new BasicCompletes<int>(actor.Scheduler);
                 if (mailbox.IsPreallocated)
-                    mailbox.Send(actor, asyncWrapper, completes, GetTwoAsyncRepresentation3);
+                    mailbox.Send(actor, asyncWrapper, null, GetTwoAsyncRepresentation3);
                 else
-                    mailbox.Send(new LocalMessage<IUsesTask>(actor, asyncWrapper, completes, GetTwoAsyncRepresentation3));
-                return completes;
+                    mailbox.Send(new LocalMessage<IUsesTask>(actor, asyncWrapper, GetTwoAsyncRepresentation3));
+                return tcs.Task.Result;
             }
 
             actor.DeadLetters.FailedDelivery(new DeadLetter(actor, GetTwoAsyncRepresentation3));
