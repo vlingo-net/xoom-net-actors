@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading.Tasks;
 using Vlingo.Common;
 using Vlingo.Common.Completion.Tasks;
 
@@ -255,6 +256,8 @@ namespace Vlingo.Actors
         public void SetException(Exception exception) => Completes().SetException(exception);
 
         public void SetResult(T result) => Completes().SetResult(result);
+        
+        public Task<T> ToTask() => ((BasicCompletes<T>)Completes()).ToTask();
 
         private ICompletes<T> Completes() => _completes;
 

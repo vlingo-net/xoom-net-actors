@@ -82,7 +82,7 @@ namespace Vlingo.Actors.Tests
             var uc = World.ActorFor<IUsesTask>(() => new UsesTaskActor());
             var thread = new Thread(() =>
             {
-                Thread.Sleep(5000);
+                Thread.Sleep(100);
                 uc.Change(10);
             });
             thread.Start();
@@ -105,6 +105,19 @@ namespace Vlingo.Actors.Tests
             var one = await uc.GetTwoAsync();
             Assert.Equal(2, one);
         }
+        
+        [Fact]
+        public async Task TestThatExceptionIsCorrectlyHandledForCompletes()
+        {
+            var uc = World.ActorFor<IUsesTask>(() => new UsesFailingTaskActor());
+
+            await uc.GetTwoAsync()
+                .RecoverFrom(e =>
+                {
+                    Assert.Equal("Cannot perform the operation", e.Message);
+                    return 1;
+                });
+        }
     }
     
     public class UsesTaskActor : Actor, IUsesTask
@@ -123,23 +136,20 @@ namespace Vlingo.Actors.Tests
             return await Completes().With(_one + 1);
         }
 
-        public void Change(int newOne)
-        {
-            _one = newOne;
-        }
+        public void Change(int newOne) => _one = newOne;
     }
     
     public class UsesFailingTaskActor : Actor, IUsesTask
     {
         public async Task<int> GetOne()
         {
-            await Task.Delay(100);
+            await Task.Delay(1000);
             throw new Exception("Cannot perform the operation");
         }
 
         public async ICompletes<int> GetTwoAsync()
         {
-            await Task.Delay(100);
+            await Task.Delay(1000);
             throw new Exception("Cannot perform the operation");
         }
 

@@ -44,6 +44,7 @@ namespace Vlingo.Actors
 
         public static void RunTask<T>(Func<Task> asyncHandler, IMailbox mailbox, Actor actor)
         {
+            mailbox.SuspendExceptFor(Mailbox.Task, typeof(IAsyncMessage));
             Task<Task>.Factory.StartNew(asyncHandler, CancellationToken.None, TaskCreationOptions.None, mailbox.TaskScheduler)
                 .Unwrap()
                 .ContinueWith(parent =>

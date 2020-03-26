@@ -65,22 +65,29 @@ namespace Vlingo.Actors.Tests
         {
             if (!actor.IsStopped)
             {
+                var completes = new BasicCompletes<int>(actor.Scheduler);
                 var tcs = new TaskCompletionSource<ICompletes<int>>();
-                Func<IUsesTask, ICompletes<int>> cons128873 = m => m.GetTwoAsync();
+                Func<IUsesTask, ICompletes<int>> cons128873 = m =>
+                {
+                    var returnCompletes = m.GetTwoAsync();
+                    tcs.SetResult(returnCompletes);
+                    return returnCompletes;
+                };
                 Action<IUsesTask> asyncWrapper = m =>
                 {
-                    mailbox.SuspendExceptFor(Mailbox.Task, typeof(IAsyncMessage));
-                    tcs.SetResult(cons128873(m));
+                    Task Wrap() => ((BasicCompletes<int>)cons128873(m)).ToTask();
+                    ExecutorDispatcherAsync.RunTask<IUsesTask>(Wrap, mailbox, actor);
                 };
                 if (mailbox.IsPreallocated)
-                    mailbox.Send(actor, asyncWrapper, null, GetTwoAsyncRepresentation3);
+                    mailbox.Send(actor, asyncWrapper, completes, GetTwoAsyncRepresentation3);
                 else
-                    mailbox.Send(new LocalMessage<IUsesTask>(actor, asyncWrapper, GetTwoAsyncRepresentation3));
+                    mailbox.Send(new LocalMessage<IUsesTask>(actor, asyncWrapper, completes, GetTwoAsyncRepresentation3));
+
                 return tcs.Task.Result;
             }
 
             actor.DeadLetters.FailedDelivery(new DeadLetter(actor, GetTwoAsyncRepresentation3));
-            return null;
+            return default;
         }
     }
 }
