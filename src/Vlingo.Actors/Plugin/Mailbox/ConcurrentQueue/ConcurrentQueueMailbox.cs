@@ -33,7 +33,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             _throttlingCount = (byte)throttlingCount;
         }
 
-        public TaskScheduler TaskScheduler => _dispatcherAsync.Get();
+        public TaskScheduler TaskScheduler => _dispatcherAsync.Get()!;
 
         public void Close()
         {

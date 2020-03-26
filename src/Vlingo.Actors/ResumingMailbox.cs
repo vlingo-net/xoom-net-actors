@@ -17,7 +17,7 @@ namespace Vlingo.Actors
 
         public ResumingMailbox(IMessage message) => _message = message;
 
-        public TaskScheduler TaskScheduler { get; }
+        public TaskScheduler TaskScheduler { get; } = null!;
         
         public bool IsClosed => false;
 

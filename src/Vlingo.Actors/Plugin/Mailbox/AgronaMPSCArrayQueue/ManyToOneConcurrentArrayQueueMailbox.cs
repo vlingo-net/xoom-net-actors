@@ -14,38 +14,38 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
     public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
     {
-        private bool disposed;
-        private readonly IDispatcher dispatcher;
-        private readonly BlockingCollection<IMessage> queue;
-        private readonly int totalSendRetries;
+        private bool _disposed;
+        private readonly IDispatcher _dispatcher;
+        private readonly BlockingCollection<IMessage> _queue;
+        private readonly int _totalSendRetries;
 
         internal ManyToOneConcurrentArrayQueueMailbox(
             IDispatcher dispatcher,
             int mailboxSize,
             int totalSendRetries)
         {
-            this.dispatcher = dispatcher;
-            queue = new BlockingCollection<IMessage>(new ConcurrentQueue<IMessage>(), mailboxSize);
-            this.totalSendRetries = totalSendRetries;
+            _dispatcher = dispatcher;
+            _queue = new BlockingCollection<IMessage>(new ConcurrentQueue<IMessage>(), mailboxSize);
+            _totalSendRetries = totalSendRetries;
         }
 
         public void Close()
         {
-            dispatcher.Close();
-            queue.CompleteAdding();
+            _dispatcher.Close();
+            _queue.CompleteAdding();
             Dispose(true);
         }
-        
-        public TaskScheduler TaskScheduler { get; }
 
-        public bool IsClosed => dispatcher.IsClosed;
+        public TaskScheduler TaskScheduler { get; } = null!;
+
+        public bool IsClosed => _dispatcher.IsClosed;
 
         public bool IsDelivering
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
         public bool IsPreallocated => false;
 
-        public int PendingMessages => queue.Count;
+        public int PendingMessages => _queue.Count;
 
         public bool IsSuspended => false;
 
@@ -57,18 +57,18 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public void Send(IMessage message)
         {
-            for (int tries = 0; tries < totalSendRetries; ++tries)
+            for (var tries = 0; tries < _totalSendRetries; ++tries)
             {
-                if (queue.TryAdd(message))
+                if (_queue.TryAdd(message))
                 {
                     return;
                 }
-                while (PendingMessages >= queue.BoundedCapacity) ;
+                while (PendingMessages >= _queue.BoundedCapacity) ;
             }
             throw new InvalidOperationException("Count not enqueue message due to busy mailbox.");
         }
 
-        public IMessage Receive() => queue.Take();
+        public IMessage Receive() => _queue.Take();
 
         public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
@@ -91,22 +91,22 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         
         protected virtual void Dispose(bool disposing)
         {
-            if (disposed)
+            if (_disposed)
             {
                 return;    
             }
       
             if (disposing) {
                 
-                if (!queue.IsAddingCompleted)
+                if (!_queue.IsAddingCompleted)
                 {
                     Close();
                 }
 
-                queue.Dispose();
+                _queue.Dispose();
             }
       
-            disposed = true;
+            _disposed = true;
         }
     }
 }

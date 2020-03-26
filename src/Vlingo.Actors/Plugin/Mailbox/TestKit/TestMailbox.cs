@@ -19,22 +19,22 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
     {
         public const string Name = "testerMailbox";
 
-        private readonly IList<string> lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
-        private readonly TestWorld world;
-        private readonly ConcurrentQueue<IMessage> queue;
-        private readonly AtomicReference<Stack<List<Type>>> suspendedOverrides;
+        private readonly IList<string> _lifecycleMessages = new List<string> { "Start", "AfterStop", "BeforeRestart", "AfterRestart" };
+        private readonly TestWorld _world;
+        private readonly ConcurrentQueue<IMessage> _queue;
+        private readonly AtomicReference<Stack<List<Type>>> _suspendedOverrides;
 
         public TestMailbox()
         {
-            world = TestWorld.Instance!;
-            queue = new ConcurrentQueue<IMessage>();
-            suspendedOverrides = new AtomicReference<Stack<List<Type>>>(new Stack<List<Type>>());
+            _world = TestWorld.Instance!;
+            _queue = new ConcurrentQueue<IMessage>();
+            _suspendedOverrides = new AtomicReference<Stack<List<Type>>>(new Stack<List<Type>>());
         }
 
         public void Run()
             => throw new NotSupportedException("TestMailbox does not support this operation.");
 
-        public TaskScheduler TaskScheduler { get; }
+        public TaskScheduler TaskScheduler { get; } = null!;
         
         public void Close()
         {
@@ -49,13 +49,13 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public int PendingMessages => throw new NotSupportedException("TestMailbox does not support this operation.");
 
-        public bool IsSuspended => suspendedOverrides.Get()!.Count > 0;
+        public bool IsSuspended => _suspendedOverrides.Get()!.Count > 0;
 
         public void Resume(string name)
         {
-            if (suspendedOverrides.Get()!.Count > 0)
+            if (_suspendedOverrides.Get()!.Count > 0)
             {
-                suspendedOverrides.Get()!.Pop();
+                _suspendedOverrides.Get()!.Pop();
             }
             ResumeAll();
         }
@@ -66,13 +66,13 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
             {
                 if (!IsLifecycleMessage(message))
                 {
-                    world.Track(message);
+                    _world.Track(message);
                 }
             }
 
             if (IsSuspended)
             {
-                queue.Enqueue(message);
+                _queue.Enqueue(message);
                 return;
             }
             else
@@ -90,23 +90,23 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
         {
             var representation = message.Representation;
             var openParenIndex = representation.IndexOf('(');
-            return lifecycleMessages.Contains(representation.Substring(0, openParenIndex));
+            return _lifecycleMessages.Contains(representation.Substring(0, openParenIndex));
         }
 
         public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
             => throw new NotSupportedException("Not a preallocated mailbox.");
 
         public void SuspendExceptFor(string name, params Type[] overrides)
-            => suspendedOverrides.Get()!.Push(overrides.ToList());
+            => _suspendedOverrides.Get()!.Push(overrides.ToList());
 
         private void ResumeAll()
         {
-            while (!queue.IsEmpty)
+            while (!_queue.IsEmpty)
             {
-                if(queue.TryDequeue(out var queued))
+                if(_queue.TryDequeue(out var queued))
                 {
                     var actor = queued.Actor;
-                    if(actor != null)
+                    if (actor != null)
                     {
                         actor.ViewTestStateInitialization(null);
                         queued.Deliver();

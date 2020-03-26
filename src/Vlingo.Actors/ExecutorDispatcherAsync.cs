@@ -25,7 +25,7 @@ namespace Vlingo.Actors
 
         public override int MaximumConcurrencyLevel { get; } = 1;
 
-        protected override IEnumerable<Task> GetScheduledTasks() => null;
+        protected override IEnumerable<Task> GetScheduledTasks() => default!;
 
         protected override void QueueTask(Task task)
         {
@@ -79,7 +79,7 @@ namespace Vlingo.Actors
             return null;
         }
         
-        private static Exception UnwrapAggregateException(AggregateException aggregateException)
+        private static Exception? UnwrapAggregateException(AggregateException aggregateException)
         {
             if (aggregateException == null)
             {

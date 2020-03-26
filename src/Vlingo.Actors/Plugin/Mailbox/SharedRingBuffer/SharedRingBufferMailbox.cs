@@ -13,40 +13,40 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailbox : IMailbox
     {
-        private readonly AtomicBoolean closed;
+        private readonly AtomicBoolean _closed;
 
-        private readonly IDispatcher dispatcher;
-        private readonly int mailboxSize;
-        private readonly IMessage[] messages;
-        private readonly AtomicLong sendIndex;
-        private readonly AtomicLong readyIndex;
-        private readonly AtomicLong receiveIndex;
+        private readonly IDispatcher _dispatcher;
+        private readonly int _mailboxSize;
+        private readonly IMessage[] _messages;
+        private readonly AtomicLong _sendIndex;
+        private readonly AtomicLong _readyIndex;
+        private readonly AtomicLong _receiveIndex;
 
         protected internal SharedRingBufferMailbox(IDispatcher dispatcher, int mailboxSize)
         {
-            this.dispatcher = dispatcher;
-            this.mailboxSize = mailboxSize;
-            closed = new AtomicBoolean(false);
-            messages = new IMessage[mailboxSize];
-            readyIndex = new AtomicLong(-1);
-            receiveIndex = new AtomicLong(-1);
-            sendIndex = new AtomicLong(-1);
+            _dispatcher = dispatcher;
+            _mailboxSize = mailboxSize;
+            _closed = new AtomicBoolean(false);
+            _messages = new IMessage[mailboxSize];
+            _readyIndex = new AtomicLong(-1);
+            _receiveIndex = new AtomicLong(-1);
+            _sendIndex = new AtomicLong(-1);
 
             InitPreallocated();
         }
 
         public virtual void Close()
         {
-            if (!closed.Get())
+            if (!_closed.Get())
             {
-                closed.Set(true);
-                dispatcher.Close();
+                _closed.Set(true);
+                _dispatcher.Close();
             }
         }
-        
-        public TaskScheduler TaskScheduler { get; }
 
-        public virtual bool IsClosed => closed.Get();
+        public TaskScheduler TaskScheduler { get; } = null!;
+
+        public virtual bool IsClosed => _closed.Get();
 
         public virtual bool IsDelivering 
             => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
@@ -61,14 +61,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public virtual void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
         {
-            var messageIndex = sendIndex.IncrementAndGet();
-            var ringSendIndex = (int)(messageIndex % mailboxSize);
+            var messageIndex = _sendIndex.IncrementAndGet();
+            var ringSendIndex = (int)(messageIndex % _mailboxSize);
             int retries = 0;
-            while (ringSendIndex == (int)(receiveIndex.Get() % mailboxSize))
+            while (ringSendIndex == (int)(_receiveIndex.Get() % _mailboxSize))
             {
-                if (++retries >= mailboxSize)
+                if (++retries >= _mailboxSize)
                 {
-                    if (closed.Get())
+                    if (_closed.Get())
                     {
                         return;
                     }
@@ -77,18 +77,18 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 }
             }
 
-            messages[ringSendIndex].Set(actor, consumer, completes, representation);
-            while (readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
+            _messages[ringSendIndex].Set(actor, consumer, completes, representation);
+            while (_readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
             { }
         }
 
         public virtual IMessage? Receive()
         {
-            var messageIndex = receiveIndex.Get();
-            if (messageIndex < readyIndex.Get())
+            var messageIndex = _receiveIndex.Get();
+            if (messageIndex < _readyIndex.Get())
             {
-                var index = (int)(receiveIndex.IncrementAndGet() % mailboxSize);
-                return messages[index];
+                var index = (int)(_receiveIndex.IncrementAndGet() % _mailboxSize);
+                return _messages[index];
             }
 
             return null;
@@ -98,9 +98,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         private void InitPreallocated()
         {
-            for (int idx = 0; idx < mailboxSize; ++idx)
+            for (int idx = 0; idx < _mailboxSize; ++idx)
             {
-                messages[idx] = new LocalMessage<object>();
+                _messages[idx] = new LocalMessage<object>();
             }
         }
 
