@@ -89,6 +89,8 @@ namespace Vlingo.Actors.Tests
             
             var one = await uc.GetTwoAsync();
             Assert.Equal(2, one);
+            var eleven = await uc.GetTwoAsync();
+            Assert.Equal(11, eleven);
         }
         
         [Fact]
