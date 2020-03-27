@@ -212,6 +212,7 @@ namespace Vlingo.Actors
 
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
+            var randomVarNumber = new Random().Next(0, int.MaxValue);
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
 
@@ -225,30 +226,33 @@ namespace Vlingo.Actors
             var ifNotStopped = "    if(!this.actor.IsStopped)\n    {";
             var consumerStatement = isTask ?
                 string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
-                              "      Action<{1}> cons128873 = __ => tcs.SetResult(__.{2}({3}));",
+                              "      Action<{1}> cons{4} = __ => tcs.SetResult(__.{2}({3}));",
                     TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
                     TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
-                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name)))) : 
-                string.Format("      Action<{0}> cons128873 = __ => __.{1}({2});",
+                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
+                    randomVarNumber) : 
+                string.Format("      Action<{0}> cons{3} = __ => __.{1}({2});",
                     TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
-                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))));
+                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
+                    randomVarNumber);
             var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", TypeFullNameToString(GetSimpleTypeName(method.ReturnType.GetGenericArguments().First()))) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
             var mailboxSendStatement = string.Format(
                 "      if(this.mailbox.IsPreallocated)\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(this.actor, cons128873, {0}, {1});\n" +
+                "        this.mailbox.Send(this.actor, cons{4}, {0}, {1});\n" +
                 "      }}\n" +
                 "      else\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, cons128873, {3}{1}));\n" +
+                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, cons{4}, {3}{1}));\n" +
                 "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
                 TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
-                isACompletes ? "completes, " : "");
+                isACompletes ? "completes, " : "",
+                randomVarNumber);
             var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
             var taskReturnStatement = isTask ? "      return tcs.Task.Unwrap();\n" : "";
             var elseDead = string.Format("      this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
