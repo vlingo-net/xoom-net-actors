@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Vlingo.Common;
@@ -42,9 +43,9 @@ namespace Vlingo.Actors
             public FileInfo SourceFile { get; }
         }
 
-        private readonly ILogger logger;
-        private readonly bool persist;
-        private readonly DirectoryInfo rootOfGenerated;
+        private readonly ILogger _logger;
+        private readonly bool _persist;
+        private readonly DirectoryInfo _rootOfGenerated;
 
         internal DynaType Type { get; }
 
@@ -82,13 +83,13 @@ namespace Vlingo.Actors
 
         public Result GenerateFor(Type actorProtocol)
         {
-            logger.Debug("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
+            _logger.Debug("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
             try
             {
                 var proxyClassSource = ProxyClassSource(actorProtocol);
                 var fullyQualifiedClassName = FullyQualifiedClassNameFor(actorProtocol, "__Proxy");
                 var relativeTargetFile = ToFullPath(fullyQualifiedClassName);
-                var sourceFile = persist ?
+                var sourceFile = _persist ?
                     PersistProxyClassSource(fullyQualifiedClassName, relativeTargetFile, proxyClassSource) :
                     new FileInfo(relativeTargetFile);
 
@@ -107,10 +108,10 @@ namespace Vlingo.Actors
 
         private ProxyGenerator(IList<FileInfo> rootOfClasses, DirectoryInfo rootOfGenerated, DynaType type, bool persist, ILogger logger)
         {
-            this.rootOfGenerated = rootOfGenerated;
+            _rootOfGenerated = rootOfGenerated;
             Type = type;
-            this.persist = persist;
-            this.logger = logger;
+            _persist = persist;
+            _logger = logger;
         }
 
         private string ClassStatement(Type protocolInterface)
@@ -297,14 +298,14 @@ namespace Vlingo.Actors
         private FileInfo PersistProxyClassSource(string fullyQualifiedClassName, string relativePathToClass, string proxyClassSource)
         {
             var pathToGeneratedSource = ToNamespacePath(fullyQualifiedClassName);
-            var dir = new DirectoryInfo(rootOfGenerated + pathToGeneratedSource);
+            var dir = new DirectoryInfo(_rootOfGenerated + pathToGeneratedSource);
 
             if (!dir.Exists)
             {
                 dir.Create();
             }
 
-            var pathToSource = rootOfGenerated + relativePathToClass + ".cs";
+            var pathToSource = _rootOfGenerated + relativePathToClass + ".cs";
 
             return PersistDynaClassSource(pathToSource, proxyClassSource);
         }
@@ -562,6 +563,20 @@ namespace Vlingo.Actors
         private static bool IsTask(Type type)
         {
             return type == typeof(Task) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>);
+        }
+        
+        private static bool IsAsyncStateMachine(Type classType, string methodName)
+        {
+            var method = classType.GetMethod(methodName);
+
+            var attType = typeof(AsyncStateMachineAttribute);
+
+            // Obtain the custom attribute for the method. 
+            // The value returned contains the StateMachineType property. 
+            // Null is returned if the attribute isn't present for the method. 
+            var attrib = (AsyncStateMachineAttribute) method.GetCustomAttribute(attType);
+
+            return (attrib != null);
         }
     }
 }
