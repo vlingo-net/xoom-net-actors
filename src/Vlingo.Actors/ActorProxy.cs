@@ -104,7 +104,8 @@ namespace Vlingo.Actors
                     protocol = protocol.GetGenericTypeDefinition();
                 }
 
-                var result = generator.GenerateFor(protocol);
+                // actor.GetType().GetInterfaceMap(protocol).TargetMethods allows to determine if async/await keyword was used
+                var result = generator.GenerateFor(protocol, actor.GetType().GetInterfaceMap(protocol).TargetMethods);
                 var input = new Input(
                     protocol,
                     targetClassName,

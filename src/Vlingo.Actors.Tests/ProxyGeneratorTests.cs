@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -12,6 +13,8 @@ namespace Vlingo.Actors.Tests
 {
     public class ProxyGeneratorTests : ActorsTest
     {
+        private readonly string _consumerName = $"cons{new Random(222).Next(0, int.MaxValue)}";
+        
         [Fact]
         public void ShouldIncludeNamespacesForMethodParameters()
         {
@@ -19,7 +22,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenTestInterface));
             Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(System.Threading.Tasks.Task)\";", result.Source);
             Assert.Contains("System.Threading.Tasks.Task t", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestInterface> cons128873 = __ => __.DoSomething(t);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenTestInterface> {_consumerName} = __ => __.DoSomething(t);", result.Source);
         }
 
         [Fact]
@@ -29,7 +32,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithoutConstraint));
             Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state)", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithoutConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenericMethodWithoutConstraint> {_consumerName} = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -39,7 +42,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenTestReservedInterface));
             Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(object)\";", result.Source);
             Assert.Contains("public void DoSomething(object @object)", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestReservedInterface> cons128873 = __ => __.DoSomething(@object);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenTestReservedInterface> {_consumerName} = __ => __.DoSomething(@object);", result.Source);
         }
 
         [Fact]
@@ -49,7 +52,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenTestReservedKeyword));
             Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething(object, bool)\";", result.Source);
             Assert.Contains("public void DoSomething(object @object, bool @event)", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenTestReservedKeyword> cons128873 = __ => __.DoSomething(@object, @event);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenTestReservedKeyword> {_consumerName} = __ => __.DoSomething(@object, @event);", result.Source);
         }
 
         [Fact]
@@ -59,7 +62,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithConstraint));
             Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenericMethodWithConstraint> {_consumerName} = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -69,7 +72,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(IProxyGenericMethodWithMultipleConstraint));
             Assert.Contains("private const string WriteRepresentation1 = \"Write<TSource>(string, int)\";", result.Source);
             Assert.Contains("public void Write<TSource>(string id, int state) where TSource : Vlingo.Actors.Tests.IProxyGenTestInterface, Vlingo.Actors.Tests.IProxyGenTestSecondInterface", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.IProxyGenericMethodWithMultipleConstraint> cons128873 = __ => __.Write<TSource>(id, state);", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.IProxyGenericMethodWithMultipleConstraint> {_consumerName} = __ => __.Write<TSource>(id, state);", result.Source);
         }
 
         [Fact]
@@ -79,7 +82,7 @@ namespace Vlingo.Actors.Tests
             var result = generator.GenerateFor(typeof(ClassWithNestedInterface.INestedInterface));
             Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething()\";", result.Source);
             Assert.Contains("public class NestedInterface__Proxy : Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface", result.Source);
-            Assert.Contains("Action<Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface> cons128873 = __ => __.DoSomething();", result.Source);
+            Assert.Contains($"Action<Vlingo.Actors.Tests.ClassWithNestedInterface.INestedInterface> {_consumerName} = __ => __.DoSomething();", result.Source);
         }
 
         [Fact]
@@ -90,6 +93,8 @@ namespace Vlingo.Actors.Tests
             Assert.Contains("public class OuterInnerClassInterface__Proxy : Vlingo.Actors.Tests.IOuterInnerClassInterface", result.Source);
             Assert.Contains("public void DoSomethingWith(Vlingo.Actors.Tests.OuterClass.InnerClass obj)", result.Source);
         }
+
+        public ProxyGeneratorTests() => ProxyGenerator.Seed = 222;
     }
 
     public interface IProxyGenTestInterface

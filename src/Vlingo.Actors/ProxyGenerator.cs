@@ -81,12 +81,12 @@ namespace Vlingo.Actors
             return new ProxyGenerator(classPath, rootOfGenerated, type, persist, logger);
         }
 
-        public Result GenerateFor(Type actorProtocol)
+        public Result GenerateFor(Type actorProtocol, MethodInfo[] methods = null)
         {
             _logger.Debug("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
             try
             {
-                var proxyClassSource = ProxyClassSource(actorProtocol);
+                var proxyClassSource = ProxyClassSource(actorProtocol, methods);
                 var fullyQualifiedClassName = FullyQualifiedClassNameFor(actorProtocol, "__Proxy");
                 var relativeTargetFile = ToFullPath(fullyQualifiedClassName);
                 var sourceFile = _persist ?
@@ -100,6 +100,8 @@ namespace Vlingo.Actors
                 throw new ArgumentException($"Cannot generate proxy class for: {actorProtocol.Name}", ex);
             }
         }
+        
+        internal static int? Seed { get; set; }
 
         private static DirectoryInfo RootOfGeneratedSources(DynaType type)
             => type == DynaType.Main ?
@@ -213,9 +215,10 @@ namespace Vlingo.Actors
 
         private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
         {
-            var randomVarNumber = new Random().Next(0, int.MaxValue);
+            var randomVarNumber = (Seed.HasValue ? new Random(Seed.Value) : new Random()).Next(0, int.MaxValue);
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
+            var isAsyncAwaitCompletes = !isTask && IsAsyncStateMachine(method);
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{TypeFullNameToString(GetSimpleTypeName(p.ParameterType))} {PrefixReservedKeywords(p.Name)}"));
             var methodSignature = string.Format("  public {0} {1}({2}){3}",
@@ -227,34 +230,62 @@ namespace Vlingo.Actors
             var ifNotStopped = "    if(!this.actor.IsStopped)\n    {";
             var consumerStatement = isTask ?
                 string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
-                              "      Action<{1}> cons{4} = __ => tcs.SetResult(__.{2}({3}));",
+                              "      Func<{1}, {0}> cons{4} = __ =>\n" +
+                              "      {{\n" +
+                              "          tcs.SetResult(__.{2}({3}));\n" +
+                              "          return tcs.Task.Unwrap();\n" +
+                              "      }};\n" +
+                              "      Action<{1}> asyncWrapper = m =>\n" +
+                              "      {{\n" +
+                              "          Task Wrap() => cons{4}(m);\n" +
+                              "          ExecutorDispatcherAsync.RunTask<{1}>(Wrap, mailbox, actor);\n" +
+                              "      }};\n",
                     TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
                     TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                     GetMethodName(method),
                     string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
                     randomVarNumber) : 
-                string.Format("      Action<{0}> cons{3} = __ => __.{1}({2});",
-                    TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
-                    GetMethodName(method),
-                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
-                    randomVarNumber);
+                        isAsyncAwaitCompletes ?
+                            string.Format("      var tcs = new TaskCompletionSource<{0}>();\n" +
+                                          "      Func<{1}, {0}> cons{4} = __ =>\n" +
+                                          "      {{\n" +
+                                          "          var returnCompletes = __.{2}({3});\n" +
+                                          "          tcs.SetResult(returnCompletes);\n" +
+                                          "          return returnCompletes;\n" +
+                                          "      }};\n" +
+                                          "      Action<{1}> asyncWrapper = m =>\n" +
+                                          "      {{\n" +
+                                          "          Task Wrap() => ((BasicCompletes<int>)cons{4}(m)).ToTask();\n" +
+                                          "          ExecutorDispatcherAsync.RunTask<{1}>(Wrap, mailbox, actor);\n" +
+                                          "      }};\n",
+                                TypeFullNameToString(GetSimpleTypeName(method.ReturnType)),
+                                TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
+                                GetMethodName(method),
+                                string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
+                                randomVarNumber) :
+                                string.Format("      Action<{0}> cons{3} = __ => __.{1}({2});",
+                                    TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
+                                    GetMethodName(method),
+                                    string.Join(", ", method.GetParameters().Select(p => PrefixReservedKeywords(p.Name))),
+                                    randomVarNumber);
             var completesStatement = isACompletes ? string.Format("      var completes = new BasicCompletes<{0}>(this.actor.Scheduler);\n", TypeFullNameToString(GetSimpleTypeName(method.ReturnType.GetGenericArguments().First()))) : "";
             var representationName = string.Format("{0}Representation{1}", method.Name, count);
+            var mailboxConsumer = isTask || isAsyncAwaitCompletes ? "asyncWrapper" : $"cons{randomVarNumber}";
             var mailboxSendStatement = string.Format(
                 "      if(this.mailbox.IsPreallocated)\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(this.actor, cons{4}, {0}, {1});\n" +
+                "        this.mailbox.Send(this.actor, {4}, {0}, {1});\n" +
                 "      }}\n" +
                 "      else\n" +
                 "      {{\n" +
-                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, cons{4}, {3}{1}));\n" +
+                "        this.mailbox.Send(new LocalMessage<{2}>(this.actor, {4}, {3}{1}));\n" +
                 "      }}",
                 isACompletes ? "completes" : "null",
                 representationName,
                 TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                 isACompletes ? "completes, " : "",
-                randomVarNumber);
-            var completesReturnStatement = isACompletes ? "      return completes;\n" : "";
+                mailboxConsumer);
+            var completesReturnStatement = isACompletes ? (isAsyncAwaitCompletes ? "      return tcs.Task.Result;\n" : "      return completes;\n") : "";
             var taskReturnStatement = isTask ? "      return tcs.Task.Unwrap();\n" : "";
             var elseDead = string.Format("      this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
@@ -342,10 +373,10 @@ namespace Vlingo.Actors
             }
         }
 
-        private string ProxyClassSource(Type protocolInterface)
+        private string ProxyClassSource(Type protocolInterface, MethodInfo[] actorMethods)
         {
             var hasNamespace = !string.IsNullOrWhiteSpace(protocolInterface.Namespace);
-            var methods = GetAbstractMethodsFor(protocolInterface).ToList();
+            var methods = (actorMethods ?? GetAbstractMethodsFor(protocolInterface)).ToList();
             var properties = GetPropertiesFor(protocolInterface).ToList();
             var builder = new StringBuilder();
             builder
@@ -565,18 +596,21 @@ namespace Vlingo.Actors
             return type == typeof(Task) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>);
         }
         
-        private static bool IsAsyncStateMachine(Type classType, string methodName)
+        private static bool IsAsyncStateMachine(MethodInfo methodInfo)
         {
-            var method = classType.GetMethod(methodName);
-
             var attType = typeof(AsyncStateMachineAttribute);
 
             // Obtain the custom attribute for the method. 
             // The value returned contains the StateMachineType property. 
             // Null is returned if the attribute isn't present for the method. 
-            var attrib = (AsyncStateMachineAttribute) method.GetCustomAttribute(attType);
+            if (methodInfo != null)
+            {
+                var attrib = (AsyncStateMachineAttribute) methodInfo.GetCustomAttribute(attType);
 
-            return (attrib != null);
+                return (attrib != null);
+            }
+
+            return false;
         }
     }
 }
