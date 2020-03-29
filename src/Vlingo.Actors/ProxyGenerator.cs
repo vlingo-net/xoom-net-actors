@@ -81,7 +81,7 @@ namespace Vlingo.Actors
             return new ProxyGenerator(classPath, rootOfGenerated, type, persist, logger);
         }
 
-        public Result GenerateFor(Type actorProtocol, MethodInfo[] methods = null)
+        public Result GenerateFor(Type actorProtocol, MethodInfo[]? methods = null)
         {
             _logger.Debug("vlingo-net/actors: Generating proxy for " + (Type == DynaType.Main ? "main" : "test") + ": " + actorProtocol.Name);
             try
@@ -373,7 +373,7 @@ namespace Vlingo.Actors
             }
         }
 
-        private string ProxyClassSource(Type protocolInterface, MethodInfo[] actorMethods)
+        private string ProxyClassSource(Type protocolInterface, MethodInfo[]? actorMethods)
         {
             var hasNamespace = !string.IsNullOrWhiteSpace(protocolInterface.Namespace);
             var methods = (actorMethods ?? GetAbstractMethodsFor(protocolInterface)).ToList();
