@@ -213,12 +213,12 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private string GetMethodDefinition(Type protocolInterface, MethodInfo method, int count)
+        private string GetMethodDefinition(Type protocolInterface, MethodInfo method, bool isAsync, int count)
         {
             var randomVarNumber = (Seed.HasValue ? new Random(Seed.Value) : new Random()).Next(0, int.MaxValue);
             var isACompletes = DoesImplementICompletes(method.ReturnType);
             var isTask = IsTask(method.ReturnType);
-            var isAsyncAwaitCompletes = !isTask && IsAsyncStateMachine(method);
+            var isAsyncAwaitCompletes = !isTask && isAsync;
 
             var methodParamSignature = string.Join(", ", method.GetParameters().Select(p => $"{TypeFullNameToString(GetSimpleTypeName(p.ParameterType))} {PrefixReservedKeywords(p.Name)}"));
             var methodSignature = string.Format("  public {0} {1}({2}){3}",
@@ -312,13 +312,13 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private string MethodDefinitions(Type protocolInterface, IEnumerable<MethodInfo> methods)
+        private string MethodDefinitions(Type protocolInterface, IEnumerable<(MethodInfo m, bool)> methods)
         {
             var builder = new StringBuilder();
             int count = 0;
-            foreach(var method in methods)
+            foreach(var (method, isAsync) in methods)
             {
-                builder.Append(GetMethodDefinition(protocolInterface, method, ++count));
+                builder.Append(GetMethodDefinition(protocolInterface, method, isAsync, ++count));
             }
 
             return builder.ToString();
@@ -376,14 +376,17 @@ namespace Vlingo.Actors
         private string ProxyClassSource(Type protocolInterface, MethodInfo[]? actorMethods)
         {
             var hasNamespace = !string.IsNullOrWhiteSpace(protocolInterface.Namespace);
-            var methods = (actorMethods ?? GetAbstractMethodsFor(protocolInterface)).ToList();
+            var methods = actorMethods != null ? 
+                GetAbstractMethodsFor(protocolInterface)
+                    .Select(m => (m, actorMethods.Contains(m, new MethodInfoComparer()))).ToList() : 
+                GetAbstractMethodsFor(protocolInterface).Select(m => (m, false)).ToList();
             var properties = GetPropertiesFor(protocolInterface).ToList();
             var builder = new StringBuilder();
             builder
                 .Append(ImportStatements()).Append("\n")
                 .Append(NamespaceStatement(protocolInterface, hasNamespace)).Append("\n")
                 .Append(ClassStatement(protocolInterface)).Append("\n")
-                .Append(RepresentationStatements(methods)).Append("\n")
+                .Append(RepresentationStatements(methods.Select(m => m.Item1))).Append("\n")
                 .Append(InstanceVariables()).Append("\n")
                 .Append(Constructor(protocolInterface)).Append("\n")
                 .Append(PropertyDefinitions(properties)).Append("\n")
@@ -595,22 +598,30 @@ namespace Vlingo.Actors
         {
             return type == typeof(Task) || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>);
         }
-        
-        private static bool IsAsyncStateMachine(MethodInfo methodInfo)
+
+        private class MethodInfoComparer : IEqualityComparer<MethodInfo>
         {
-            var attType = typeof(AsyncStateMachineAttribute);
-
-            // Obtain the custom attribute for the method. 
-            // The value returned contains the StateMachineType property. 
-            // Null is returned if the attribute isn't present for the method. 
-            if (methodInfo != null)
+            public bool Equals(MethodInfo x, MethodInfo y)
             {
-                var attrib = (AsyncStateMachineAttribute) methodInfo.GetCustomAttribute(attType);
+                if (x == null && y == null)
+                {
+                    return true;
+                }
 
-                return (attrib != null);
+                if (x == null || y == null)
+                {
+                    return false;
+                }
+
+                if (x.Name == y.Name)
+                {
+                    return true;
+                }
+
+                return false;
             }
 
-            return false;
+            public int GetHashCode(MethodInfo obj) => 31 * obj.Name.GetHashCode();
         }
     }
 }

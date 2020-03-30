@@ -6,6 +6,9 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Vlingo.Common.Compiler;
 using static Vlingo.Common.Compiler.DynaNaming;
 
@@ -13,7 +16,7 @@ namespace Vlingo.Actors
 {
     internal static class ActorProxy
     {
-        private static readonly object _createForMutex = new object();
+        private static readonly object CreateForMutex = new object();
 
         public static T CreateFor<T>(Actor actor, IMailbox mailbox)
             => (T)CreateFor(typeof(T), actor, mailbox);
@@ -31,7 +34,7 @@ namespace Vlingo.Actors
 
             object newProxy;
 
-            lock (_createForMutex)
+            lock (CreateForMutex)
             {
                 var proxyClassnameForLookup = FullyQualifiedClassNameFor(protocol, "__Proxy", true);
                 var proxyClassnameForGeneration = FullyQualifiedClassNameFor(protocol, "__Proxy");
@@ -104,8 +107,14 @@ namespace Vlingo.Actors
                     protocol = protocol.GetGenericTypeDefinition();
                 }
 
-                // actor.GetType().GetInterfaceMap(protocol).TargetMethods allows to determine if async/await keyword was used
-                var result = generator.GenerateFor(protocol, actor.GetType().GetInterfaceMap(protocol).TargetMethods);
+                // Allows to determine if async/await keyword was used
+                var asyncAwaitedMethods = actor.GetType().GetTypeInfo().ImplementedInterfaces
+                    .Select(ii => actor.GetType().GetInterfaceMap(ii))
+                    .Where(im => im.InterfaceType == originalProtocol)
+                    .SelectMany(im => im.TargetMethods)
+                    .Where(IsAsyncStateMachine)
+                    .ToArray();
+                var result = generator.GenerateFor(protocol, asyncAwaitedMethods);
                 var input = new Input(
                     protocol,
                     targetClassName,
@@ -140,6 +149,23 @@ namespace Vlingo.Actors
             }
 
             return classLoader;
+        }
+        
+        private static bool IsAsyncStateMachine(MethodInfo methodInfo)
+        {
+            var attType = typeof(AsyncStateMachineAttribute);
+
+            // Obtain the custom attribute for the method. 
+            // The value returned contains the StateMachineType property. 
+            // Null is returned if the attribute isn't present for the method. 
+            if (methodInfo != null)
+            {
+                var attrib = (AsyncStateMachineAttribute) methodInfo.GetCustomAttribute(attType);
+
+                return (attrib != null);
+            }
+
+            return false;
         }
     }
 }
