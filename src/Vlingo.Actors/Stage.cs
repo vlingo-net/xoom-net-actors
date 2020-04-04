@@ -28,9 +28,11 @@ namespace Vlingo.Actors
         /// Initializes the new <c>Stage</c> of the world and with name. (INTERNAL ONLY)
         /// </summary>
         /// <param name="world">The <c>World</c> parent of this <c>Stage</c>.</param>
+        /// <param name="addressFactory"><c>AddressFactory</c> for a this <c>Stage</c>.</param>
         /// <param name="name">The <c>string</c> name of this <c>Stage</c>.</param>
-        internal Stage(World world, string name)
+        internal Stage(World world, IAddressFactory addressFactory, string name)
         {
+            AddressFactory = addressFactory;
             World = world;
             Name = name;
             _directory = new Directory(world.AddressFactory.None());
@@ -210,6 +212,8 @@ namespace Vlingo.Actors
         /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
         public ICompletes<T> ActorOf<T>(IAddress address) => _directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
+        
+        public IAddressFactory AddressFactory { get; }
 
         /// <summary>
         /// Answer the protocol reference of the actor with <paramref name="address"/> as a non-empty
@@ -551,7 +555,7 @@ namespace Vlingo.Actors
         {
             var proxies = new object[protocols.Length];
 
-            for (int idx = 0; idx < protocols.Length; ++idx)
+            for (var idx = 0; idx < protocols.Length; ++idx)
             {
                 proxies[idx] = ActorProxyFor(protocols[idx], actor, mailbox);
             }
@@ -582,7 +586,7 @@ namespace Vlingo.Actors
         /// <param name="maybeAddress">The possible address</param>
         /// <returns></returns>
         private IAddress AllocateAddress(Definition definition, IAddress maybeAddress)
-            => maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
+            => maybeAddress ?? AddressFactory.UniqueWith(definition.ActorName);
 
         /// <summary>
         /// Answers a Mailbox for an Actor. If maybeMailbox is allocated answer it; otherwise
@@ -643,10 +647,10 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Actor stage has been stopped.");
             }
 
-            var address = maybeAddress ?? World.AddressFactory.UniqueWith(definition.ActorName);
+            var address = maybeAddress ?? AddressFactory.UniqueWith(definition.ActorName);
             if (_directory.IsRegistered(address))
             {
-                throw new InvalidOperationException("Address already exists: " + address);
+                throw new InvalidOperationException($"Address already exists: {address}");
             }
 
             var mailbox = maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());

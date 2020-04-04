@@ -431,20 +431,23 @@ namespace Vlingo.Actors
         public Stage Stage => StageNamed(DefaultStage);
 
         private readonly object _stageNamedMutex = new object();
-        
+
+        public Stage StageNamed(string name) => StageNamed(name, AddressFactory);
+
         /// <summary>
         /// Answers the <c>Stage</c> named by <paramref name="name"/>, or the newly created <c>Stage</c> instance named by <paramref name="name"/>
         /// if the {@code Stage} does not already exist.
         /// </summary>
         /// <param name="name">The <c>string</c> name of the <c>Stage</c> to answer.</param>
+        /// <param name="addressFactory">The AddressFactory of the Stage if not existing</param>
         /// <returns></returns>
-        public Stage StageNamed(string name)
+        public Stage StageNamed(string name, IAddressFactory addressFactory)
         {
             lock (_stageNamedMutex)
             {
                 if (!_stages.TryGetValue(name, out Stage stage))
                 {
-                    stage = new Stage(this, name);
+                    stage = new Stage(this, addressFactory, name);
                     if (!string.Equals(name, DefaultStage))
                     {
                         stage.StartDirectoryScanner();
