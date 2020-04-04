@@ -124,6 +124,7 @@ namespace Vlingo.Actors
         public string? MailboxName { get; }
         public string? ActorName { get; }
         public ISupervisor? Supervisor { get; }
+        public bool Evictable { get; }
 
         private Definition(
             Type? type,
@@ -209,6 +210,112 @@ namespace Vlingo.Actors
                 return parent.LifeCycle.Environment.Stage.ActorAs<ISupervisor>(parent);
             }
             return null;
+        }
+
+        [Serializable]
+        public class SerializationProxy<T>
+        {
+            public string ActorName { get; }
+            public string MailboxName { get; }
+            public IEnumerable<object> Parameters { get; }
+            public ActorProxyStub<T> Parent { get; }
+            public Type Type { get; }
+            public bool Evictable { get; }
+
+            public static SerializationProxy<T> From(Definition definition) =>
+                new SerializationProxy<T>(
+                    definition.ActorName,
+                    definition.MailboxName,
+                    definition._parameters,
+                    definition.Parent != null ? new ActorProxyStub<T>(definition.Parent) : null,
+                    definition.Type,
+                    definition.Evictable);
+
+            public SerializationProxy(
+                string actorName,
+                string mailboxName,
+                IEnumerable<object> parameters,
+                ActorProxyStub<T> parent,
+                Type type,
+                bool evictable)
+            {
+                ActorName = actorName;
+                MailboxName = mailboxName;
+                Parameters = parameters;
+                Parent = parent;
+                Type = type;
+                Evictable = evictable;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (this == obj)
+                {
+                    return true;
+                }
+                if (obj == null || GetType() != obj.GetType())
+                {
+                    return false;
+                }
+                
+                var that = (SerializationProxy<T>) obj;
+
+                return ActorName == that.ActorName
+                       && MailboxName == that.MailboxName
+                       && Equals(Parameters, that.Parameters)
+                       && Parent == that.Parent
+                       && Type == that.Type;
+            }
+
+            public override int GetHashCode() =>
+                31 * ActorName.GetHashCode() + MailboxName.GetHashCode() + GetHashCode(Parameters) +
+                Parent.GetHashCode() + Type.GetHashCode();
+
+            public override string ToString() => $"Definition(ActorName='{ActorName}', MailboxName='{MailboxName}', Parameters='{Parameters.Select(p => p.ToString())}', Parent='{Parent}', type='{Type}')";
+
+            private bool Equals(IEnumerable<object> p1, IEnumerable<object> p2)
+            {
+                if (p1 == null || p2 == null)
+                {
+                    return false;
+                }
+                
+                var parameters1 = p1.ToList();
+                var parameters2 = p2.ToList();
+
+                var count1 = parameters1.Count();
+                var count2 = parameters2.Count();
+                if (count1 != count2)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < count1; i++)
+                {
+                    if (!parameters1[i].Equals(parameters2[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            private int GetHashCode(IEnumerable<object> parameters)
+            {
+                var hashCode = 0;
+                foreach (var parameter in parameters)
+                {
+                    if (hashCode == 0)
+                    {
+                        hashCode += 31 * parameter.GetHashCode();
+                    }
+
+                    hashCode += parameter.GetHashCode();
+                }
+
+                return hashCode;
+            }
         }
     }
 }
