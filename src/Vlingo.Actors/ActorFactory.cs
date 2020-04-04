@@ -11,7 +11,7 @@ using System.Threading;
 
 namespace Vlingo.Actors
 {
-    internal static class ActorFactory
+    public static class ActorFactory
     {
         internal static readonly ThreadLocal<Environment?> ThreadLocalEnvironment = new ThreadLocal<Environment?>(false);
 
@@ -187,12 +187,27 @@ namespace Vlingo.Actors
         internal static IMailbox ActorMailbox(
             Stage stage,
             IAddress address,
-            Definition definition)
+            Definition definition,
+            IMailboxWrapper wrapper)
         {
             var mailboxName = stage.World.MailboxNameFrom(definition.MailboxName);
             var mailbox = stage.World.AssignMailbox(mailboxName, address.GetHashCode());
 
-            return mailbox;
+            return wrapper.Wrap(address, mailbox);
+        }
+
+        internal static IMailbox ActorMailbox(Stage stage,
+            IAddress address,
+            Definition definition) => ActorMailbox(stage, address, definition, new IdentityMailboxWrapper());
+        
+        public interface IMailboxWrapper
+        {
+            IMailbox Wrap(IAddress address, IMailbox mailbox);
+        }
+        
+        internal class IdentityMailboxWrapper : IMailboxWrapper
+        {
+            public IMailbox Wrap(IAddress address, IMailbox mailbox) => mailbox;
         }
     }
 }

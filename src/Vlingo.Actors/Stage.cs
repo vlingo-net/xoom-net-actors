@@ -493,6 +493,8 @@ namespace Vlingo.Actors
         
         protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
         
+        protected ActorFactory.IMailboxWrapper MailboxWrapper() => new ActorFactory.IdentityMailboxWrapper();
+        
         /// <summary>
         /// Answers the ActorProtocolActor[] for the newly created Actor instance. (INTERNAL ONLY)
         /// </summary>
@@ -591,7 +593,7 @@ namespace Vlingo.Actors
         /// <param name="maybeMailbox">the possible Mailbox</param>
         /// <returns></returns>
         private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox? maybeMailbox)
-            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition);
+            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());
 
         /// <summary>
         /// Assert whether or not <paramref name="protocol"/> is an interface.
@@ -647,7 +649,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Address already exists: " + address);
             }
 
-            var mailbox = maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition);
+            var mailbox = maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());
 
             Actor actor;
 
