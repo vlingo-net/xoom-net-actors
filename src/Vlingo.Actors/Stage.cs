@@ -478,7 +478,8 @@ namespace Vlingo.Actors
         internal void StartDirectoryScanner() =>
             _directoryScanner = ActorFor<IDirectoryScanner>(
                 Definition.Has<DirectoryScannerActor>(
-                    Definition.Parameters(_directory)));
+                    Definition.Parameters(_directory)),
+                World.AddressFactory.UniqueWith($"DirectoryScanner::{Name}"));
 
         /// <summary>
         /// Stop the given Actor and all its children. The Actor instance is first removed from
