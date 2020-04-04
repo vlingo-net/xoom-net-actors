@@ -5,20 +5,16 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
+using Vlingo.Common;
 
 namespace Vlingo.Actors
 {
     public sealed class FailureMark
     {
-        private static readonly DateTime Since1970 = new DateTime(1970, 1, 1);
-        private long startOfPeriod;
-        private int timedIntensity;
+        private long _startOfPeriod;
+        private int _timedIntensity;
 
-        public FailureMark()
-        {
-            Reset();
-        }
+        public FailureMark() => Reset();
 
         internal bool FailedWithExcessiveFailures(long period, int intensity)
         {
@@ -26,26 +22,27 @@ namespace Vlingo.Actors
             {
                 return false;
             }
-            else if (intensity == 1)
+
+            if (intensity == 1)
             {
                 return true;
             }
 
-            var currentTime = CurrentTimeMillies;
+            var currentTime = DateTimeHelper.CurrentTimeMillis();
 
-            if (startOfPeriod == 0)
+            if (_startOfPeriod == 0)
             {
-                startOfPeriod = currentTime;
-                timedIntensity = 1;
+                _startOfPeriod = currentTime;
+                _timedIntensity = 1;
             }
             else
             {
-                ++timedIntensity;
+                ++_timedIntensity;
             }
 
-            bool periodExceeded = startOfPeriod - currentTime >= period;
+            var periodExceeded = _startOfPeriod - currentTime >= period;
 
-            if (timedIntensity > intensity && !periodExceeded)
+            if (_timedIntensity > intensity && !periodExceeded)
             {
                 return true;
             }
@@ -61,11 +58,8 @@ namespace Vlingo.Actors
 
         private void Reset()
         {
-            startOfPeriod = 0;
-            timedIntensity = 0;
+            _startOfPeriod = 0;
+            _timedIntensity = 0;
         }
-
-        private static long CurrentTimeMillies => 
-            (long)(DateTime.Now - Since1970).TotalMilliseconds;
     }
 }
