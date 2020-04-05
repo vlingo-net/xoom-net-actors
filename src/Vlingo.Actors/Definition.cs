@@ -15,50 +15,83 @@ namespace Vlingo.Actors
     // TODO: possible removal/cleanup of overloaded ctors
     public sealed class Definition
     {
-        private readonly List<object> _parameters;
+        private readonly IEnumerable<object> _parameters;
         private ILogger? Logger { get; }
         
         public static readonly List<object> NoParameters = new List<object>();
 
-        // public static Definition From<T>(Stage stage, SerializationProxy<T> proxy, ILogger logger)
-        // {
-        //     
-        // }
+        public static Definition From<T>(Stage stage, SerializationProxy<T> proxy, ILogger logger)
+        {
+            Actor parent = null;
+            if (proxy.Parent != null)
+            {
+                ActorProxyBase<T>.Thunk(stage, proxy.Parent);
+                parent = stage.Directory.ActorOf(proxy.Parent.Address);
+            }
 
-        public static Definition Has<T>(List<object> parameters) where T : Actor 
-            => new Definition(typeof(T), parameters);
+            return new Definition(
+                proxy.Type,
+                proxy.Parameters,
+                parent,
+                proxy.MailboxName,
+                proxy.ActorName,
+                logger,
+                proxy.Evictable
+            );
+        }
 
-        public static Definition Has<T>(List<object> parameters, ILogger logger) where T : Actor
+        public static Definition Has<T>(IEnumerable<object> parameters) where T : Actor 
+            => new Definition(typeof(T), parameters, false);
+
+        public static Definition Has<T>(IEnumerable<object> parameters, ILogger logger) where T : Actor
             => new Definition(typeof(T), parameters, logger);
 
-        public static Definition Has<T>(List<object> parameters, string actorName) where T : Actor
+        public static Definition Has<T>(IEnumerable<object> parameters, string actorName) where T : Actor
             => new Definition(typeof(T), parameters, actorName);
 
-        public static Definition Has(Type typeOfT, List<object> parameters)
+        public static Definition Has(Type typeOfT, IEnumerable<object> parameters)
             => new Definition(typeOfT, parameters);
 
-        public static Definition Has(Type? typeOfT, List<object> parameters, string actorName)
+        public static Definition Has(Type? typeOfT, IEnumerable<object> parameters, string actorName)
             => new Definition(typeOfT, parameters, actorName);
         
+        public static Definition Has<T>(Expression<Func<T>> factory, bool evictable)
+            => Has(factory, null, null, null, null, evictable);
+        
         public static Definition Has<T>(Expression<Func<T>> factory)
-            => Has(factory, null, null, null, null);
+            => Has(factory, null, null, null, null, false);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, string? actorName, bool evictable)
+            => Has(factory, null, null, actorName, null, evictable);
         
         public static Definition Has<T>(Expression<Func<T>> factory, string? actorName)
-            => Has(factory, null, null, actorName, null);
+            => Has(factory, null, null, actorName, null, false);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, string? actorName, ILogger? logger, bool evictable)
+            => Has(factory, null, null, actorName, logger, evictable);
         
         public static Definition Has<T>(Expression<Func<T>> factory, string? actorName, ILogger? logger)
-            => Has(factory, null, null, actorName, logger);
+            => Has(factory, null, null, actorName, logger, false);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? actorName, bool evictable)
+            => Has(factory, parent, null, actorName, null, evictable);
         
         public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? actorName)
-            => Has(factory, parent, null, actorName, null);
+            => Has(factory, parent, null, actorName, null, false);
 
+        public static Definition Has<T>(Expression<Func<T>> factory, string? mailboxName, string? actorName, bool evictable)
+            => Has(factory, null, mailboxName, actorName, null, evictable);
+        
         public static Definition Has<T>(Expression<Func<T>> factory, string? mailboxName, string? actorName)
-            => Has(factory, null, mailboxName, actorName, null);
+            => Has(factory, null, mailboxName, actorName, null, false);
+        
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName, bool evictable)
+            => Has(factory, parent, mailboxName, actorName, null, evictable);
         
         public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName)
-            => Has(factory, parent, mailboxName, actorName, null);
+            => Has(factory, parent, mailboxName, actorName, null, false);
         
-        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName, ILogger? logger)
+        public static Definition Has<T>(Expression<Func<T>> factory, Actor? parent, string? mailboxName, string? actorName, ILogger? logger, bool evictable)
         {
             var newExpression = factory.Body as NewExpression;
             if (newExpression == null)
@@ -68,61 +101,109 @@ namespace Vlingo.Actors
             if (!typeof(Actor).IsAssignableFrom(expressionType))
                 throw new ArgumentException($"The type '{expressionType.FullName}' must be instance of an actor. Derive it from Actor class.");
 
-            var parameters = newExpression.GetArguments().ToList();
+            var parameters = newExpression.GetArguments();
 
-            return new Definition(expressionType, parameters, parent, mailboxName, actorName, logger);
+            return new Definition(expressionType, parameters, parent, mailboxName, actorName, logger, evictable);
         }
 
         public static Definition Has<T>(
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            string actorName,
+            ILogger logger,
+            bool evictable)
+            where T : Actor
+            => new Definition(typeof(T), parameters, actorName, logger, evictable);
+
+        public static Definition Has<T>(
+            IEnumerable<object> parameters,
             string actorName,
             ILogger logger)
             where T : Actor
-            => new Definition(typeof(T), parameters, actorName, logger);
+            => new Definition(typeof(T), parameters, actorName, logger, false);
 
         public static Definition Has<T>(
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            Actor parent,
+            string actorName,
+            bool evictable)
+            where T : Actor
+            => new Definition(typeof(T), parameters, parent, actorName, evictable);
+        
+        public static Definition Has<T>(
+            IEnumerable<object> parameters,
             Actor parent,
             string actorName)
             where T : Actor
-            => new Definition(typeof(T), parameters, parent, actorName);
+            => new Definition(typeof(T), parameters, parent, actorName, false);
 
         public static Definition Has<T>(
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            string mailboxName,
+            string actorName,
+            bool evictable)
+            where T : Actor
+            => new Definition(typeof(T), parameters, null, mailboxName, actorName, evictable);
+        
+        public static Definition Has<T>(
+            IEnumerable<object> parameters,
             string mailboxName,
             string actorName)
             where T : Actor
-            => new Definition(typeof(T), parameters, null, mailboxName, actorName);
+            => new Definition(typeof(T), parameters, null, mailboxName, actorName, false);
 
         public static Definition Has(
             Type? typeOfT,
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            string mailboxName,
+            string? actorName,
+            bool evictable)
+            => new Definition(typeOfT, parameters, null, mailboxName, actorName, evictable);
+        
+        public static Definition Has(
+            Type? typeOfT,
+            IEnumerable<object> parameters,
             string mailboxName,
             string? actorName)
-            => new Definition(typeOfT, parameters, null, mailboxName, actorName);
+            => new Definition(typeOfT, parameters, null, mailboxName, actorName, false);
 
         public static Definition Has<T>(
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            Actor parent,
+            string mailboxName,
+            string actorName,
+            bool evictable)
+            where T : Actor
+            => new Definition(typeof(T), parameters, parent, mailboxName, actorName, evictable);
+        
+        public static Definition Has<T>(
+            IEnumerable<object> parameters,
             Actor parent,
             string mailboxName,
             string actorName)
             where T : Actor
-            => new Definition(typeof(T), parameters, parent, mailboxName, actorName);
+            => new Definition(typeof(T), parameters, parent, mailboxName, actorName, false);
 
         public static Definition Has<T>(
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            Actor parent,
+            string mailboxName,
+            string actorName,
+            ILogger logger,
+            bool evictable)
+            where T : Actor
+            => new Definition(typeof(T), parameters, parent, mailboxName, actorName, logger, evictable);
+        
+        public static Definition Has<T>(
+            IEnumerable<object> parameters,
             Actor parent,
             string mailboxName,
             string actorName,
             ILogger logger)
             where T : Actor
-            => new Definition(typeof(T), parameters, parent, mailboxName, actorName, logger);
+            => new Definition(typeof(T), parameters, parent, mailboxName, actorName, logger, false);
 
         // TODO: possible cleanup
-        public static List<object> Parameters(params object[] parameters)
-        {
-            return parameters.ToList();
-        }
+        public static IEnumerable<object> Parameters(params object[] parameters) => parameters;
 
         public Type? Type { get; }
         public Actor? Parent { get; }
@@ -133,11 +214,12 @@ namespace Vlingo.Actors
 
         private Definition(
             Type? type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
             Actor? parent,
             string? mailboxName,
             string? actorName,
-            ILogger? logger)
+            ILogger? logger,
+            bool evictable)
         {
             Type = type;
             _parameters = parameters;
@@ -146,54 +228,109 @@ namespace Vlingo.Actors
             ActorName = actorName;
             Supervisor = AssignSupervisor(parent);
             Logger = logger;
+            Evictable = evictable;
         }
 
         private Definition(
             Type? type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            Actor? parent,
+            string mailboxName,
+            string? actorName,
+            bool evictable) :
+            this(type, parameters, parent, mailboxName, actorName, null, evictable)
+        {
+        }
+        
+        private Definition(
+            Type? type,
+            IEnumerable<object> parameters,
             Actor? parent,
             string mailboxName,
             string? actorName) :
-        this(type, parameters, parent, mailboxName, actorName, null)
+        this(type, parameters, parent, mailboxName, actorName, null, false)
         {
         }
 
         private Definition(
             Type type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
+            Actor? parent,
+            string actorName,
+            bool evictable) :
+            this(type, parameters, parent, null, actorName, null, evictable)
+        {
+        }
+
+        private Definition(
+            Type type,
+            IEnumerable<object> parameters,
             Actor? parent,
             string actorName) :
-        this(type, parameters, parent, null, actorName, null)
+        this(type, parameters, parent, null, actorName, null, false)
+        {
+        }
+        
+        private Definition(
+            Type? type,
+            IEnumerable<object> parameters,
+            string actorName,
+            bool evictable) :
+            this(type, parameters, null, null, actorName, null, evictable)
         {
         }
 
         private Definition(
             Type? type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
             string actorName) :
-        this(type, parameters, null, null, actorName, null)
+        this(type, parameters, null, null, actorName, null, false)
+        {
+        }
+        
+        private Definition(
+            Type type,
+            IEnumerable<object> parameters,
+            string actorName,
+            ILogger logger,
+            bool evictable) :
+            this(type, parameters, null, null, actorName, logger, evictable)
         {
         }
 
         private Definition(
             Type type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
             string actorName,
             ILogger logger) :
-        this(type, parameters, null, null, actorName, logger)
+        this(type, parameters, null, null, actorName, logger, false)
+        {
+        }
+        
+        private Definition(
+            Type type,
+            IEnumerable<object> parameters,
+            ILogger logger,
+            bool evictable) :
+            this(type, parameters, null, null, null, logger, evictable)
         {
         }
 
         private Definition(
             Type type,
-            List<object> parameters,
+            IEnumerable<object> parameters,
             ILogger logger) :
-        this(type, parameters, null, null, null, logger)
+        this(type, parameters, null, null, null, logger, false)
+        {
+        }
+        
+        private Definition(Type type, IEnumerable<object> parameters, bool evictable) :
+            this(type, parameters, null, null, null, null, evictable)
         {
         }
 
-        private Definition(Type type, List<object> parameters) :
-        this(type, parameters, null, null, null, null)
+        private Definition(Type type, IEnumerable<object> parameters) :
+        this(type, parameters, null, null, null, null, false)
         {
         }
 
@@ -202,11 +339,11 @@ namespace Vlingo.Actors
             return Logger ?? defaultLogger;
         }
 
-        public List<object> Parameters() => new List<object>(InternalParameters());
+        public IEnumerable<object> Parameters() => new List<object>(InternalParameters());
 
         public Actor? ParentOr(Actor? defaultParent) => Parent ?? defaultParent;
 
-        internal List<object> InternalParameters() => _parameters;
+        internal IEnumerable<object> InternalParameters() => _parameters;
 
         private static ISupervisor? AssignSupervisor(Actor? parent)
         {
@@ -288,8 +425,8 @@ namespace Vlingo.Actors
                 var parameters1 = p1.ToList();
                 var parameters2 = p2.ToList();
 
-                var count1 = parameters1.Count();
-                var count2 = parameters2.Count();
+                var count1 = parameters1.Count;
+                var count2 = parameters2.Count;
                 if (count1 != count2)
                 {
                     return false;

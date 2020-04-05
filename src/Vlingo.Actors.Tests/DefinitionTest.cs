@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -35,10 +36,11 @@ namespace Vlingo.Actors.Tests
             Assert.NotNull(definition);
             Assert.Null(definition.ActorName);
             Assert.Null(definition.MailboxName);
-            Assert.NotNull(definition.Parameters());
-            Assert.Equal(2, definition.Parameters().Count);
-            Assert.Equal("text", definition.Parameters()[0]);
-            Assert.Equal(1, (int)definition.Parameters()[1]);
+            var parameters = definition.Parameters().ToList();
+            Assert.NotNull(parameters);
+            Assert.Equal(2, parameters.Count);
+            Assert.Equal("text", parameters[0]);
+            Assert.Equal(1, (int)parameters[1]);
             Assert.Null(definition.Parent);
             Assert.NotNull(definition.ParentOr(new TestInterfaceActor()));
             Assert.Equal(typeof(TestInterfaceActor), definition.Type);

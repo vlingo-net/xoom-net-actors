@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -81,7 +82,7 @@ namespace Vlingo.Actors
 
             Actor? actor = null;
 
-            var definitionParameterCount = definition.InternalParameters().Count;
+            var definitionParameterCount = definition.InternalParameters().Count();
 
             if (definitionParameterCount == 0)
             {
