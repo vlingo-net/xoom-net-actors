@@ -20,6 +20,11 @@ namespace Vlingo.Actors
         
         public static readonly List<object> NoParameters = new List<object>();
 
+        // public static Definition From<T>(Stage stage, SerializationProxy<T> proxy, ILogger logger)
+        // {
+        //     
+        // }
+
         public static Definition Has<T>(List<object> parameters) where T : Actor 
             => new Definition(typeof(T), parameters);
 
@@ -203,9 +208,9 @@ namespace Vlingo.Actors
 
         internal List<object> InternalParameters() => _parameters;
 
-        private ISupervisor? AssignSupervisor(Actor? parent)
+        private static ISupervisor? AssignSupervisor(Actor? parent)
         {
-            if (parent != null && parent is ISupervisor)
+            if (parent is ISupervisor)
             {
                 return parent.LifeCycle.Environment.Stage.ActorAs<ISupervisor>(parent);
             }
