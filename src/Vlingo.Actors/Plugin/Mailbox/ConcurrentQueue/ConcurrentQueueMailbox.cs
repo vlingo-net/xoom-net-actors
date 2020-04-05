@@ -81,6 +81,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         public void SuspendExceptFor(string name, params Type[] overrides)
             => _suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
 
+        public bool IsSuspendedFor(string name) => !_suspendedDeliveryOverrides.Get().Find(name).Any();
+
         public bool IsSuspended => !_suspendedDeliveryOverrides.Get()!.IsEmpty;
 
         public IMessage? Receive()
@@ -140,15 +142,15 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             private readonly AtomicBoolean _accessible;
             private readonly IList<Overrides> _overrides;
 
-            public SuspendedDeliveryOverrides()
+            internal SuspendedDeliveryOverrides()
             {
                 _accessible = new AtomicBoolean(false);
                 _overrides = new List<Overrides>();
             }
 
-            public bool IsEmpty => _overrides.Count == 0;
+            internal bool IsEmpty => _overrides.Count == 0;
 
-            public bool MatchesTop(Type messageType)
+            internal bool MatchesTop(Type messageType)
             {
                 var overrides = Peek();
 
@@ -160,7 +162,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                 return false;
             }
 
-            public Overrides? Peek()
+            internal Overrides? Peek()
             {
                 var retries = 0;
                 while (true)
@@ -179,6 +181,28 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                     if(++retries > 100_000_000)
                     {
                         return null;
+                    }
+                }
+            }
+
+            internal IEnumerable<Overrides> Find(string name)
+            {
+                var retries = 0;
+                while (true)
+                {
+                    if (_accessible.CompareAndSet(false, true))
+                    {
+                        var overridesNamed = _overrides.Where(o => o.Name == name);
+                        _accessible.Set(false);
+                        return overridesNamed;
+                    }
+                    else
+                    {
+                        if (++retries > 100_000_000)
+                        {
+                            Console.WriteLine(new Exception().StackTrace);
+                            return Enumerable.Empty<Overrides>();
+                        }
                     }
                 }
             }

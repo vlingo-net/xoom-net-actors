@@ -148,6 +148,22 @@ namespace Vlingo.Actors
 
             return actor!.ProtocolActor;
         }
+
+        public T ActorThunkFor<T>(Type type, IAddress address)
+        {
+            var definition = Definition.Has(type, new List<object>());
+            var actorMailbox = AllocateMailbox(definition, address, null);
+            var actor =
+                ActorProtocolFor<T>(
+                    definition,
+                    definition.ParentOr(World.DefaultParent),
+                    address,
+                    actorMailbox,
+                    definition.Supervisor,
+                    definition.LoggerOr(World.DefaultLogger));
+            
+            return actor!.ProtocolActor;
+        }
         
         public T ActorFor<T>(Expression<Func<T>> factory, IAddress address)
             => ActorFor<T>(Definition.Has(factory), address);
@@ -501,6 +517,17 @@ namespace Vlingo.Actors
         protected ActorFactory.IMailboxWrapper MailboxWrapper() => new ActorFactory.IdentityMailboxWrapper();
         
         /// <summary>
+        /// Answers a Mailbox for an Actor. If maybeMailbox is allocated answer it; otherwise
+        /// answer a newly allocated Mailbox. (INTERNAL ONLY)
+        /// </summary>
+        /// <param name="definition">the Definition of the newly created Actor</param>
+        /// <param name="address">the Address allocated to the Actor</param>
+        /// <param name="maybeMailbox">the possible Mailbox</param>
+        /// <returns></returns>
+        protected IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox? maybeMailbox)
+            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());
+        
+        /// <summary>
         /// Answers the ActorProtocolActor[] for the newly created Actor instance. (INTERNAL ONLY)
         /// </summary>
         /// <param name="protocols"></param>
@@ -588,17 +615,6 @@ namespace Vlingo.Actors
         /// <returns></returns>
         private IAddress AllocateAddress(Definition definition, IAddress maybeAddress)
             => maybeAddress ?? AddressFactory.UniqueWith(definition.ActorName);
-
-        /// <summary>
-        /// Answers a Mailbox for an Actor. If maybeMailbox is allocated answer it; otherwise
-        /// answer a newly allocated Mailbox. (INTERNAL ONLY)
-        /// </summary>
-        /// <param name="definition">the Definition of the newly created Actor</param>
-        /// <param name="address">the Address allocated to the Actor</param>
-        /// <param name="maybeMailbox">the possible Mailbox</param>
-        /// <returns></returns>
-        private IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox? maybeMailbox)
-            => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());
 
         /// <summary>
         /// Assert whether or not <paramref name="protocol"/> is an interface.

@@ -68,6 +68,8 @@ namespace Vlingo.Actors
         /// <param name="overrides">The list of types that are allowed to be delivered although others are suspended.</param>
         void SuspendExceptFor(string name, params Type[] overrides);
 
+        bool IsSuspendedFor(string name);
+        
         /// <summary>
         /// Answer whether or not I am currently suspended.
         /// </summary>

@@ -118,6 +118,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public int PendingMessages => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
 
+            public bool IsSuspendedFor(string name) => IsSuspended;
+
             public bool IsSuspended => false;
 
             public void Close() { }

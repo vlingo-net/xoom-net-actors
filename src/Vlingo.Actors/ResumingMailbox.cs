@@ -23,6 +23,8 @@ namespace Vlingo.Actors
 
         public bool IsDelivering => true;
 
+        public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
+
         public bool IsSuspended => false;
 
         public int PendingMessages => 1;

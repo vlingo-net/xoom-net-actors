@@ -47,6 +47,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public int PendingMessages => _queue.Count;
 
+        public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
+
         public bool IsSuspended => false;
 
         public void Resume(string name) 

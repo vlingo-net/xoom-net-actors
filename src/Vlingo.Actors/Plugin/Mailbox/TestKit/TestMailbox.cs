@@ -49,6 +49,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 
         public int PendingMessages => throw new NotSupportedException("TestMailbox does not support this operation.");
 
+        public bool IsSuspendedFor(string name) => IsSuspended;
+
         public bool IsSuspended => _suspendedOverrides.Get()!.Count > 0;
 
         public void Resume(string name)

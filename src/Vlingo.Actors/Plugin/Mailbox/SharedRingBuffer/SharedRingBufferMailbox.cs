@@ -55,6 +55,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public int PendingMessages => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation");
 
+        public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
+
         public bool IsSuspended => false;
 
         public virtual void Send(IMessage message) => throw new NotSupportedException("Use preallocated mailbox Send(Actor, ...).");
