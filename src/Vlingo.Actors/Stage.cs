@@ -149,9 +149,8 @@ namespace Vlingo.Actors
             return actor!.ProtocolActor;
         }
 
-        public T ActorThunkFor<T>(Type type, IAddress address)
+        public T ActorThunkFor<T>(Definition definition, IAddress address)
         {
-            var definition = Definition.Has(type, new List<object>());
             var actorMailbox = AllocateMailbox(definition, address, null);
             var actor =
                 ActorProtocolFor<T>(
