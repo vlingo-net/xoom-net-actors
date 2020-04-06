@@ -36,10 +36,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             registrar.Register(_configuration.Name, _configuration.IsDefaultMailbox, this);
         }
 
-        public IMailbox ProvideMailboxFor(int hashCode) 
+        public IMailbox ProvideMailboxFor(int? hashCode) 
             => new ConcurrentQueueMailbox(_executorDispatcher!, _configuration.DispatcherThrottlingCount);
 
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher dispatcher)
+        public IMailbox ProvideMailboxFor(int? hashCode, IDispatcher dispatcher)
         {
             if(dispatcher == null)
             {

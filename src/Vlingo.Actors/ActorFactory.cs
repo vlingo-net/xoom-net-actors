@@ -187,12 +187,12 @@ namespace Vlingo.Actors
 
         internal static IMailbox ActorMailbox(
             Stage stage,
-            IAddress address,
+            IAddress? address,
             Definition definition,
             IMailboxWrapper wrapper)
         {
             var mailboxName = stage.World.MailboxNameFrom(definition.MailboxName);
-            var mailbox = stage.World.AssignMailbox(mailboxName, address.GetHashCode());
+            var mailbox = stage.World.AssignMailbox(mailboxName, address?.GetHashCode());
 
             return wrapper.Wrap(address, mailbox);
         }
@@ -203,12 +203,12 @@ namespace Vlingo.Actors
         
         public interface IMailboxWrapper
         {
-            IMailbox Wrap(IAddress address, IMailbox mailbox);
+            IMailbox Wrap(IAddress? address, IMailbox mailbox);
         }
         
         internal class IdentityMailboxWrapper : IMailboxWrapper
         {
-            public IMailbox Wrap(IAddress address, IMailbox mailbox) => mailbox;
+            public IMailbox Wrap(IAddress? address, IMailbox mailbox) => mailbox;
         }
     }
 }

@@ -12,66 +12,66 @@ namespace Vlingo.Actors.Plugin.Mailbox
 {
     public sealed class DefaultMailboxProviderKeeper : IMailboxProviderKeeper
     {
-        private readonly IDictionary<string, MailboxProviderInfo> mailboxProviderInfos;
-        private MailboxProviderInfo? defaultProvider;
+        private readonly IDictionary<string, MailboxProviderInfo> _mailboxProviderInfos;
+        private MailboxProviderInfo? _defaultProvider;
 
         public DefaultMailboxProviderKeeper()
         {
-            mailboxProviderInfos = new Dictionary<string, MailboxProviderInfo>();
-            defaultProvider = null;
+            _mailboxProviderInfos = new Dictionary<string, MailboxProviderInfo>();
+            _defaultProvider = null;
         }
 
-        public IMailbox AssignMailbox(string name, int hashCode)
+        public IMailbox AssignMailbox(string name, int? hashCode)
         {
-            if (!mailboxProviderInfos.ContainsKey(name))
+            if (!_mailboxProviderInfos.ContainsKey(name))
             {
                 throw new InvalidOperationException($"No registered MailboxProvider named: {name}");
             }
 
-            return mailboxProviderInfos[name].mailboxProvider.ProvideMailboxFor(hashCode);
+            return _mailboxProviderInfos[name].MailboxProvider.ProvideMailboxFor(hashCode);
         }
 
         public void Close()
         {
-            foreach(var info in mailboxProviderInfos.Values)
+            foreach(var info in _mailboxProviderInfos.Values)
             {
-                info.mailboxProvider.Close();
+                info.MailboxProvider.Close();
             }
         }
 
         public string FindDefault()
         {
-            if(defaultProvider == null)
+            if (_defaultProvider == null)
             {
                 throw new InvalidOperationException("No registered default MailboxProvider.");
             }
 
-            return defaultProvider.name;
+            return _defaultProvider.Name;
         }
 
         public bool IsValidMailboxName(string candidateMailboxName)
-            => mailboxProviderInfos.ContainsKey(candidateMailboxName);
+            => _mailboxProviderInfos.ContainsKey(candidateMailboxName);
 
         public void Keep(string name, bool isDefault, IMailboxProvider mailboxProvider)
         {
             var info = new MailboxProviderInfo(name, mailboxProvider);
-            mailboxProviderInfos[name] = info;
+            _mailboxProviderInfos[name] = info;
 
-            if(defaultProvider == null || isDefault)
+            if (_defaultProvider == null || isDefault)
             {
-                defaultProvider = info;
+                _defaultProvider = info;
             }
         }
 
         private sealed class MailboxProviderInfo
         {
-            public readonly IMailboxProvider mailboxProvider;
-            public readonly string name;
+            public readonly IMailboxProvider MailboxProvider;
+            public readonly string Name;
 
             public MailboxProviderInfo(string name, IMailboxProvider mailboxProvider)
             {
-                this.name = name;
-                this.mailboxProvider = mailboxProvider;
+                Name = name;
+                MailboxProvider = mailboxProvider;
             }
         }
     }

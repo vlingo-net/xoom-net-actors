@@ -9,7 +9,7 @@ namespace Vlingo.Actors
 {
     public interface IMailboxProviderKeeper
     {
-        IMailbox AssignMailbox(string name, int hashCode);
+        IMailbox AssignMailbox(string name, int? hashCode);
         void Close();
         string FindDefault();
         void Keep(string name, bool isDefault, IMailboxProvider mailboxProvider);

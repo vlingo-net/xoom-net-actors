@@ -20,23 +20,23 @@ namespace Vlingo.Actors
         
         public static readonly List<object> NoParameters = new List<object>();
 
-        public static Definition From<T>(Stage stage, SerializationProxy<T> proxy, ILogger logger)
+        public static Definition From<T>(Stage stage, SerializationProxy<T>? proxy, ILogger logger)
         {
-            Actor parent = null;
-            if (proxy.Parent != null)
+            Actor? parent = null;
+            if (proxy?.Parent != null)
             {
                 ActorProxyBase<T>.Thunk(stage, proxy.Parent);
-                parent = stage.Directory.ActorOf(proxy.Parent.Address);
+                parent = stage.Directory.ActorOf(proxy.Parent?.Address);
             }
 
             return new Definition(
-                proxy.Type,
-                proxy.Parameters,
+                proxy?.Type,
+                proxy?.Parameters ?? Enumerable.Empty<object>(),
                 parent,
-                proxy.MailboxName,
-                proxy.ActorName,
+                proxy?.MailboxName,
+                proxy?.ActorName,
                 logger,
-                proxy.Evictable
+                proxy?.Evictable ?? false
             );
         }
 
@@ -366,11 +366,11 @@ namespace Vlingo.Actors
 
             public static SerializationProxy<T> From(Definition definition) =>
                 new SerializationProxy<T>(
-                    definition.ActorName,
-                    definition.MailboxName,
-                    definition._parameters,
-                    definition.Parent != null ? new ActorProxyStub<T>(definition.Parent) : null,
-                    definition.Type,
+                    definition.ActorName!,
+                    definition.MailboxName!,
+                    definition._parameters!,
+                    definition.Parent != null ? new ActorProxyStub<T>(definition.Parent) : null!,
+                    definition.Type!,
                     definition.Evictable);
 
             public SerializationProxy(

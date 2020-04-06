@@ -81,7 +81,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         public void SuspendExceptFor(string name, params Type[] overrides)
             => _suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
 
-        public bool IsSuspendedFor(string name) => !_suspendedDeliveryOverrides.Get().Find(name).Any();
+        public bool IsSuspendedFor(string name) => !_suspendedDeliveryOverrides.Get()!.Find(name).Any();
 
         public bool IsSuspended => !_suspendedDeliveryOverrides.Get()!.IsEmpty;
 
@@ -196,13 +196,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
                         _accessible.Set(false);
                         return overridesNamed;
                     }
-                    else
+
+                    if (++retries > 100_000_000)
                     {
-                        if (++retries > 100_000_000)
-                        {
-                            Console.WriteLine(new Exception().StackTrace);
-                            return Enumerable.Empty<Overrides>();
-                        }
+                        Console.WriteLine(new Exception().StackTrace);
+                        return Enumerable.Empty<Overrides>();
                     }
                 }
             }

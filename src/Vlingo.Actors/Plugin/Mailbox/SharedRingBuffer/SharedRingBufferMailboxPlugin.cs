@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Linq;
 using System.Collections.Concurrent;
 
@@ -12,40 +13,45 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
-        private readonly SharedRingBufferMailboxPluginConfiguration configuration;
-        private readonly ConcurrentDictionary<int, RingBufferDispatcher> dispatchers;
+        private readonly SharedRingBufferMailboxPluginConfiguration _configuration;
+        private readonly ConcurrentDictionary<int, RingBufferDispatcher> _dispatchers;
 
         public SharedRingBufferMailboxPlugin()
         {
-            configuration = SharedRingBufferMailboxPluginConfiguration.Define();
-            dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
+            _configuration = SharedRingBufferMailboxPluginConfiguration.Define();
+            _dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
         }
 
         private SharedRingBufferMailboxPlugin(IPluginConfiguration configuration)
         {
-            this.configuration = (SharedRingBufferMailboxPluginConfiguration)configuration;
-            dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
+            _configuration = (SharedRingBufferMailboxPluginConfiguration)configuration;
+            _dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
         }
 
-        public override string Name => configuration.Name;
+        public override string Name => _configuration.Name;
 
         public override int Pass => 1;
 
-        public override IPluginConfiguration Configuration => configuration;
+        public override IPluginConfiguration Configuration => _configuration;
 
         public override void Close()
-            => dispatchers.Values.ToList().ForEach(x => x.Close());
+            => _dispatchers.Values.ToList().ForEach(x => x.Close());
 
         public override void Start(IRegistrar registrar)
         {
-            registrar.Register(configuration.Name, configuration.IsDefaultMailbox, this);
+            registrar.Register(_configuration.Name, _configuration.IsDefaultMailbox, this);
         }
 
-        public IMailbox ProvideMailboxFor(int hashCode) => ProvideMailboxFor(hashCode, null);
+        public IMailbox ProvideMailboxFor(int? hashCode) => ProvideMailboxFor(hashCode, null);
 
-        public IMailbox ProvideMailboxFor(int hashCode, IDispatcher? dispatcher)
+        public IMailbox ProvideMailboxFor(int? hashCode, IDispatcher? dispatcher)
         {
             RingBufferDispatcher maybeDispatcher;
+            
+            if (!hashCode.HasValue)
+            {
+                throw new ArgumentNullException(nameof(hashCode),"Cannot provide mailbox because the hashCode is null.");
+            }
 
             if (dispatcher != null)
             {
@@ -53,17 +59,17 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             }
             else
             {
-                dispatchers.TryGetValue(hashCode, out maybeDispatcher);
+                _dispatchers.TryGetValue(hashCode.Value, out maybeDispatcher);
             }
 
             if (maybeDispatcher == null)
             {
                 var newDispatcher = new RingBufferDispatcher(
-                    configuration.RingSize,
-                    configuration.FixedBackoff,
-                    configuration.DispatcherThrottlingCount);
+                    _configuration.RingSize,
+                    _configuration.FixedBackoff,
+                    _configuration.DispatcherThrottlingCount);
 
-                var otherDispatcher = dispatchers.GetOrAdd(hashCode, newDispatcher);
+                var otherDispatcher = _dispatchers.GetOrAdd(hashCode.Value, newDispatcher);
 
                 otherDispatcher.Start();
                 return otherDispatcher.Mailbox;

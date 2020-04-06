@@ -501,7 +501,7 @@ namespace Vlingo.Actors
         /// <param name="mailboxName">The <c>string</c> name of the <c>IMailbox</c> type to use.</param>
         /// <param name="hashCode">The <c>int</c> hash code to help determine which <c>IMailbox</c> instance to assign.</param>
         /// <returns></returns>
-        internal IMailbox AssignMailbox(string mailboxName, int hashCode)
+        internal IMailbox AssignMailbox(string mailboxName, int? hashCode)
             => _mailboxProviderKeeper.AssignMailbox(mailboxName, hashCode);
 
         /// <summary>

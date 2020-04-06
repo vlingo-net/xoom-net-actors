@@ -46,14 +46,14 @@ namespace Vlingo.Actors
             _maps = Build();
         }
 
-        internal Actor ActorOf(IAddress address)
+        internal Actor? ActorOf(IAddress? address)
         {
-            if (_maps[MapIndex(address)].TryGetValue(address, out var actor))
+            if (address != null && _maps[MapIndex(address)].TryGetValue(address, out var actor))
             {
                 return actor;
             }
 
-            return null!;
+            return null;
         }
 
         internal int Count => _maps.Sum(m => m.Count);
@@ -113,5 +113,13 @@ namespace Vlingo.Actors
         }
 
         private int MapIndex(IAddress address) => Math.Abs(address.GetHashCode() % _maps.Length);
+        
+        public class ActorAddressAlreadyRegistered : Exception
+        {
+            public ActorAddressAlreadyRegistered(Type type, IAddress address)
+                : base($"Failed to register Actor of type {type.FullName}. Address is already registered: {address}")
+            {
+            }
+        }
     }
 }

@@ -149,7 +149,7 @@ namespace Vlingo.Actors
             return actor!.ProtocolActor;
         }
 
-        public T ActorThunkFor<T>(Definition definition, IAddress address)
+        public T ActorThunkFor<T>(Definition definition, IAddress? address)
         {
             var actorMailbox = AllocateMailbox(definition, address, null);
             var actor =
@@ -511,6 +511,27 @@ namespace Vlingo.Actors
             }
         }
         
+        internal T LookupOrStartThunk<T>(Definition definition, IAddress? address) => ActorAs<T>(ActorLookupOrStartThunk(definition, address)!);
+
+        internal Actor? ActorLookupOrStartThunk(Definition definition, IAddress? address)
+        {
+            var actor = _directory.ActorOf(address);
+            if (actor != null)
+            {
+                return actor;
+            }
+
+            try
+            {
+                ActorThunkFor<IStartable>(definition, address);
+                return _directory.ActorOf(address);
+            }
+            catch (Directory.ActorAddressAlreadyRegistered)
+            {
+                return ActorLookupOrStartThunk(definition, address);
+            }
+        }
+        
         protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
         
         protected ActorFactory.IMailboxWrapper MailboxWrapper() => new ActorFactory.IdentityMailboxWrapper();
@@ -523,7 +544,7 @@ namespace Vlingo.Actors
         /// <param name="address">the Address allocated to the Actor</param>
         /// <param name="maybeMailbox">the possible Mailbox</param>
         /// <returns></returns>
-        protected IMailbox AllocateMailbox(Definition definition, IAddress address, IMailbox? maybeMailbox)
+        protected IMailbox AllocateMailbox(Definition definition, IAddress? address, IMailbox? maybeMailbox)
             => maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());
         
         /// <summary>
