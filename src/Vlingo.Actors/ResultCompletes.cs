@@ -250,6 +250,10 @@ namespace Vlingo.Actors
         public void Failed() => Completes().Failed();
 
         public ICompletes<T> Repeat() => Completes().Repeat();
+        
+        public ICompletes<T> TimeoutWithin(TimeSpan timeout) => Completes().TimeoutWithin(timeout);
+
+        public ICompletes<T> UseFailedOutcomeOf(T failedOutcomeValue) => Completes().UseFailedOutcomeOf(failedOutcomeValue);
 
         public CompletesAwaiter<T> GetAwaiter() => new CompletesAwaiter<T>(this);
 
