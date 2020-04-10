@@ -9,9 +9,8 @@ namespace Vlingo.Actors
 {
     public class ActorProxyStub<T> : ActorProxyBase<T>
     {
-        public ActorProxyStub(Actor actor)
+        public ActorProxyStub(Actor actor) : base(Actors.Definition.SerializationProxy<T>.From(actor.Definition), actor.Address)
         {
-            
         }
     }
 }
