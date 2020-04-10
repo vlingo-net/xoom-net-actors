@@ -324,13 +324,13 @@ namespace Vlingo.Actors
         {
         }
         
-        private Definition(Type type, IEnumerable<object> parameters, bool evictable) :
+        public Definition(Type type, IEnumerable<object> parameters, bool evictable) :
             this(type, parameters, null, null, null, null, evictable)
         {
         }
 
         private Definition(Type type, IEnumerable<object> parameters) :
-        this(type, parameters, null, null, null, null, false)
+            this(type, parameters, null, null, null, null, false)
         {
         }
 
@@ -354,7 +354,6 @@ namespace Vlingo.Actors
             return null;
         }
 
-        [Serializable]
         public class SerializationProxy<T>
         {
             public string ActorName { get; }
