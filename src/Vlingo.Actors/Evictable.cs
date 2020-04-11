@@ -14,13 +14,13 @@ namespace Vlingo.Actors
         private Actor _actor;
         private long _activeOn;
 
-        Evictable(Actor actor)
+        internal Evictable(Actor actor)
         {
             _actor = actor;
             _activeOn = DateTimeHelper.CurrentTimeMillis();
         }
         
-        void ReceivedMessage() => ActiveOn(DateTimeHelper.CurrentTimeMillis());
+        internal void ReceivedMessage() => ActiveOn(DateTimeHelper.CurrentTimeMillis());
 
         void ActiveOn(long activeOn) => _activeOn = activeOn;
 
@@ -49,8 +49,8 @@ namespace Vlingo.Actors
             return false;
         }
 
-        bool IsStale(long thresholdMillis) => IsStale(DateTimeHelper.CurrentTimeMillis(), thresholdMillis);
+        internal bool IsStale(long thresholdMillis) => IsStale(DateTimeHelper.CurrentTimeMillis(), thresholdMillis);
 
-        bool IsStale(long referenceMillis, long thresholdMillis) => _activeOn < referenceMillis - thresholdMillis;
+        internal bool IsStale(long referenceMillis, long thresholdMillis) => _activeOn < referenceMillis - thresholdMillis;
     }
 }

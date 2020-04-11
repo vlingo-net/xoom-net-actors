@@ -138,7 +138,7 @@ namespace Vlingo.Actors
         protected Actor()
         {
             var maybeEnvironment = ActorFactory.ThreadLocalEnvironment.Value;
-            LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment());
+            LifeCycle = new LifeCycle(maybeEnvironment ?? new TestEnvironment(), new Evictable(this));
             ActorFactory.ThreadLocalEnvironment.Value = null;
             CompletesImpl = new ResultCompletes<object>();
         }

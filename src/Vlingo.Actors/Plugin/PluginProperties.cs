@@ -5,24 +5,23 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using System.Globalization;
 
 namespace Vlingo.Actors.Plugin
 {
     public class PluginProperties
     {
-        private readonly Properties properties;
+        private readonly Properties _properties;
 
         public PluginProperties(string name, Properties properties)
         {
             Name = name;
-            this.properties = properties;
+            _properties = properties;
         }
 
         public string Name { get; }
 
-        public Boolean GetBoolean(string key, bool defaultValue)
+        public bool GetBoolean(string key, bool defaultValue)
         {
             var value = GetString(key, defaultValue.ToString());
             return bool.Parse(value);
@@ -39,8 +38,14 @@ namespace Vlingo.Actors.Plugin
             var value = GetString(key, defaultValue.ToString());
             return int.Parse(value);
         }
+        
+        public long GetLong(string key, long defaultValue)
+        {
+            var value = GetString(key, defaultValue.ToString());
+            return long.Parse(value);
+        }
 
-        public string? GetString(string key, string? defaultValue) => properties.GetProperty(Key(key), defaultValue);
+        public string? GetString(string key, string? defaultValue) => _properties.GetProperty(Key(key), defaultValue);
 
         private string Key(string key) => $"plugin.{Name}.{key}";
     }

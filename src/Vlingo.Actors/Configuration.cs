@@ -19,10 +19,10 @@ namespace Vlingo.Actors
 {
     public class Configuration
     {
-        private readonly List<IPlugin> plugins;
-        private readonly IDictionary<string, IPluginConfiguration> configurationOverrides;
-        private readonly bool mergeProperties;
-        private readonly Properties? properties;
+        private readonly List<IPlugin> _plugins;
+        private readonly IDictionary<string, IPluginConfiguration> _configurationOverrides;
+        private readonly bool _mergeProperties;
+        private readonly Properties? _properties;
 
         public static Configuration Define() => new Configuration();
 
@@ -32,12 +32,9 @@ namespace Vlingo.Actors
         public static Configuration DefineWith(Properties properties)
             => new Configuration(properties, false);
 
-        public IReadOnlyList<IPlugin> AllPlugins() => plugins.AsReadOnly();
+        public IReadOnlyList<IPlugin> AllPlugins() => _plugins.AsReadOnly();
 
-        private void AddConfigurationOverride(IPluginConfiguration configuration)
-        {
-            configurationOverrides[configuration.GetType().Name] = configuration;
-        }
+        private void AddConfigurationOverride(IPluginConfiguration configuration) => _configurationOverrides[configuration.GetType().Name] = configuration;
 
         public Configuration With(CommonSupervisorsPluginConfiguration configuration)
         {
@@ -54,6 +51,7 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public ConcurrentQueueMailboxPluginConfiguration? ConcurrentQueueMailboxPluginConfiguration { get; private set; }
 
         public Configuration With(DefaultSupervisorOverridePluginConfiguration configuration)
@@ -62,6 +60,7 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public DefaultSupervisorOverridePluginConfiguration? DefaultSupervisorOverridePluginConfiguration { get; private set; }
 
         public Configuration With(ConsoleLoggerPluginConfiguration configuration)
@@ -70,6 +69,7 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public ConsoleLoggerPluginConfiguration? ConsoleLoggerPluginConfiguration { get; private set; }
 
         public Configuration With(ManyToOneConcurrentArrayQueuePluginConfiguration configuration)
@@ -78,6 +78,7 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public ManyToOneConcurrentArrayQueuePluginConfiguration? ManyToOneConcurrentArrayQueuePluginConfiguration { get; private set; }
 
         public Configuration With(PooledCompletesPluginConfiguration configuration)
@@ -86,6 +87,7 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public PooledCompletesPluginConfiguration? PooledCompletesPluginConfiguration { get; private set; }
 
         public Configuration With(SharedRingBufferMailboxPluginConfiguration configuration)
@@ -94,13 +96,24 @@ namespace Vlingo.Actors
             AddConfigurationOverride(configuration);
             return this;
         }
+        
         public SharedRingBufferMailboxPluginConfiguration? SharedRingBufferMailboxPluginConfiguration { get; private set; }
+        
+        public Configuration With(DirectoryEvictionConfiguration configuration)
+        {
+            DirectoryEvictionConfiguration = configuration;
+            AddConfigurationOverride(configuration);
+            return this;
+        }
+        
+        public DirectoryEvictionConfiguration? DirectoryEvictionConfiguration { get; private set; }
 
         public Configuration UsingMainProxyGeneratedClassesPath(string path)
         {
             MainProxyGeneratedClassesPath = path;
             return this;
         }
+        
         public string? MainProxyGeneratedClassesPath { get; private set; }
 
         public Configuration UsingMainProxyGeneratedSourcesPath(string path)
@@ -108,6 +121,7 @@ namespace Vlingo.Actors
             MainProxyGeneratedSourcesPath = path;
             return this;
         }
+        
         public string? MainProxyGeneratedSourcesPath { get; private set; }
 
         public Configuration UsingTestProxyGeneratedClassesPath(string path)
@@ -115,6 +129,7 @@ namespace Vlingo.Actors
             TestProxyGeneratedClassesPath = path;
             return this;
         }
+        
         public string? TestProxyGeneratedClassesPath { get; private set; }
 
         public Configuration UsingTestProxyGeneratedSourcesPath(string path)
@@ -122,13 +137,14 @@ namespace Vlingo.Actors
             TestProxyGeneratedSourcesPath = path;
             return this;
         }
+        
         public string? TestProxyGeneratedSourcesPath { get; private set; }
 
         public void StartPlugins(World world, int pass)
         {
             Load(pass);
 
-            foreach (var plugin in plugins)
+            foreach (var plugin in _plugins)
             {
                 if (plugin.Pass == pass)
                 {
@@ -141,28 +157,28 @@ namespace Vlingo.Actors
         {
             if (pass == 0)
             {
-                if (properties != null)
+                if (_properties != null)
                 {
-                    if (mergeProperties)
+                    if (_mergeProperties)
                     {
                         var plugins = LoadPlugins(false);
-                        plugins.AddRange(LoadPropertiesPlugins(properties, plugins));
+                        plugins.AddRange(LoadPropertiesPlugins(_properties, plugins));
                     }
                     else
                     {
-                        plugins.AddRange(LoadPropertiesPlugins(properties, new List<IPlugin>(0)));
+                        _plugins.AddRange(LoadPropertiesPlugins(_properties, new List<IPlugin>(0)));
                     }
                 }
                 else
                 {
-                    plugins.AddRange(LoadPlugins(true));
+                    _plugins.AddRange(LoadPlugins(true));
                 }
             }
         }
 
         private IPluginConfiguration? OverrideConfiguration(IPlugin plugin)
         {
-            if(configurationOverrides.TryGetValue(plugin.Configuration.GetType().Name, out var val))
+            if(_configurationOverrides.TryGetValue(plugin.Configuration.GetType().Name, out var val))
             {
                 return val;
             }
@@ -176,10 +192,10 @@ namespace Vlingo.Actors
 
         private Configuration(Properties? properties, bool includeBaseLoad)
         {
-            configurationOverrides = new Dictionary<string, IPluginConfiguration>();
-            plugins = new List<IPlugin>();
-            this.properties = properties;
-            mergeProperties = includeBaseLoad;
+            _configurationOverrides = new Dictionary<string, IPluginConfiguration>();
+            _plugins = new List<IPlugin>();
+            _properties = properties;
+            _mergeProperties = includeBaseLoad;
 
             UsingMainProxyGeneratedClassesPath("target/classes/")
             .UsingMainProxyGeneratedSourcesPath("target/generated-sources/")
@@ -212,7 +228,7 @@ namespace Vlingo.Actors
                 typeof(DefaultSupervisorOverridePlugin)
             };
 
-            var plugins = new List<IPlugin>();
+            var loadPlugins = new List<IPlugin>();
             foreach (var pluginClass in pluginClasses)
             {
                 try
@@ -227,7 +243,7 @@ namespace Vlingo.Actors
                         configuredPlugin.Configuration.Build(this);
                     }
 
-                    plugins.Add(configuredPlugin);
+                    loadPlugins.Add(configuredPlugin);
                 }
                 catch (Exception)
                 {
@@ -235,7 +251,7 @@ namespace Vlingo.Actors
                 }
             }
 
-            return plugins;
+            return loadPlugins;
         }
     }
 }

@@ -85,6 +85,7 @@ namespace Vlingo.Actors
                 {
                     _actor.CompletesImpl.Reset(_completes);
                     _consumer!.Invoke((TActor)(object)_actor);
+                    _actor.LifeCycle.Evictable.ReceivedMessage();
                     if (_actor.CompletesImpl.HasInternalOutcomeSet)
                     {
                         // USE THE FOLLOWING. this forces the same ce actor to be used for

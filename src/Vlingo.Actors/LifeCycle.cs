@@ -12,10 +12,12 @@ namespace Vlingo.Actors
     internal sealed class LifeCycle
     {
         internal Environment Environment { get; set; }
+        internal Evictable Evictable { get; set; }
 
-        internal LifeCycle(Environment environment)
+        internal LifeCycle(Environment environment, Evictable evictable)
         {
             Environment = environment;
+            Evictable = evictable;
         }
 
         public override int GetHashCode() => Address.GetHashCode();

@@ -7,7 +7,8 @@
       "queueMailbox": true,
       "consoleLogger": true,
       "common_supervisors": true,
-      "override_supervisor": true
+      "override_supervisor": true,
+      "directoryEviction": true
     },
     "pooledCompletes": {
       "classname": "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin",
@@ -47,6 +48,12 @@
     "override_supervisor": {
       "classname": "Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverridePlugin",
       "types": "[stage=default name=overrideSupervisor supervisor=Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverride]"
+    },
+    "directoryEviction": {
+      "classname": "Vlingo.Actors.Plugin.Eviction.DirectoryEvictionPlugin",
+      "enabled": false,
+      "lruThresholdMillis": 600000,
+      "fillRatioHigh": 0.8
     }
   },
   "proxy": {

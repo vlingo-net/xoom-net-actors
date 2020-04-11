@@ -93,11 +93,13 @@ namespace Vlingo.Actors
             {
                 return actor;
             }
-            else
-            {
-                return null!; // TODO: or, throw?
-            }
+
+            return null!; // TODO: or, throw?
         }
+
+        internal IEnumerable<Actor> EvictionCandidates(long thresholdMillis) =>
+            _maps.SelectMany(m => m.Values).Where(a =>
+                a.LifeCycle.Evictable.IsStale(thresholdMillis) && a.LifeCycle.Environment.Mailbox.PendingMessages == 0);
 
         internal IEnumerable<IAddress> Addresses => _maps.SelectMany(m => m.Keys);
 
