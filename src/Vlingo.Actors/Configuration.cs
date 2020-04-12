@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Completes;
+using Vlingo.Actors.Plugin.Eviction;
 using Vlingo.Actors.Plugin.Logging.Console;
 using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;

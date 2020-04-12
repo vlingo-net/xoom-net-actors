@@ -5,9 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin;
-
-namespace Vlingo.Actors
+namespace Vlingo.Actors.Plugin.Eviction
 {
     public class DirectoryEvictionConfiguration : IPluginConfiguration
     {
@@ -60,5 +58,8 @@ namespace Vlingo.Actors
             LruThresholdMillis = properties.GetLong("lruThresholdMillis", DefaultLruMillis);
             FillRatioHigh = properties.GetFloat("fillRatioHigh", DefaultFillRatioHigh);
         }
+
+        public override string ToString() =>
+            $"DirectoryEvictionConfiguration(name='{Name}', enabled='{IsEnabled}', lruThresholdMillis='{LruThresholdMillis}', fillRatioHigh='{DefaultFillRatioHigh:F2}')";
     }
 }
