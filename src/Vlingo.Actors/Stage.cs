@@ -541,7 +541,7 @@ namespace Vlingo.Actors
                 ActorThunkFor<IStartable>(definition, address);
                 return _directory.ActorOf(address);
             }
-            catch (Directory.ActorAddressAlreadyRegistered)
+            catch (ActorAddressAlreadyRegisteredException)
             {
                 return ActorLookupOrStartThunk(definition, address);
             }

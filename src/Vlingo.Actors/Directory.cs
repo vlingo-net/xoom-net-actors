@@ -81,7 +81,7 @@ namespace Vlingo.Actors
         {
             if (IsRegistered(address))
             {
-                throw new InvalidOperationException($"The actor address is already registered: {address}");
+                throw new ActorAddressAlreadyRegisteredException(actor, address);
             }
 
             _maps[MapIndex(address)].TryAdd(address, actor); // TODO: throw if can't add?
@@ -115,13 +115,5 @@ namespace Vlingo.Actors
         }
 
         private int MapIndex(IAddress address) => Math.Abs(address.GetHashCode() % _maps.Length);
-        
-        public class ActorAddressAlreadyRegistered : Exception
-        {
-            public ActorAddressAlreadyRegistered(Type type, IAddress address)
-                : base($"Failed to register Actor of type {type.FullName}. Address is already registered: {address}")
-            {
-            }
-        }
     }
 }
