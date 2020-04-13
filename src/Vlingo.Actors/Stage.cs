@@ -437,8 +437,6 @@ namespace Vlingo.Actors
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                Console.WriteLine(e.StackTrace);
                 World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
             }
 
