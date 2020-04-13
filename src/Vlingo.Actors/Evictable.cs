@@ -24,7 +24,7 @@ namespace Vlingo.Actors
 
         void ActiveOn(long activeOn) => _activeOn = activeOn;
 
-        bool Stop(long thresholdMillis) => Stop(DateTimeHelper.CurrentTimeMillis(), thresholdMillis);
+        internal bool Stop(long thresholdMillis) => Stop(DateTimeHelper.CurrentTimeMillis(), thresholdMillis);
 
         bool Stop(long referenceMillis, long thresholdMillis)
         {

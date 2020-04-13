@@ -270,7 +270,7 @@ namespace Vlingo.Actors
         /// Answers the <c>Logger</c> of this <c>Actor</c>.
         /// </summary>
         /// <value>Gets the <c>ILogger</c> instance of this <c>Actor</c></value>
-        protected internal virtual ILogger Logger => LifeCycle.Environment.Logger;
+        protected internal ILogger Logger => LifeCycle.Environment.Logger;
 
         /// <summary>
         /// Answers the parent of this <c>Actor</c> as the <typeparamref name="T"/> protocol.

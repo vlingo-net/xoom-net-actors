@@ -28,7 +28,7 @@ namespace Vlingo.Actors
         
         public static float GetFloat(string key, float defaultValue) => Get(key, float.Parse, defaultValue);
 
-        private static T Get<T>(string key, Func<string, T> parse, T defaultValue)
+        private static T Get<T>(string key, Func<string?, T> parse, T defaultValue)
         {
             var property = Instance.GetProperty(key);
             if (!string.IsNullOrEmpty(key))
