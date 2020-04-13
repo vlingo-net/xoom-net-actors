@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Vlingo.Actors.Plugin.Completes;
+using Vlingo.Actors.Plugin.Eviction;
 using Vlingo.Actors.Plugin.Logging.Console;
 using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
@@ -55,6 +56,10 @@ namespace Vlingo.Actors.Tests
                 .With(DefaultSupervisorOverridePluginConfiguration
                         .Define()
                         .WithSupervisor("default", "overrideSupervisor", typeof(DefaultSupervisorOverride)))
+                .With(DirectoryEvictionConfiguration
+                    .Define()
+                    .WithFillRatioHigh(0.75F)
+                    .WithLruThresholdMillis(10000))
                 .UsingMainProxyGeneratedClassesPath("target/classes/")
                 .UsingMainProxyGeneratedSourcesPath("target/generated-sources/")
                 .UsingTestProxyGeneratedClassesPath("target/test-classes/")
@@ -103,6 +108,10 @@ namespace Vlingo.Actors.Tests
             Assert.Equal("overrideSupervisor", configuration.DefaultSupervisorOverridePluginConfiguration.Name);
             Assert.Equal(typeof(DefaultSupervisorOverride), configuration.DefaultSupervisorOverridePluginConfiguration.SupervisorClass(0));
 
+            Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration.Name);
+            Assert.Equal(10000, configuration.DirectoryEvictionConfiguration.LruThresholdMillis);
+            Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration.FillRatioHigh, 0);
+            
             Assert.Equal("target/classes/", configuration.MainProxyGeneratedClassesPath);
             Assert.Equal("target/generated-sources/", configuration.MainProxyGeneratedSourcesPath);
             Assert.Equal("target/test-classes/", configuration.TestProxyGeneratedClassesPath);

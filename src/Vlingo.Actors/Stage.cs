@@ -490,11 +490,28 @@ namespace Vlingo.Actors
         /// <summary>
         /// Start the directory scan process in search for a given Actor instance. (INTERNAL ONLY)
         /// </summary>
-        internal void StartDirectoryScanner() =>
+        internal void StartDirectoryScanner()
+        {
             _directoryScanner = ActorFor<IDirectoryScanner>(
                 Definition.Has<DirectoryScannerActor>(
                     Definition.Parameters(_directory)),
                 World.AddressFactory.UniqueWith($"DirectoryScanner::{Name}"));
+
+            var evictionConfiguration = World.Configuration.DirectoryEvictionConfiguration;
+
+            if (evictionConfiguration != null && evictionConfiguration.IsEnabled)
+            {
+                World.DefaultLogger.Debug($"Scheduling directory eviction for stage: {Name} with: {evictionConfiguration}");
+                var evictorActor = ActorFor<IScheduled<object>>(
+                    Definition.Has(() => new DirectoryEvictor(evictionConfiguration, Directory)),
+                    World.AddressFactory.UniqueWith($"EvictorActor::{Name}"));
+
+                var evictorActorInterval = Properties.GetLong(
+                    "stage.evictor.interval", Math.Min(15_000L, evictionConfiguration.LruThresholdMillis));
+
+                Scheduler.Schedule(evictorActor, null!, TimeSpan.FromMilliseconds(evictorActorInterval), TimeSpan.FromMilliseconds(evictorActorInterval));
+            }
+        }
 
         /// <summary>
         /// Stop the given Actor and all its children. The Actor instance is first removed from
