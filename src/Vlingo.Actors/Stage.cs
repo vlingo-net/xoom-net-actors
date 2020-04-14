@@ -526,6 +526,45 @@ namespace Vlingo.Actors
             }
         }
         
+        internal Actor RawLookupOrStart(Definition definition, IAddress address)
+        {
+            Actor actor = Directory.ActorOf(address);
+            if (actor != null)
+            {
+                return actor;
+            }
+            try
+            {
+                return CreateRawActor(definition, definition.ParentOr(World.DefaultParent), address, null, definition.Supervisor, World.DefaultLogger);
+            }
+            catch (ActorAddressAlreadyRegisteredException)
+            {
+                return RawLookupOrStart(definition, address);
+            }
+        }
+        
+        internal T LookupOrStart<T>(T protocol, Definition definition, IAddress address) 
+            => ActorAs<T>(ActorLookupOrStart(definition, address));
+
+        internal Actor ActorLookupOrStart(Definition definition, IAddress address)
+        {
+            var actor = Directory.ActorOf(address);
+            if (actor != null)
+            {
+                return actor;
+            }
+
+            try 
+            {
+                ActorFor<IStartable>(definition, address);
+                return Directory.ActorOf(address);
+            }
+            catch (ActorAddressAlreadyRegisteredException)
+            {
+                return ActorLookupOrStart(definition, address);
+            }
+        }
+        
         internal T LookupOrStartThunk<T>(Definition definition, IAddress? address) => ActorAs<T>(ActorLookupOrStartThunk(definition, address)!);
 
         internal Actor? ActorLookupOrStartThunk(Definition definition, IAddress? address)
