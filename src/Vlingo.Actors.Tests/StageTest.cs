@@ -199,6 +199,34 @@ namespace Vlingo.Actors.Tests
             Assert.Throws<ArgumentException>(()
                 => World.Stage.ActorFor(new[] { typeof(INoProtocol), typeof(ParentInterfaceActor) }, typeof(ParentInterfaceActor)));
         }
+        
+        [Fact]
+        public void TestSingleThreadRawLookupOrStartFindsActorPreviouslyStartedWithActorFor()
+        {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            World.Stage.ActorFor<INoProtocol>(definition, address);
+            var existing = World.Stage.RawLookupOrStart(definition, address);
+            Assert.Same(address, existing.Address);
+        }
+
+        [Fact]
+        public void TestSingleThreadActorLookupOrStartFindsActorPreviouslyStartedWithActorFor()
+        {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            World.Stage.ActorFor<INoProtocol>(definition, address);
+            var existing = World.Stage.ActorLookupOrStart(definition, address);
+            Assert.Same(address, existing.Address);
+        }
+
+        [Fact]
+        public void TestSingleThreadLookupOrStartFindsActorPreviouslyStartedWithActorFor() {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            World.Stage.ActorFor<INoProtocol>(definition, address);
+            Assert.NotNull(World.Stage.LookupOrStart<INoProtocol>(definition, address));
+        }
 
         private class ParentInterfaceActor : Actor, INoProtocol
         {

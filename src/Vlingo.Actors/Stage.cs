@@ -543,7 +543,7 @@ namespace Vlingo.Actors
             }
         }
         
-        internal T LookupOrStart<T>(T protocol, Definition definition, IAddress address) 
+        internal T LookupOrStart<T>(Definition definition, IAddress address) 
             => ActorAs<T>(ActorLookupOrStart(definition, address));
 
         internal Actor ActorLookupOrStart(Definition definition, IAddress address)
