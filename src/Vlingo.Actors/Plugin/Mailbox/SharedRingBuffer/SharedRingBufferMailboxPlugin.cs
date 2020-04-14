@@ -67,6 +67,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 var newDispatcher = new RingBufferDispatcher(
                     _configuration.RingSize,
                     _configuration.FixedBackoff,
+                    _configuration.NotifyOnSend,
                     _configuration.DispatcherThrottlingCount);
 
                 var otherDispatcher = _dispatchers.GetOrAdd(hashCode.Value, newDispatcher);

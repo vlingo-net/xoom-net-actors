@@ -63,6 +63,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                 var newDispatcher = new ManyToOneConcurrentArrayQueueDispatcher(
                     _configuration.RingSize,
                     _configuration.FixedBackoff,
+                    _configuration.NotifyOnSend,
                     _configuration.DispatcherThrottlingCount,
                     _configuration.SendRetires);
 

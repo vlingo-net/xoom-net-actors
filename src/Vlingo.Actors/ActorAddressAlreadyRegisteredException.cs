@@ -15,8 +15,8 @@ namespace Vlingo.Actors
         {
         }
         
-        public ActorAddressAlreadyRegisteredException(Type type, IAddress address)
-            : base($"Failed to register Actor of type {type.FullName}. Address is already registered: {address}")
+        public ActorAddressAlreadyRegisteredException(Type? type, IAddress address)
+            : base($"Failed to register Actor of type {type?.FullName}. Address is already registered: {address}")
         {
         }
     }

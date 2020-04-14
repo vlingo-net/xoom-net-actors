@@ -20,7 +20,8 @@
       "defaultMailbox": false,
       "size": 65535,
       "fixedBackoff": 2,
-      "dispatcherThrottlingCount": 1
+      "dispatcherThrottlingCount": 1,
+      "notifyOnSend": false
     },
     "arrayQueueMailbox": {
       "classname": "Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin",
@@ -28,7 +29,8 @@
       "size": 65535,
       "fixedBackoff": 2,
       "dispatcherThrottlingCount": 1,
-      "sendRetires": 10
+      "sendRetires": 10,
+      "notifyOnSend": false
     },
     "queueMailbox": {
       "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",

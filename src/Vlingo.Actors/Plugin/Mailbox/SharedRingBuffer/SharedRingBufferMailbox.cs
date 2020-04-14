@@ -17,15 +17,17 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         private readonly IDispatcher _dispatcher;
         private readonly int _mailboxSize;
+        private readonly bool _notifyOnSend;
         private readonly IMessage[] _messages;
         private readonly AtomicLong _sendIndex;
         private readonly AtomicLong _readyIndex;
         private readonly AtomicLong _receiveIndex;
 
-        protected internal SharedRingBufferMailbox(IDispatcher dispatcher, int mailboxSize)
+        protected internal SharedRingBufferMailbox(IDispatcher dispatcher, int mailboxSize, bool notifyOnSend)
         {
             _dispatcher = dispatcher;
             _mailboxSize = mailboxSize;
+            _notifyOnSend = notifyOnSend;
             _closed = new AtomicBoolean(false);
             _messages = new IMessage[mailboxSize];
             _readyIndex = new AtomicLong(-1);
@@ -82,6 +84,11 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             _messages[ringSendIndex].Set(actor, consumer, completes, representation);
             while (_readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
             { }
+
+            if (_notifyOnSend)
+            {
+                _dispatcher.Execute(this);
+            }
         }
 
         public virtual IMessage? Receive()

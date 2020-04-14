@@ -18,15 +18,18 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly IDispatcher _dispatcher;
         private readonly BlockingCollection<IMessage> _queue;
         private readonly int _totalSendRetries;
+        private readonly bool _notifyOnSend;
 
         internal ManyToOneConcurrentArrayQueueMailbox(
             IDispatcher dispatcher,
             int mailboxSize,
-            int totalSendRetries)
+            int totalSendRetries,
+            bool notifyOnSend)
         {
             _dispatcher = dispatcher;
             _queue = new BlockingCollection<IMessage>(new ConcurrentQueue<IMessage>(), mailboxSize);
             _totalSendRetries = totalSendRetries;
+            _notifyOnSend = notifyOnSend;
         }
 
         public void Close()
@@ -63,6 +66,10 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             {
                 if (_queue.TryAdd(message))
                 {
+                    if (_notifyOnSend)
+                    {
+                        _dispatcher.Execute(this);
+                    }
                     return;
                 }
                 while (PendingMessages >= _queue.BoundedCapacity) ;

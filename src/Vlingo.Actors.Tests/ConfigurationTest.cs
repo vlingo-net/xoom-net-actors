@@ -32,11 +32,13 @@ namespace Vlingo.Actors.Tests
                         .Define()
                         .WithRingSize(65535)
                         .WithFixedBackoff(2)
+                        .WithNotifyOnSend(true)
                         .WithDispatcherThrottlingCount(10))
                 .With(ManyToOneConcurrentArrayQueuePluginConfiguration
                         .Define()
                         .WithRingSize(65535)
                         .WithFixedBackoff(2)
+                        .WithNotifyOnSend(true)
                         .WithDispatcherThrottlingCount(10)
                         .WithSendRetires(10))
                 .With(ConcurrentQueueMailboxPluginConfiguration
@@ -74,12 +76,14 @@ namespace Vlingo.Actors.Tests
             Assert.False(configuration.SharedRingBufferMailboxPluginConfiguration.IsDefaultMailbox);
             Assert.Equal(65535, configuration.SharedRingBufferMailboxPluginConfiguration.RingSize);
             Assert.Equal(2, configuration.SharedRingBufferMailboxPluginConfiguration.FixedBackoff);
+            Assert.True(configuration.SharedRingBufferMailboxPluginConfiguration.NotifyOnSend);
             Assert.Equal(10, configuration.SharedRingBufferMailboxPluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ManyToOneConcurrentArrayQueuePluginConfiguration);
             Assert.False(configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.IsDefaultMailbox);
             Assert.Equal(65535, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.RingSize);
             Assert.Equal(2, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.FixedBackoff);
+            Assert.True(configuration.SharedRingBufferMailboxPluginConfiguration.NotifyOnSend);
             Assert.Equal(10, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ConcurrentQueueMailboxPluginConfiguration);
@@ -133,12 +137,14 @@ namespace Vlingo.Actors.Tests
             Assert.False(configuration.SharedRingBufferMailboxPluginConfiguration.IsDefaultMailbox);
             Assert.Equal(65535, configuration.SharedRingBufferMailboxPluginConfiguration.RingSize);
             Assert.Equal(2, configuration.SharedRingBufferMailboxPluginConfiguration.FixedBackoff);
+            Assert.False(configuration.SharedRingBufferMailboxPluginConfiguration.NotifyOnSend);
             Assert.Equal(10, configuration.SharedRingBufferMailboxPluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ManyToOneConcurrentArrayQueuePluginConfiguration);
             Assert.False(configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.IsDefaultMailbox);
             Assert.Equal(65535, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.RingSize);
             Assert.Equal(2, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.FixedBackoff);
+            Assert.False(configuration.SharedRingBufferMailboxPluginConfiguration.NotifyOnSend);
             Assert.Equal(1, configuration.ManyToOneConcurrentArrayQueuePluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ConcurrentQueueMailboxPluginConfiguration);

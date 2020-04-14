@@ -51,7 +51,7 @@ namespace Vlingo.Actors.Tests
 
             directory.Register(address, actor);
 
-            Assert.Throws<InvalidOperationException>(() => directory.Register(address, new TestInterfaceActor()));
+            Assert.Throws<ActorAddressAlreadyRegisteredException>(() => directory.Register(address, new TestInterfaceActor()));
         }
 
         [Fact]

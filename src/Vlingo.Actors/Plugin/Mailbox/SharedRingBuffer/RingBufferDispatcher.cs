@@ -13,24 +13,24 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class RingBufferDispatcher : IRunnable, IDispatcher
     {
-        private readonly Backoff backoff;
-        private readonly AtomicBoolean closed;
-        private readonly int throttlingCount;
+        private readonly Backoff _backoff;
+        private readonly AtomicBoolean _closed;
+        private readonly int _throttlingCount;
 
-        private CancellationTokenSource backoffTokenSource;
-        private readonly CancellationTokenSource dispatcherTokenSource;
-        private Task? started;
-        private readonly object mutex = new object();
+        private CancellationTokenSource _backoffTokenSource;
+        private readonly CancellationTokenSource _dispatcherTokenSource;
+        private Task? _started;
+        private readonly object _mutex = new object();
         
-        internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, int throttlingCount)
+        internal RingBufferDispatcher(int mailboxSize, long fixedBackoff, bool notifyOnSend, int throttlingCount)
         {
-            closed = new AtomicBoolean(false);
-            backoff = fixedBackoff == 0L ? new Backoff() : new Backoff(fixedBackoff);
+            _closed = new AtomicBoolean(false);
+            _backoff = fixedBackoff == 0L ? new Backoff() : new Backoff(fixedBackoff);
             RequiresExecutionNotification = fixedBackoff == 0L;
-            Mailbox = new SharedRingBufferMailbox(this, mailboxSize);
-            this.throttlingCount = throttlingCount;
-            dispatcherTokenSource = new CancellationTokenSource();
-            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
+            Mailbox = new SharedRingBufferMailbox(this, mailboxSize, notifyOnSend);
+            _throttlingCount = throttlingCount;
+            _dispatcherTokenSource = new CancellationTokenSource();
+            _backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_dispatcherTokenSource.Token);
         }
 
         internal IMailbox Mailbox { get; private set; }
@@ -41,33 +41,33 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         {
             if (!IsClosed)
             {
-                closed.Set(true);
+                _closed.Set(true);
                 Mailbox.Close();
-                dispatcherTokenSource.Cancel();
-                dispatcherTokenSource.Dispose();
-                backoffTokenSource.Dispose();
+                _dispatcherTokenSource.Cancel();
+                _dispatcherTokenSource.Dispose();
+                _backoffTokenSource.Dispose();
             }
         }
         
-        public bool IsClosed => closed.Get();
+        public bool IsClosed => _closed.Get();
 
         public void Execute(IMailbox mailbox)
         {
-            backoffTokenSource.Cancel();
-            backoffTokenSource.Dispose();
-            backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(dispatcherTokenSource.Token);
+            _backoffTokenSource.Cancel();
+            _backoffTokenSource.Dispose();
+            _backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_dispatcherTokenSource.Token);
         }
 
         public void Start()
         {
-            lock (mutex)
+            lock (_mutex)
             {
-                if (started != null)
+                if (_started != null)
                 {
                     return;
                 }
 
-                started = Task.Run(() => Run(), dispatcherTokenSource.Token);
+                _started = Task.Run(() => Run(), _dispatcherTokenSource.Token);
             }
         }
 
@@ -77,14 +77,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             {
                 if (!Deliver())
                 {
-                    await backoff.Now(backoffTokenSource.Token);
+                    await _backoff.Now(_backoffTokenSource.Token);
                 }
             }
         }
 
         private bool Deliver()
         {
-            for (int idx = 0; idx < throttlingCount; ++idx)
+            for (int idx = 0; idx < _throttlingCount; ++idx)
             {
                 var message = Mailbox.Receive();
                 if (message == null)

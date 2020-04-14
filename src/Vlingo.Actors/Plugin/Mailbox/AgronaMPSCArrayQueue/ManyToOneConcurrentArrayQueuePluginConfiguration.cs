@@ -34,6 +34,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             FixedBackoff = fixedBackoff;
             return this;
         }
+        
+        public ManyToOneConcurrentArrayQueuePluginConfiguration WithNotifyOnSend(bool notifyOnSend)
+        {
+            NotifyOnSend = notifyOnSend;
+            return this;
+        }
 
         public ManyToOneConcurrentArrayQueuePluginConfiguration WithRingSize(int ringSize)
         {
@@ -52,6 +58,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         public int DispatcherThrottlingCount { get; private set; }
 
         public int FixedBackoff { get; private set; }
+        
+        public bool NotifyOnSend { get; private set; }
 
         public int RingSize { get; private set; }
 
@@ -65,6 +73,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
                 WithRingSize(65535)
                 .WithDispatcherThrottlingCount(1)
                 .WithFixedBackoff(2)
+                .WithNotifyOnSend(false)
                 .WithSendRetires(10)
             );
         }
@@ -75,6 +84,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
             IsDefaultMailbox = properties.GetBoolean("defaultMailbox", false);
             DispatcherThrottlingCount = properties.GetInteger("dispatcherThrottlingCount", 1);
             FixedBackoff = properties.GetInteger("fixedBackoff", 2);
+            NotifyOnSend = properties.GetBoolean("notifyOnSend", false);
             RingSize = properties.GetInteger("size", 65535);
             SendRetires = properties.GetInteger("sendRetires", 10);
             configuration.With(this);

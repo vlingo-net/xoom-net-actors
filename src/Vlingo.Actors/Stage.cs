@@ -548,7 +548,7 @@ namespace Vlingo.Actors
         
         internal Actor RawLookupOrStart(Definition definition, IAddress address)
         {
-            Actor actor = Directory.ActorOf(address);
+            var actor = Directory.ActorOf(address);
             if (actor != null)
             {
                 return actor;
@@ -577,7 +577,7 @@ namespace Vlingo.Actors
             try 
             {
                 ActorFor<IStartable>(definition, address);
-                return Directory.ActorOf(address);
+                return Directory.ActorOf(address)!;
             }
             catch (ActorAddressAlreadyRegisteredException)
             {

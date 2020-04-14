@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
 using Vlingo.Common;
 using Vlingo.Actors.TestKit;
@@ -20,12 +21,12 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
         [Fact]
         public void TestClose()
         {
-            var dispatcher = new ManyToOneConcurrentArrayQueueDispatcher(MailboxSize, 2, 4, 10);
+            var testResults = new TestResults(MailboxSize);
+            var dispatcher = new ManyToOneConcurrentArrayQueueDispatcher(MailboxSize, 2, false, 4, 10);
             dispatcher.Start();
             var mailbox = dispatcher.Mailbox;
-            var actor = new CountTakerActor();
+            var actor = new CountTakerActor(testResults);
             
-            actor.Until = Until(MailboxSize);
             for (var i = 1; i <= MailboxSize; ++i)
             {
                 var countParam = i;
@@ -34,11 +35,11 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
                 mailbox.Send(message);
             }
 
-            actor.Until.Completes();
+            Assert.Equal(MailboxSize, testResults.GetHighest());
             dispatcher.Close();
 
-            const int neverReviewed = MailboxSize * 2;
-            for (var count = MailboxSize + 1; count <= neverReviewed; ++count)
+            const int neverReceived = MailboxSize * 2;
+            for (var count = MailboxSize + 1; count <= neverReceived; ++count)
             {
                 var countParam = count;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
@@ -46,19 +47,17 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
                 mailbox.Send(message);
             }
             
-            Until(0).Completes();
-            
-            Assert.Equal(MailboxSize, actor.Highest.Get());
+            Assert.Equal(MailboxSize, testResults.GetHighest());
         }
 
         [Fact]
         public void TestBasicDispatch()
         {
-            var dispatcher = new ManyToOneConcurrentArrayQueueDispatcher(MailboxSize, 2, 4, 10);
+            var testResult = new TestResults(MailboxSize);
+            var dispatcher = new ManyToOneConcurrentArrayQueueDispatcher(MailboxSize, 2, false, 4, 10);
             dispatcher.Start();
             var mailbox = dispatcher.Mailbox;
-            var actor = new CountTakerActor();
-            actor.Until = Until(MailboxSize);
+            var actor = new CountTakerActor(testResult);
 
             for (var count = 1; count <= MailboxSize; ++count)
             {
@@ -68,24 +67,80 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
                 mailbox.Send(message);
             }
 
-            actor.Until.Completes();
+            Assert.Equal(MailboxSize, testResult.GetHighest());
+        }
+        
+        [Fact]
+        public void TestNotifyOnSendDispatch()
+        {
+            var mailboxSize = 64;
+            var testResults = new TestResults(mailboxSize);
 
-            Assert.Equal(MailboxSize, actor.Highest.Get());
+            var dispatcher = new ManyToOneConcurrentArrayQueueDispatcher(mailboxSize, 1000, true, 4, 10);
+
+            dispatcher.Start();
+
+            var mailbox = dispatcher.Mailbox;
+
+            var actor = new CountTakerActor(testResults);
+
+            for (var count = 1; count <= mailboxSize; ++count)
+            {
+                var countParam = count;
+                Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
+                var localMessage = new LocalMessage<ICountTaker>(actor, consumer, "take(int)");
+
+                // notify if in back off
+                mailbox.Send(localMessage);
+
+                // every third message give time for dispatcher to back off
+                if (count % 3 == 0)
+                {
+                    Thread.Sleep(50);
+                }
+            }
+
+            Assert.Equal(mailboxSize, testResults.GetHighest());
         }
 
         private class CountTakerActor : Actor, ICountTaker
         {
-            public AtomicInteger Highest = new AtomicInteger(0);
-            public TestUntil Until = TestUntil.Happenings(0);
+            private readonly TestResults _testResults;
+            private readonly ICountTaker _self;
 
+            public CountTakerActor(TestResults testResults)
+            {
+                _testResults = testResults;
+                _self = SelfAs<ICountTaker>();
+            }
             public void Take(int count)
             {
-                if(count > Highest.Get())
+                if (_testResults.IsHighest(count))
                 {
-                    Highest.Set(count);
+                    _testResults.SetHighest(count);
                 }
-                Until.Happened();
             }
+        }
+        
+        private class TestResults
+        {
+            private readonly AccessSafely _accessSafely;
+
+            public TestResults(int happenings)
+            {
+                var highest = new AtomicInteger(0);
+                _accessSafely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int>("highest", highest.Set)
+                    .ReadingWith("highest", highest.Get)
+                    .ReadingWith<int, bool>("isHighest", count => count > highest.Get());
+            }
+
+            public void SetHighest(int value) => _accessSafely.WriteUsing("highest", value);
+
+            public int GetHighest() => _accessSafely.ReadFrom<int>("highest");
+
+            public bool IsHighest(int value) => _accessSafely.ReadFromNow<int, bool>("isHighest", value);
         }
     }
 }

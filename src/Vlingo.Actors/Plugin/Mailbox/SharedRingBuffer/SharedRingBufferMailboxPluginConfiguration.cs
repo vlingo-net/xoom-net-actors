@@ -34,6 +34,12 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             FixedBackoff = fixedBackoff;
             return this;
         }
+        
+        public SharedRingBufferMailboxPluginConfiguration WithNotifyOnSend(bool notifyOnSend)
+        {
+            NotifyOnSend = notifyOnSend;
+            return this;
+        }
 
         public SharedRingBufferMailboxPluginConfiguration WithRingSize(int ringSize)
         {
@@ -46,6 +52,8 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         public int DispatcherThrottlingCount { get; private set; }
 
         public int FixedBackoff { get; private set; }
+        
+        public bool NotifyOnSend { get; private set; }
 
         public int RingSize { get; private set; }
 
@@ -57,6 +65,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                 WithRingSize(65535)
                 .WithDispatcherThrottlingCount(10)
                 .WithFixedBackoff(2)
+                .WithNotifyOnSend(false)
             );
         }
 
@@ -66,6 +75,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             IsDefaultMailbox = properties.GetBoolean("defaultMailbox", false);
             DispatcherThrottlingCount = properties.GetInteger("dispatcherThrottlingCount", 1);
             FixedBackoff = properties.GetInteger("fixedBackoff", 2);
+            NotifyOnSend = properties.GetBoolean("notifyOnSend", false);
             RingSize = properties.GetInteger("size", 65535);
             configuration.With(this);
         }

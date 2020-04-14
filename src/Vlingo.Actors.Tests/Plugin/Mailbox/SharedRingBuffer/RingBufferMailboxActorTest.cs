@@ -10,6 +10,7 @@ using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
 using Vlingo.Actors.TestKit;
+using Vlingo.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
@@ -27,21 +28,19 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
         public void TestBasicDispatch()
         {
             Init(MailboxSize);
-            var testResults = new TestResults();
+            var testResults = new TestResults(MaxCount);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
                     Definition.Parameters(testResults), "testRingMailbox", "countTaker-1"));
-            var totalCount = MailboxSize / 2;
-            testResults.Until = Until(MaxCount);
-            testResults.maximum = MaxCount;
+            
+            testResults.SetMaximum(MaxCount);
 
-            for (var count = 1; count <= totalCount; ++count)
+            for (var count = 1; count <= MaxCount; ++count)
             {
                 countTaker.Take(count);
             }
-            testResults.Until.Completes();
 
-            Assert.Equal(MaxCount, testResults.highest);
+            Assert.Equal(MaxCount, testResults.GetHighest());
         }
 
         [Fact]
@@ -49,22 +48,22 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
         {
             Init(ThroughputMailboxSize);
 
-            var testResults = new TestResults();
+            var testResults = new TestResults(ThroughputMailboxSize);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<ThroughputCountTakerActor>(
                     Definition.Parameters(testResults), "testRingMailbox", "countTaker-2"));
 
-            testResults.maximum = ThroughputWarmUpCount;
+            testResults.SetMaximum(ThroughputWarmUpCount);
 
             for (var count = 1; count <= ThroughputWarmUpCount; ++count)
             {
                 countTaker.Take(count);
             }
 
-            while (testResults.highest < ThroughputWarmUpCount) { }
+            while (testResults.GetHighest() < ThroughputWarmUpCount) { }
 
-            testResults.highest = 0;
-            testResults.maximum = ThroughputMaxCount;
+            testResults.SetHighest(0);
+            testResults.SetMaximum(ThroughputMaxCount);
 
             var startTime = DateTime.UtcNow;
 
@@ -73,13 +72,13 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
                 countTaker.Take(count);
             }
 
-            while (testResults.highest < ThroughputMaxCount) { }
+            while (testResults.GetHighest() < ThroughputMaxCount) { }
 
             var timeSpent = DateTime.UtcNow - startTime;
 
             Console.WriteLine("Ms: " + timeSpent.TotalMilliseconds + " FOR " + ThroughputMaxCount + " MESSAGES IS " + (ThroughputMaxCount / timeSpent.TotalSeconds) + " PER SECOND");
 
-            Assert.Equal(ThroughputMaxCount, testResults.highest);
+            Assert.Equal(ThroughputMaxCount, testResults.GetHighest());
         }
 
         private void Init(int mailboxSize)
@@ -103,53 +102,59 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 
         private class CountTakerActor : Actor, ICountTaker
         {
-            private ICountTaker self;
-            private readonly TestResults testResults;
+            private ICountTaker _self;
+            private readonly TestResults _testResults;
 
             public CountTakerActor(TestResults testResults)
             {
-                this.testResults = testResults;
-                self = SelfAs<ICountTaker>();
+                _testResults = testResults;
+                _self = SelfAs<ICountTaker>();
             }
 
             public void Take(int count)
             {
-                if (count > testResults.highest)
+                if (_testResults.IsHighest(count))
                 {
-                    testResults.highest = count;
-                    testResults.Until.Happened();
-                }
-                if (count < testResults.maximum)
-                {
-                    self.Take(count + 1);
-                }
-                else
-                {
-                    testResults.Until.CompleteNow();
+                    _testResults.SetHighest(count);
                 }
             }
         }
 
         private class ThroughputCountTakerActor : Actor, ICountTaker
         {
-            private readonly TestResults testResults;
+            private readonly TestResults _testResults;
 
-            public ThroughputCountTakerActor(TestResults testResults)
-            {
-                this.testResults = testResults;
-            }
+            public ThroughputCountTakerActor(TestResults testResults) => _testResults = testResults;
 
-            public void Take(int count)
-            {
-                testResults.highest = count;
-            }
+            public void Take(int count) => _testResults.SetHighest(count);
         }
 
         private class TestResults
         {
-            public volatile int highest = 0;
-            public TestUntil Until = TestUntil.Happenings(0);
-            public int maximum = 0;
+            private readonly AccessSafely _accessSafely;
+
+            public TestResults(int happenings)
+            {
+                var highest = new AtomicInteger(0);
+                var maximum = new AtomicInteger(0);
+                _accessSafely = AccessSafely
+                    .AfterCompleting(happenings)
+                    .WritingWith<int>("highest", highest.Set)
+                    .ReadingWith("highest", highest.Get)
+                    .WritingWith<int>("maximum", maximum.Set)
+                    .ReadingWith("maximum", maximum.Get)
+                    .ReadingWith<int, bool>("isHighest", count => count > highest.Get());
+            }
+
+            public void SetHighest(int value) => _accessSafely.WriteUsing("highest", value);
+            
+            public void SetMaximum(int value) => _accessSafely.WriteUsing("maximum", value);
+
+            public int GetHighest() => _accessSafely.ReadFrom<int>("highest");
+            
+            public int GetMaximum() => _accessSafely.ReadFrom<int>("maximum");
+
+            public bool IsHighest(int value) => _accessSafely.ReadFromNow<int, bool>("isHighest", value);
         }
     }
 }
