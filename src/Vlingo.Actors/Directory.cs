@@ -17,15 +17,16 @@ namespace Vlingo.Actors
         private readonly IAddress _none;
         private readonly ConcurrentDictionary<IAddress, Actor>[] _maps;
         
-        // This particular tuning is based on relatively few actors being spread
+        // (1) Configuration: 32, 32; used in default Stage
+        // This default tuning manages few actors being spread
         // across 32 buckets with only 32 pre-allocated elements, for a total of
         // 1024 actors. This hard-coded configuration will have good performance
         // up to around 75% of 1024 actors, but very average if not poor performance
         // following that.
         //
-        // TODO: Change to configuration-based values to enable the
-        // application to estimate how many actors are likely to exist at
-        // any one time. For example, there will be very few actors in some
+        // (2) Configuration: 128, 16,384; used by Grid
+        // This tuning enables millions of actors at any one time.
+        // For example, there will be very few actors in some
         // "applications" such as vlingo/cluster, but then the application
         // running on the cluster itself may have many, many actors. These
         // run on a different stage, and thus should be tuned separately.
@@ -34,15 +35,17 @@ namespace Vlingo.Actors
         // This will support 2 million actors with an average of a few hundred
         // less than 16K actors in each bucket.
         
-        private const int Buckets = 32;
-        private const int InitialCapacity = 32;
+        private readonly int _buckets;
+        private readonly int _initialCapacity;
 
         // TODO: base this on scheduler/dispatcher
         private const int ConcurrencyLevel = 16;
 
-        internal Directory(IAddress none)
+        internal Directory(IAddress none, int buckets, int initialCapacity)
         {
             _none = none;
+            _buckets = buckets;
+            _initialCapacity = initialCapacity;
             _maps = Build();
         }
 
@@ -105,10 +108,10 @@ namespace Vlingo.Actors
 
         private ConcurrentDictionary<IAddress, Actor>[] Build()
         {
-            var tempMaps = new ConcurrentDictionary<IAddress, Actor>[Buckets];
+            var tempMaps = new ConcurrentDictionary<IAddress, Actor>[_buckets];
             for (var idx = 0; idx < tempMaps.Length; ++idx)
             {
-                tempMaps[idx] = new ConcurrentDictionary<IAddress, Actor>(ConcurrencyLevel, InitialCapacity);  // TODO: base this on scheduler/dispatcher
+                tempMaps[idx] = new ConcurrentDictionary<IAddress, Actor>(ConcurrencyLevel, _initialCapacity);  // TODO: base this on scheduler/dispatcher
             }
 
             return tempMaps;

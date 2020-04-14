@@ -25,17 +25,33 @@ namespace Vlingo.Actors
         private readonly AtomicBoolean _stopped;
 
         /// <summary>
-        /// Initializes the new <c>Stage</c> of the world and with name. (INTERNAL ONLY)
+        /// Initializes the new <c>Stage</c> of the <c>World</c> and with <paramref name="name"/>. (INTERNAL ONLY)
         /// </summary>
         /// <param name="world">The <c>World</c> parent of this <c>Stage</c>.</param>
         /// <param name="addressFactory"><c>AddressFactory</c> for a this <c>Stage</c>.</param>
         /// <param name="name">The <c>string</c> name of this <c>Stage</c>.</param>
-        internal Stage(World world, IAddressFactory addressFactory, string name)
+        /// <remarks>
+        /// Uses default <see cref="Directory"/> capacity of 32x32.
+        /// </remarks>
+        internal Stage(World world, IAddressFactory addressFactory, string name) : this(world, addressFactory, name, 32, 32)
+        {
+        }
+
+        /// <summary>
+        /// Initializes the new <c>Stage</c> of the <c>World</c> and with <paramref name="name"/>. (INTERNAL ONLY)
+        /// and <see cref="Directory"/> capacity of <paramref name="directoryBuckets"/> and <paramref name="directoryInitialCapacity"/>.
+        /// </summary>
+        /// <param name="world">The <c>World</c> parent of this <c>Stage</c></param>
+        /// <param name="addressFactory">The AddressFactory to be used</param>
+        /// <param name="name">the name of this <c>Stage</c></param>
+        /// <param name="directoryBuckets">The number of buckets</param>
+        /// <param name="directoryInitialCapacity">The initial number of elements in each bucket</param>
+        internal Stage(World world, IAddressFactory addressFactory, string name, int directoryBuckets, int directoryInitialCapacity)
         {
             AddressFactory = addressFactory;
             World = world;
             Name = name;
-            _directory = new Directory(world.AddressFactory.None());
+            _directory = new Directory(world.AddressFactory.None(), directoryBuckets, directoryInitialCapacity);
             _commonSupervisors = new Dictionary<Type, ISupervisor>();
             _scheduler = new Scheduler();
             _stopped = new AtomicBoolean(false);

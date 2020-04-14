@@ -16,7 +16,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestDirectoryRegister()
         {
-            var directory = new Directory(new BasicAddress(0, ""));
+            var directory = new Directory(new BasicAddress(0, ""), 32, 32);
             var address = World.AddressFactory.UniqueWith("test-actor");
             var actor = new TestInterfaceActor();
 
@@ -29,7 +29,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestDirectoryRemove()
         {
-            var directory = new Directory(new BasicAddress(0, ""));
+            var directory = new Directory(new BasicAddress(0, ""), 32, 32);
             var address = World.AddressFactory.UniqueWith("test-actor");
             var actor = new TestInterfaceActor();
 
@@ -45,7 +45,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestDirectoryAlreadyRegistered()
         {
-            var directory = new Directory(new BasicAddress(0, ""));
+            var directory = new Directory(new BasicAddress(0, ""), 32, 32);
             var address = World.AddressFactory.UniqueWith("test-actor");
             var actor = new TestInterfaceActor();
 
@@ -57,7 +57,7 @@ namespace Vlingo.Actors.Tests
         [Fact]
         public void TestDirectoryFindsRegistered()
         {
-            var directory = new Directory(new BasicAddress(0, ""));
+            var directory = new Directory(new BasicAddress(0, ""), 32, 32);
             var address1 = World.AddressFactory.UniqueWith("test-actor1");
             var address2 = World.AddressFactory.UniqueWith("test-actor2");
             var address3 = World.AddressFactory.UniqueWith("test-actor3");
