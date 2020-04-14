@@ -14,18 +14,20 @@ namespace Vlingo.Actors
     /// </summary>
     public class RandomRouter<P> : Router<P>
     {
-        private readonly Random random;
+        private readonly Random _random;
 
-        public RandomRouter(RouterSpecification<P> specification) : base(specification)
+        public RandomRouter(RouterSpecification<P> specification, int seed) : this(specification, new Random(seed))
         {
-            random = new Random();
         }
+        
+        public RandomRouter(RouterSpecification<P> specification, Random seededRandom) : base(specification) 
+            => _random = seededRandom;
 
         protected internal override Routing<P> ComputeRouting() => Routing.With(NextRoutee());
 
         protected internal virtual Routee<P>? NextRoutee()
         {
-            int index = random.Next(routees.Count);
+            var index = _random.Next(routees.Count);
             return RouteeAt(index);
         }
     }
