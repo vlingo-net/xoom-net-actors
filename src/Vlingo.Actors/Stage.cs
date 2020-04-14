@@ -435,6 +435,10 @@ namespace Vlingo.Actors
                 var protocolActor = ActorProxyFor<T>(actor, actor.LifeCycle.Environment.Mailbox);
                 return new ActorProtocolActor<T>(actor, protocolActor);
             }
+            catch (ActorAddressAlreadyRegisteredException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 World.DefaultLogger.Error($"vlingo-net/actors: FAILED: {e.Message}", e);
@@ -741,7 +745,7 @@ namespace Vlingo.Actors
             var address = maybeAddress ?? AddressFactory.UniqueWith(definition.ActorName);
             if (_directory.IsRegistered(address))
             {
-                throw new InvalidOperationException($"Address already exists: {address}");
+                throw new ActorAddressAlreadyRegisteredException(definition.Type, address);
             }
 
             var mailbox = maybeMailbox ?? ActorFactory.ActorMailbox(this, address, definition, MailboxWrapper());

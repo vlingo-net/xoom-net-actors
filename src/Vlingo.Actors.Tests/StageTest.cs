@@ -6,7 +6,10 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Vlingo.Common;
 using Xunit;
@@ -209,6 +212,16 @@ namespace Vlingo.Actors.Tests
             var existing = World.Stage.RawLookupOrStart(definition, address);
             Assert.Same(address, existing.Address);
         }
+        
+        [Fact]
+        public void TestSingleThreadRawLookupOrStartFindsActorPreviouslyStartedWithRawLookupOrStart()
+        {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            var started = World.Stage.RawLookupOrStart(definition, address);
+            var found = World.Stage.RawLookupOrStart(definition, address);
+            Assert.Same(started, found);
+        }
 
         [Fact]
         public void TestSingleThreadActorLookupOrStartFindsActorPreviouslyStartedWithActorFor()
@@ -219,6 +232,16 @@ namespace Vlingo.Actors.Tests
             var existing = World.Stage.ActorLookupOrStart(definition, address);
             Assert.Same(address, existing.Address);
         }
+        
+        [Fact]
+        public void TestSingleThreadActorLookupOrStartFindsActorPreviouslyStartedWithActorLookupOrStart()
+        {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            var started = World.Stage.ActorLookupOrStart(definition, address);
+            var found = World.Stage.ActorLookupOrStart(definition, address);
+            Assert.Same(started, found);
+        }
 
         [Fact]
         public void TestSingleThreadLookupOrStartFindsActorPreviouslyStartedWithActorFor() {
@@ -226,6 +249,67 @@ namespace Vlingo.Actors.Tests
             var definition = Definition.Has(() => new ParentInterfaceActor());
             World.Stage.ActorFor<INoProtocol>(definition, address);
             Assert.NotNull(World.Stage.LookupOrStart<INoProtocol>(definition, address));
+        }
+        
+        [Fact]
+        public void TestSingleThreadLookupOrStartFindsActorPreviouslyStartedWithLookupOrStart()
+        {
+            var address = World.AddressFactory.Unique();
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+            Assert.NotNull(World.Stage.LookupOrStart<INoProtocol>(definition, address));
+            Assert.NotNull(World.Stage.LookupOrStart<INoProtocol>(definition, address));
+        }
+        
+        [Fact]
+        public async Task TestMultiThreadRawLookupOrStartFindsActorPreviouslyStartedWIthRawLookupOrStart()
+        {
+            var size = 1000;
+
+            var addresses = Enumerable.Range(0, size)
+                .Select(_ => World.AddressFactory.Unique())
+                .ToList();
+
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+
+            await MultithreadedLookupOrStartTest(index =>
+                Task.Factory.StartNew(() => World.Stage.RawLookupOrStart(definition, addresses[index])), size);
+        }
+        
+        [Fact]
+        public async Task TestMultiThreadActorLookupOrStartFindsActorPreviouslyStartedWIthActorLookupOrStart()
+        {
+            var size = 1000;
+
+            var addresses = Enumerable.Range(0, size)
+                .Select(_ => World.AddressFactory.Unique())
+                .ToList();
+
+            var definition = Definition.Has(() => new ParentInterfaceActor());
+
+            await MultithreadedLookupOrStartTest(index =>
+                Task.Factory.StartNew(() => World.Stage.ActorLookupOrStart(definition, addresses[index])), size);
+        }
+        
+        private async Task MultithreadedLookupOrStartTest(Func<int, Task<Actor>> work, int size)
+        {
+            var tasks = Enumerable.Range(0, size)
+                .SelectMany(i => new List<int> {i, i})
+                .Select(work);
+
+            await Task.WhenAll(tasks).ContinueWith(previousTask =>
+            {
+                var actors = previousTask.Result;
+                var results = new List<Actor>(actors.Length);
+                foreach (var actor in actors)
+                {
+                    if (results.Any() && results.Count % 2 != 0)
+                    {
+                        var expected = results[^1];
+                        Assert.Same(expected.Address, actor.Address);
+                    }
+                    results.Add(actor);
+                }
+            });
         }
 
         private class ParentInterfaceActor : Actor, INoProtocol
