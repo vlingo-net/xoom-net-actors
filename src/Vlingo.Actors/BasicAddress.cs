@@ -9,18 +9,18 @@ namespace Vlingo.Actors
 {
     public sealed class BasicAddress : IAddress
     {
-        private readonly long id;
-        private readonly string? name;
+        private readonly long _id;
+        private readonly string? _name;
 
-        public long Id => id;
+        public long Id => _id;
 
         public long IdSequence => Id;
 
         public string IdSequenceString => IdString;
 
-        public string IdString => $"{id}";
+        public string IdString => $"{_id}";
 
-        public string Name => name ?? id.ToString();
+        public string Name => _name ?? _id.ToString();
 
         public bool IsDistributable => false;
 
@@ -30,7 +30,7 @@ namespace Vlingo.Actors
             {
                 return 1;
             }
-            return id.CompareTo(((BasicAddress)other).id);
+            return _id.CompareTo(((BasicAddress)other)._id);
         }
 
         public T IdTyped<T>()
@@ -43,12 +43,12 @@ namespace Vlingo.Actors
                 return false;
             }
 
-            return id.Equals(((BasicAddress)obj).id);
+            return _id.Equals(((BasicAddress)obj)._id);
         }
 
-        public override int GetHashCode() => id.GetHashCode();
+        public override int GetHashCode() => _id.GetHashCode();
 
-        public override string ToString() => $"Address[Id={id}, Name={name ?? "(none)"}]";
+        public override string ToString() => $"Address[Id={_id}, Name={_name ?? "(none)"}]";
 
         internal BasicAddress(long reservedId) : this(reservedId, null)
         {
@@ -60,8 +60,8 @@ namespace Vlingo.Actors
 
         internal BasicAddress(long reservedId, string? name, bool prefixName)
         {
-            id = reservedId;
-            this.name = name == null ? null : prefixName ? name + id : name;
+            _id = reservedId;
+            this._name = name == null ? null : prefixName ? name + _id : name;
         }
     }
 }
