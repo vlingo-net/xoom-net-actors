@@ -28,27 +28,27 @@ namespace Vlingo.Actors
             _highId = new AtomicLong(World.HighRootId);
         }
 
-        public IAddress FindableBy<T>(T id) => 
+        public virtual IAddress FindableBy<T>(T id) => 
             Guid.TryParse(id!.ToString(), out var parsed) ? 
                 new GuidAddress(parsed) :
                 new GuidAddress(long.Parse(id!.ToString()).ToGuid());
 
-        public IAddress From(long reservedId, string name) =>
+        public virtual IAddress From(long reservedId, string name) =>
             Guid.TryParse(reservedId!.ToString(), out var parsed) ? 
                 new GuidAddress(parsed, name) :
                 new GuidAddress(long.Parse(reservedId!.ToString()).ToGuid(), name);
 
-        public IAddress From(string idString) =>
+        public virtual IAddress From(string idString) =>
             Guid.TryParse(idString, out var parsed) ? 
                 new GuidAddress(parsed) :
                 new GuidAddress(long.Parse(idString).ToGuid());
 
-        public IAddress From(string idString, string name) =>
+        public virtual IAddress From(string idString, string name) =>
             Guid.TryParse(idString, out var parsed) ? 
                 new GuidAddress(parsed, name) :
                 new GuidAddress(long.Parse(idString).ToGuid(), name);
 
-        public IAddress None() => Empty;
+        public virtual IAddress None() => Empty;
 
         public IAddress Unique() => new GuidAddress(_generator.Generate());
 
@@ -56,14 +56,11 @@ namespace Vlingo.Actors
 
         public IAddress UniqueWith(string? name) => new GuidAddress(_generator.Generate(name!), name);
 
-        public IAddress WithHighId() => WithHighId(null);
+        public virtual IAddress WithHighId() => WithHighId(null);
 
-        public IAddress WithHighId(string? name)
-        {
-            return new GuidAddress(GuidFrom(_highId.DecrementAndGet()), name);
-        }
+        public virtual IAddress WithHighId(string? name) => new GuidAddress(GuidFrom(_highId.DecrementAndGet()), name);
 
-        public long TestNextIdValue() => throw new NotImplementedException("Unsupported for GridAddress.");
+        public long TestNextIdValue() => throw new NotImplementedException($"Unsupported for {GetType().Name}.");
         
         protected Guid GuidFrom(long id) => id.ToGuid();
 

@@ -24,7 +24,7 @@ namespace Vlingo.Actors
         private readonly IDictionary<string, IPluginConfiguration> _configurationOverrides;
         private readonly bool _mergeProperties;
         private readonly Properties? _properties;
-        private IAddressFactory _addressFactory;
+        private IAddressFactory? _addressFactory;
 
         public static Configuration Define() => new Configuration();
 
