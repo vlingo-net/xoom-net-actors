@@ -52,7 +52,7 @@ namespace Vlingo.Actors
         {
             Name = name;
             Configuration = configuration;
-            AddressFactory = new BasicAddressFactory();
+            AddressFactory = configuration.AddressFactoryOr(() => new BasicAddressFactory());
             _completesProviderKeeper = new DefaultCompletesEventuallyProviderKeeper();
             _loggerProviderKeeper = new DefaultLoggerProviderKeeper();
             _mailboxProviderKeeper = new DefaultMailboxProviderKeeper();

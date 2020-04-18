@@ -24,6 +24,7 @@ namespace Vlingo.Actors
         private readonly IDictionary<string, IPluginConfiguration> _configurationOverrides;
         private readonly bool _mergeProperties;
         private readonly Properties? _properties;
+        private IAddressFactory _addressFactory;
 
         public static Configuration Define() => new Configuration();
 
@@ -34,6 +35,14 @@ namespace Vlingo.Actors
             => new Configuration(properties, false);
 
         public IReadOnlyList<IPlugin> AllPlugins() => _plugins.AsReadOnly();
+        
+        public Configuration With(IAddressFactory addressFactory)
+        {
+            _addressFactory = addressFactory;
+            return this;
+        }
+
+        public IAddressFactory AddressFactoryOr(Func<IAddressFactory> addressFactorySupplier) => _addressFactory ?? addressFactorySupplier();
 
         private void AddConfigurationOverride(IPluginConfiguration configuration) => _configurationOverrides[configuration.GetType().Name] = configuration;
 
