@@ -5,6 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
+
 namespace Vlingo.Actors
 {
     public sealed class BasicAddress : IAddress
@@ -33,8 +35,7 @@ namespace Vlingo.Actors
             return _id.CompareTo(((BasicAddress)other)._id);
         }
 
-        public T IdTyped<T>()
-            => (T)(object)IdString;
+        public T IdTyped<T>(Func<string, T> typeConverter) => typeConverter(IdString);
 
         public override bool Equals(object obj)
         {

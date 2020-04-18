@@ -60,7 +60,7 @@ namespace Vlingo.Actors.Tests
         
         public string IdString => Id.ToString();
 
-        public T IdTyped<T>() => default;
+        public T IdTyped<T>(Func<string, T> typeConverter) => default;
 
         public string Name => null;
 

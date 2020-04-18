@@ -185,7 +185,7 @@ namespace Vlingo.Actors
             return LifeCycle.Environment.Stage.ActorFor<T>(definition, this, null, Logger);
         }
 
-        protected internal virtual T ChildActorFor<T>(Expression<Func<T>> factory)
+        protected internal T ChildActorFor<T>(Expression<Func<T>> factory)
             => ChildActorFor<T>(Definition.Has(factory));
 
         /// <summary>

@@ -15,7 +15,7 @@ namespace Vlingo.Actors
         long IdSequence { get; }
         string IdSequenceString { get; }
         string IdString { get; }
-        T IdTyped<T>();
+        T IdTyped<T>(Func<string, T> typeConverter);
         string Name { get; }
         bool IsDistributable { get; }
     }
