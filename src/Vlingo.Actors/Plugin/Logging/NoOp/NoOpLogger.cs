@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Actors.Logging;
 
 namespace Vlingo.Actors.Plugin.Logging.NoOp
 {
@@ -27,7 +28,7 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Debug(string message, Exception throwable)
+        public void Debug(string message, Exception exception)
         {
         }
 
@@ -39,7 +40,27 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Error(string message, Exception throwable)
+        public void Error(string message, Exception exception)
+        {
+        }
+
+        public void Trace(LogEvent logEvent)
+        {
+        }
+
+        public void Debug(LogEvent logEvent)
+        {
+        }
+
+        public void Info(LogEvent logEvent)
+        {
+        }
+
+        public void Warn(LogEvent logEvent)
+        {
+        }
+
+        public void Error(LogEvent logEvent)
         {
         }
 
@@ -51,7 +72,7 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Info(string message, Exception throwable)
+        public void Info(string message, Exception exception)
         {
         }
 
@@ -63,7 +84,7 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Trace(string message, Exception throwable)
+        public void Trace(string message, Exception exception)
         {
         }
 
@@ -75,7 +96,7 @@ namespace Vlingo.Actors.Plugin.Logging.NoOp
         {
         }
 
-        public void Warn(string message, Exception throwable)
+        public void Warn(string message, Exception exception)
         {
         }
     }
