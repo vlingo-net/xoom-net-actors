@@ -29,7 +29,7 @@ namespace Vlingo.Actors
             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        static Task<TResult> ToApm<TResult>(this Task<TResult> task, AsyncCallback callback, object state)
+        public static Task<TResult> ToApm<TResult>(this Task<TResult> task, AsyncCallback callback, object state)
         {
             if (task.AsyncState == state)
             {
