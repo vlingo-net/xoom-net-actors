@@ -143,6 +143,18 @@ namespace Vlingo.Actors.TestKit
             suppliers[name] = supplier;
             return this;
         }
+        
+        /// <summary>
+        /// Answer me with <paramref name="consumer"/> registered for writing.
+        /// </summary>
+        /// <param name="name">The name of the cosumer to register.</param>
+        /// <param name="consumer">The <code>System.Action&lt;T&gt;</code> to register as a cosumer.</param>
+        /// <returns></returns>
+        public virtual AccessSafely WritingWith(string name, Action consumer)
+        {
+            consumers[name] = consumer;
+            return this;
+        }
 
         /// <summary>
         /// Answer me with <paramref name="consumer"/> registered for writing.
