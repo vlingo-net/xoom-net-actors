@@ -320,7 +320,13 @@ namespace Vlingo.Actors.TestKit
             lock (@lock)
             {
                 totalWrites.IncrementAndGet();
-                (consumers[name] as Action<T>)!.Invoke(value);
+                if (consumers[name] is Action<T> actionT)
+                {
+                    actionT!.Invoke(value);
+                }
+
+                (consumers[name] as Action)!();
+                
                 until.Happened();
             }
         }
