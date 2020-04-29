@@ -324,9 +324,11 @@ namespace Vlingo.Actors.TestKit
                 {
                     actionT!.Invoke(value);
                 }
+                else
+                {
+                    (consumers[name] as Action)!();   
+                }
 
-                (consumers[name] as Action)!();
-                
                 until.Happened();
             }
         }
