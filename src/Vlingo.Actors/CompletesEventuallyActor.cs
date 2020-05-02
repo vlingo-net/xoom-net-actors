@@ -20,7 +20,7 @@ namespace Vlingo.Actors
             }
             catch (Exception ex)
             {
-                Logger.Error($"The eventually completed outcome failed in the client because: {ex.Message}", ex);
+                Logger.Error($"The eventually completed outcome '{outcome}' failed in the client because: {ex.Message}", ex);
             }
         }
     }
