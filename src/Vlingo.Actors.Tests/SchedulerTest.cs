@@ -115,20 +115,20 @@ namespace Vlingo.Actors.Tests
 
         private class CounterHolder
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
 
             public CounterHolder(int times)
             {
                 var counter = new AtomicInteger(0);
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(times)
                     .WritingWith<int>("counter", _ => counter.IncrementAndGet())
                     .ReadingWith("counter", counter.Get);
             }
 
-            public void Increment() => safely.WriteUsing("counter", 1);
+            public void Increment() => _safely.WriteUsing("counter", 1);
 
-            public int GetCounter() => safely.ReadFrom<int>("counter");
+            public int GetCounter() => _safely.ReadFrom<int>("counter");
         }
     }
 
