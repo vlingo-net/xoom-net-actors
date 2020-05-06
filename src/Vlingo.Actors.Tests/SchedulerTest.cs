@@ -128,7 +128,7 @@ namespace Vlingo.Actors.Tests
 
             public void Increment() => _safely.WriteUsing("counter", 1);
 
-            public int GetCounter() => _safely.ReadFrom<int>("counter");
+            public int GetCounter() => _safely.ReadFromExpecting("counter", 1000);
         }
     }
 
