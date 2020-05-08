@@ -69,33 +69,33 @@ namespace Vlingo.Actors.Tests
         // TODO: This implementation is wrong, and needs to be changed.
         private class OnceScheduled : Actor, IFinalCountQuery, IScheduled<int>
         {
-            private ICompletesEventually completesEventually;
-            private int count;
-            private readonly int maximum;
-            private readonly IScheduled<int> scheduled;
+            private ICompletesEventually _completesEventually;
+            private int _count;
+            private readonly int _maximum;
+            private readonly IScheduled<int> _scheduled;
 
             public OnceScheduled(int maximum)
             {
-                this.maximum = maximum;
-                count = 0;
-                scheduled = SelfAs<IScheduled<int>>();
+                _maximum = maximum;
+                _count = 0;
+                _scheduled = SelfAs<IScheduled<int>>();
             }
 
             public ICompletes<int> QueryCount()
             {
-                completesEventually = CompletesEventually();
+                _completesEventually = CompletesEventually();
                 return (ICompletes<int>)Completes();
             }
 
             public void IntervalSignal(IScheduled<int> scheduled, int data)
             {
-                if (count < maximum)
+                if (_count < _maximum)
                 {
                     Schedule();
                 }
                 else
                 {
-                    completesEventually.With(count);
+                    _completesEventually.With(_count);
 
                     SelfAs<IStoppable>().Stop();
                 }
@@ -108,8 +108,8 @@ namespace Vlingo.Actors.Tests
 
             private void Schedule()
             {
-                ++count;
-                Scheduler.ScheduleOnce(scheduled, count, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(1));
+                ++_count;
+                Scheduler.ScheduleOnce(_scheduled, _count, TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(1));
             }
         }
 
