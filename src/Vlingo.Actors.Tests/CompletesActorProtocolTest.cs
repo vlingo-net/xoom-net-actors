@@ -26,7 +26,7 @@ namespace Vlingo.Actors.Tests
             var testResults = TestResults.AfterCompleting(2);
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesActor), testResults);
 
-            uc.GetHello().AndThenConsume(hello => testResults.SetGreeting(hello.greeting));
+            uc.GetHello().AndThenConsume(hello => testResults.SetGreeting(hello.Greeting));
             uc.GetOne().AndThenConsume(value => testResults.SetValue(value));
 
             Assert.Equal(Hello, testResults.GetGreeting());
@@ -41,13 +41,13 @@ namespace Vlingo.Actors.Tests
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesActor), greetingsTestResults);
             var helloCompletes = uc.GetHello();
             helloCompletes
-                .AndThen(hello => new Hello(Prefix + hello.greeting))
-                .AndThenConsume(hello => greetingsTestResults.SetGreeting(hello.greeting));
+                .AndThen(hello => new Hello(Prefix + hello.Greeting))
+                .AndThenConsume(hello => greetingsTestResults.SetGreeting(hello.Greeting));
 
             Assert.NotEqual(Hello, greetingsTestResults.GetGreeting());
-            Assert.NotEqual(Hello, helloCompletes.Outcome.greeting);
+            Assert.NotEqual(Hello, helloCompletes.Outcome.Greeting);
             Assert.Equal(Prefix + Hello, greetingsTestResults.GetGreeting());
-            Assert.Equal(Prefix + Hello, helloCompletes.Outcome.greeting);
+            Assert.Equal(Prefix + Hello, helloCompletes.Outcome.Greeting);
 
             var valueTestResults = TestResults.AfterCompleting(1);
             var one = uc.GetOne();
@@ -76,15 +76,15 @@ namespace Vlingo.Actors.Tests
             var greetingsTestResults = TestResults.AfterCompleting(1);
             var uc = World.ActorFor<IUsesCompletes>(typeof(UsesCompletesCausesTimeoutActor), greetingsTestResults);
             var helloCompletes = uc.GetHello()
-                .AndThenConsume(TimeSpan.FromMilliseconds(1), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.greeting))
+                .AndThenConsume(TimeSpan.FromMilliseconds(1), new Hello(HelloNot), hello => greetingsTestResults.SetGreeting(hello.Greeting))
                 .Otherwise<Hello>(failedHello =>
                 {
-                    greetingsTestResults.SetGreeting(failedHello.greeting, true);
+                    greetingsTestResults.SetGreeting(failedHello.Greeting, true);
                     return failedHello;
                 });
             
             Assert.NotEqual(Hello, greetingsTestResults.GetGreeting(true));
-            Assert.Equal(HelloNot, helloCompletes.Outcome.greeting);
+            Assert.Equal(HelloNot, helloCompletes.Outcome.Greeting);
 
             var valueTestResults = TestResults.AfterCompleting(1);
 
@@ -110,23 +110,20 @@ namespace Vlingo.Actors.Tests
 
         private class UsesCompletesActor : Actor, IUsesCompletes
         {
-            private readonly TestResults results;
+            private readonly TestResults _results;
 
-            public UsesCompletesActor(TestResults results)
-            {
-                this.results = results;
-            }
+            public UsesCompletesActor(TestResults results) => _results = results;
 
             public void CompletesNotSupportedForVoidReturnType()
             {
                 try
                 {
                     Completes().With("Must throw exception");
-                    results.received.WriteUsing("exceptionThrown", false);
+                    _results.Received.WriteUsing("exceptionThrown", false);
                 }
                 catch (Exception)
                 {
-                    results.received.WriteUsing("exceptionThrown", true);
+                    _results.Received.WriteUsing("exceptionThrown", true);
                 }
             }
 
@@ -137,23 +134,20 @@ namespace Vlingo.Actors.Tests
 
         private class UsesCompletesCausesTimeoutActor : Actor, IUsesCompletes
         {
-            private readonly TestResults results;
+            private readonly TestResults _results;
 
-            public UsesCompletesCausesTimeoutActor(TestResults results)
-            {
-                this.results = results;
-            }
+            public UsesCompletesCausesTimeoutActor(TestResults results) => _results = results;
 
             public void CompletesNotSupportedForVoidReturnType()
             {
                 try
                 {
                     Completes().With("Must throw exception");
-                    results.received.WriteUsing("exceptionThrown", false);
+                    _results.Received.WriteUsing("exceptionThrown", false);
                 }
                 catch
                 {
-                    results.received.WriteUsing("exceptionThrown", true);
+                    _results.Received.WriteUsing("exceptionThrown", true);
                 }
             }
 
@@ -182,56 +176,50 @@ namespace Vlingo.Actors.Tests
 
         private class TestResults
         {
-            private readonly AtomicReference<string> receivedGreeting = new AtomicReference<string>(null);
-            private readonly AtomicReference<string> receivedFailedGreeting = new AtomicReference<string>(null);
-            private readonly AtomicInteger receivedValue = new AtomicInteger(0);
-            private readonly AtomicInteger receivedFailedValue = new AtomicInteger(0);
-            internal readonly AccessSafely received;
-            private readonly AtomicBoolean exceptionThrown = new AtomicBoolean(false);
+            private readonly AtomicReference<string> _receivedGreeting = new AtomicReference<string>(null);
+            private readonly AtomicReference<string> _receivedFailedGreeting = new AtomicReference<string>(null);
+            private readonly AtomicInteger _receivedValue = new AtomicInteger(0);
+            private readonly AtomicInteger _receivedFailedValue = new AtomicInteger(0);
+            internal readonly AccessSafely Received;
+            private readonly AtomicBoolean _exceptionThrown = new AtomicBoolean(false);
 
-            public TestResults(AccessSafely received)
-            {
-                this.received = received;
-            }
+            public TestResults(AccessSafely received) => Received = received;
 
             public static TestResults AfterCompleting(int times)
             {
                 var testResults = new TestResults(AccessSafely.AfterCompleting(times));
-                testResults.received.WritingWith<string>("receivedGreeting", s => testResults.receivedGreeting.Set(s));
-                testResults.received.ReadingWith("receivedGreeting", testResults.receivedGreeting.Get);
-                testResults.received.WritingWith<string>("receivedFailedGreeting", s => testResults.receivedFailedGreeting.Set(s));
-                testResults.received.ReadingWith("receivedFailedGreeting", testResults.receivedFailedGreeting.Get);
-                testResults.received.WritingWith<int>("receivedValue", v => testResults.receivedValue.Set(v));
-                testResults.received.ReadingWith("receivedValue", testResults.receivedValue.Get);
-                testResults.received.WritingWith<int>("receivedFailedValue", v => testResults.receivedFailedValue.Set(v));
-                testResults.received.ReadingWith("receivedFailedValue", testResults.receivedFailedValue.Get);
-                testResults.received.WritingWith<bool>("exceptionThrown", e => testResults.exceptionThrown.Set(e));
-                testResults.received.ReadingWith("exceptionThrown", testResults.exceptionThrown.Get);
+                testResults.Received.WritingWith<string>("receivedGreeting", s => testResults._receivedGreeting.Set(s));
+                testResults.Received.ReadingWith("receivedGreeting", testResults._receivedGreeting.Get);
+                testResults.Received.WritingWith<string>("receivedFailedGreeting", s => testResults._receivedFailedGreeting.Set(s));
+                testResults.Received.ReadingWith("receivedFailedGreeting", testResults._receivedFailedGreeting.Get);
+                testResults.Received.WritingWith<int>("receivedValue", v => testResults._receivedValue.Set(v));
+                testResults.Received.ReadingWith("receivedValue", testResults._receivedValue.Get);
+                testResults.Received.WritingWith<int>("receivedFailedValue", v => testResults._receivedFailedValue.Set(v));
+                testResults.Received.ReadingWith("receivedFailedValue", testResults._receivedFailedValue.Get);
+                testResults.Received.WritingWith<bool>("exceptionThrown", e => testResults._exceptionThrown.Set(e));
+                testResults.Received.ReadingWith("exceptionThrown", testResults._exceptionThrown.Get);
                 return testResults;
             }
 
-            public void SetGreeting(string greeting, bool isFailed = false) => received.WriteUsing(isFailed ? "receivedFailedGreeting" : "receivedGreeting", greeting);
+            public void SetGreeting(string greeting, bool isFailed = false) => Received.WriteUsing(isFailed ? "receivedFailedGreeting" : "receivedGreeting", greeting);
 
-            public void SetValue(int value, bool isFailed = false) => received.WriteUsing("receivedValue", value);
+            public void SetValue(int value, bool isFailed = false) => Received.WriteUsing("receivedValue", value);
 
-            public string GetGreeting(bool isFailed = false) => received.ReadFrom<string>(isFailed ? "receivedFailedGreeting" : "receivedGreeting");
+            public string GetGreeting(bool isFailed = false) => Received.ReadFrom<string>(isFailed ? "receivedFailedGreeting" : "receivedGreeting");
 
-            public int GetValue(bool isFailed = false) => received.ReadFrom<int>("receivedValue");
+            public int GetValue(bool isFailed = false) => Received.ReadFrom<int>("receivedValue");
 
-            public bool GetExceptionThrown() => received.ReadFrom<bool>("exceptionThrown");
+            public bool GetExceptionThrown() => Received.ReadFrom<bool>("exceptionThrown");
         }
     }
 
     public class Hello
     {
-        public string greeting;
+        public readonly string Greeting;
 
-        public Hello(string greeting)
-        {
-            this.greeting = greeting;
-        }
+        public Hello(string greeting) => Greeting = greeting;
 
-        public override string ToString() => $"Hello[{greeting}]";
+        public override string ToString() => $"Hello[{Greeting}]";
     }
 
     public interface IUsesCompletes
