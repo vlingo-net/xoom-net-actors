@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Text;
 using System.Threading;
 
 namespace Vlingo.Actors.Logging
@@ -32,6 +33,45 @@ namespace Vlingo.Actors.Logging
             SourceThread = sourceThread;
             EventOccuredOn = eventOccuredOn;
             SourceActorAddress = sourceActorAddress;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append($"Source: {Source}\n")
+                .Append($"Message: {Message}\n")
+                .Append($"SourceThread: {SourceThread}\n")
+                .Append($"OccuredOn: {EventOccuredOn:MM/dd/yyyy hh:mm:ss.fff}\n");
+
+            if (SourceActorAddress != null)
+            {
+                sb.Append($"Address: {SourceActorAddress}\n");
+            }
+
+            if (Args != null && Args.Length > 0)
+            {
+                sb.Append($"Args: ");
+                foreach (var arg in Args)
+                {
+                    sb.Append($"{arg}, ");
+                }
+
+                sb.Append("\n");
+            }
+
+            if (Exception != null)
+            {
+                sb.Append($"Exception: {Exception.Message}\n")
+                    .Append($"StackTrace: {Exception.StackTrace}\n");
+                
+                if (Exception.InnerException != null)
+                {
+                    sb.Append($"InnerException: {Exception.InnerException.Message}\n")
+                        .Append($"StackTrace: {Exception.InnerException.StackTrace}\n");
+                }
+            }
+
+            return sb.ToString();
         }
 
         public class Builder

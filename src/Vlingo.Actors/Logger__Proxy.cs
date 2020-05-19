@@ -395,7 +395,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, TraceRepresentation17));
+                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{TraceRepresentation17} | {logEvent}"));
             }
         }
 
@@ -416,7 +416,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, DebugRepresentation18));
+                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{DebugRepresentation18} | {logEvent}"));
             }
         }
 
@@ -437,7 +437,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, InfoRepresentation19));
+                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{InfoRepresentation19} | {logEvent}"));
             }
         }
 
@@ -458,7 +458,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, WarnRepresentation20));
+                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{WarnRepresentation20} | {logEvent}"));
             }
         }
 
@@ -479,7 +479,7 @@ namespace Vlingo.Actors
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, ErrorRepresentation21));
+                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{ErrorRepresentation21} | {logEvent}"));
             }
         }
     }
