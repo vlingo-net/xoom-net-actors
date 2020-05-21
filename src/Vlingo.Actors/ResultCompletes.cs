@@ -218,7 +218,7 @@ namespace Vlingo.Actors
             return (ICompletes<TNewResult>) _completes;
         }
 
-        public ICompletes<TFailedOutcome> Otherwise<TFailedOutcome>(Func<TFailedOutcome, TFailedOutcome> function)
+        public ICompletes<TFailedOutcome> Otherwise<TFailedOutcome>(Func<TFailedOutcome, T> function)
         {
             var completes = Completes().Otherwise(function);
             SetOutcome();
