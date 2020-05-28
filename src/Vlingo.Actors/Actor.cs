@@ -17,7 +17,7 @@ namespace Vlingo.Actors
     /// The abstract base class of all concrete <c>Actor</c> types. This base provides common
     /// facilities and life cycle processing for all <c>Actor</c> types.
     /// </summary>
-    public abstract class Actor : IStartable, IStoppable, ITestStateView
+    public abstract class Actor : IStartable, IStoppable, IRelocatable, ITestStateView
     {
         internal readonly ResultCompletes CompletesImpl;
         internal LifeCycle LifeCycle { get; }
@@ -39,6 +39,15 @@ namespace Vlingo.Actors
         /// </summary>
         /// <value>Gets the <c>Scheduler</c> for this <c>Actor</c>.</value>
         public virtual Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
+        
+        /// <inheritdoc cref="IRelocatable"/>
+        public void StateSnapshot<S>(S stateSnapshot)
+        {
+            // no-op
+        }
+
+        /// <inheritdoc cref="IRelocatable"/>
+        public S StateSnapshot<S>() => default!; // no-op
 
         /// <summary>
         /// The default implementation of <c>Start()</c>, which is a no-op. Override if needed.
