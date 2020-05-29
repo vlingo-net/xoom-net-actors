@@ -76,7 +76,7 @@ namespace Vlingo.Actors
                 parent,
                 mailbox,
                 supervisor,
-                new ActorLoggerAdapter(logger, address, definition.Type!));
+                ActorLoggerAdapter.From(logger, address, definition.Type!));
 
             ThreadLocalEnvironment.Value = environment;
 

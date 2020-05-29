@@ -112,7 +112,7 @@ namespace Vlingo.Actors.Logging
                 return this;
             }
 
-            public Builder WithSourceActorAddress(IAddress sourceActorAddress)
+            public Builder WithSourceActorAddress(IAddress? sourceActorAddress)
             {
                 _sourceActorAddress = sourceActorAddress;
                 return this;

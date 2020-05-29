@@ -13,13 +13,19 @@ namespace Vlingo.Actors
     public class ActorLoggerAdapter : ILogger
     {
         private readonly ILogger _logger;
-        private readonly IAddress _sourceActorAddress;
+        private readonly IAddress? _sourceActorAddress;
         private readonly Type _sourceActorType;
         
-        internal ActorLoggerAdapter(ILogger logger, IAddress address, Type sourceActorType)
+        public static ActorLoggerAdapter From(ILogger logger, Type sourceActorType)
+            => new ActorLoggerAdapter(logger, null, sourceActorType);
+        
+        public static ActorLoggerAdapter From(ILogger logger, IAddress sourceActorAddress, Type sourceActorType)
+            => new ActorLoggerAdapter(logger, sourceActorAddress, sourceActorType);
+        
+        internal ActorLoggerAdapter(ILogger logger, IAddress? sourceActorAddress, Type sourceActorType)
         {
             _logger = logger;
-            _sourceActorAddress = address;
+            _sourceActorAddress = sourceActorAddress;
             _sourceActorType = sourceActorType;
         }
 
