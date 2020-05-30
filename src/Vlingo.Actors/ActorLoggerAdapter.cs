@@ -22,7 +22,7 @@ namespace Vlingo.Actors
         public static ActorLoggerAdapter From(ILogger logger, IAddress sourceActorAddress, Type sourceActorType)
             => new ActorLoggerAdapter(logger, sourceActorAddress, sourceActorType);
         
-        internal ActorLoggerAdapter(ILogger logger, IAddress? sourceActorAddress, Type sourceActorType)
+        private ActorLoggerAdapter(ILogger logger, IAddress? sourceActorAddress, Type sourceActorType)
         {
             _logger = logger;
             _sourceActorAddress = sourceActorAddress;
