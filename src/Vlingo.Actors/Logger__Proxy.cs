@@ -482,5 +482,13 @@ namespace Vlingo.Actors
                 this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, $"{ErrorRepresentation21} | {logEvent}"));
             }
         }
+        
+        internal void Flush()
+        {
+            while (mailbox.PendingMessages > 0)
+            {
+                mailbox.Receive()?.Deliver();
+            }
+        }
     }
 }

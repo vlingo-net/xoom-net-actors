@@ -471,6 +471,7 @@ namespace Vlingo.Actors
         {
             if (!IsTerminated)
             {
+                SyncFlushLogger();
                 lock (_stageNamedMutex)
                 {
                     foreach (var stage in _stages.Values)
@@ -633,5 +634,17 @@ namespace Vlingo.Actors
                 null,
                 null,
                 logger);
+
+        private void SyncFlushLogger()
+        {
+            try
+            {
+                ((Logger__Proxy) DefaultLogger).Flush();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
     }
 }
