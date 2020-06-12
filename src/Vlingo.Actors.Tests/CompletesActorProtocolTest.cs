@@ -203,11 +203,11 @@ namespace Vlingo.Actors.Tests
 
             public void SetGreeting(string greeting, bool isFailed = false) => Received.WriteUsing(isFailed ? "receivedFailedGreeting" : "receivedGreeting", greeting);
 
-            public void SetValue(int value, bool isFailed = false) => Received.WriteUsing("receivedValue", value);
+            public void SetValue(int value, bool isFailed = false) => Received.WriteUsing(isFailed ? "receivedFailedValue" : "receivedValue", value);
 
             public string GetGreeting(bool isFailed = false) => Received.ReadFrom<string>(isFailed ? "receivedFailedGreeting" : "receivedGreeting");
 
-            public int GetValue(bool isFailed = false) => Received.ReadFrom<int>("receivedValue");
+            public int GetValue(bool isFailed = false) => Received.ReadFrom<int>(isFailed ? "receivedFailedValue" : "receivedValue");
 
             public bool GetExceptionThrown() => Received.ReadFrom<bool>("exceptionThrown");
         }
