@@ -1,4 +1,5 @@
 # vlingo-actors
+Please add readme file as i and some others cant figure out how to use this code. Please this will be very useful. 
 
 [![Build status](https://ci.appveyor.com/api/projects/status/o1ajhxlf9i2q6gs7/branch/master?svg=true)](https://ci.appveyor.com/project/VlingoNetOwner/vlingo-net-actors/branch/master) 
 [![NuGet](https://img.shields.io/nuget/v/Vlingo.Actors.svg)](https://www.nuget.org/packages/Vlingo.Actors)
