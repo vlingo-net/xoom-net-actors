@@ -6,37 +6,37 @@ using Vlingo.Common;
 
 namespace Vlingo.Common
 {
-    public class Scheduled__Proxy<T> : Vlingo.Common.IScheduled<T>
+    public class Scheduled__Proxy<T> : IScheduled<T>
     {
         private const string IntervalSignalRepresentation1 = "IntervalSignal(Vlingo.Common.IScheduled<T>, T)";
 
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public Scheduled__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
-        public void IntervalSignal(Vlingo.Common.IScheduled<T> scheduled, T data)
+        public void IntervalSignal(IScheduled<T> scheduled, T data)
         {
-            if (!this.actor.IsStopped)
+            if (!_actor.IsStopped)
             {
-                Action<Vlingo.Common.IScheduled<T>> cons1513252312 = __ => __.IntervalSignal(scheduled, data);
-                if (this.mailbox.IsPreallocated)
+                Action<IScheduled<T>> cons1513252312 = __ => __.IntervalSignal(scheduled, data);
+                if (_mailbox.IsPreallocated)
                 {
-                    this.mailbox.Send(this.actor, cons1513252312, null, IntervalSignalRepresentation1);
+                    _mailbox.Send(_actor, cons1513252312, null, IntervalSignalRepresentation1);
                 }
                 else
                 {
-                    this.mailbox.Send(new LocalMessage<Vlingo.Common.IScheduled<T>>(this.actor, cons1513252312,
+                    _mailbox.Send(new LocalMessage<IScheduled<T>>(_actor, cons1513252312,
                         IntervalSignalRepresentation1));
                 }
             }
             else
             {
-                this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, IntervalSignalRepresentation1));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, IntervalSignalRepresentation1));
             }
         }
     }

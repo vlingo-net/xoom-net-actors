@@ -69,11 +69,19 @@ namespace Vlingo.Actors
                 proxyClass = proxyClass.MakeGenericType(genericTypeParams);
             }
 
-            return TryCreateWithProxyClass(proxyClass, actor, mailbox);
+            return TryCreateWithProxyClass(proxyClass!, actor, mailbox);
         }
 
-        private static object TryCreateWithProxyClass(Type? proxyClass, Actor actor, IMailbox mailbox)
-            => Activator.CreateInstance(proxyClass, actor, mailbox);
+        private static object TryCreateWithProxyClass(Type proxyClass, Actor actor, IMailbox mailbox)
+        {
+            var instance = Activator.CreateInstance(proxyClass, actor, mailbox);
+            if (instance == null)
+            {
+                throw new ArgumentException($"Cannot create an instance for proxy class '{proxyClass.FullName}'");
+            }
+            
+            return instance;
+        }
 
         private static object TryGenerateCreate(Type protocol, Actor actor, IMailbox mailbox, string targetClassName, string lookupTypeName)
         {
@@ -127,11 +135,12 @@ namespace Vlingo.Actors
 
                 var proxyCompiler = new DynaCompiler();
                 var proxyClass = proxyCompiler.Compile(input);
-                if(proxyClass != null && proxyClass.IsGenericTypeDefinition)
+                if (proxyClass != null && proxyClass.IsGenericTypeDefinition)
                 {
                     proxyClass = proxyClass.MakeGenericType(originalProtocol.GetGenericArguments());
                 }
-                return TryCreateWithProxyClass(proxyClass, actor, mailbox);
+                
+                return TryCreateWithProxyClass(proxyClass!, actor, mailbox);
             }
             catch (Exception e)
             {
@@ -160,9 +169,7 @@ namespace Vlingo.Actors
             // Null is returned if the attribute isn't present for the method. 
             if (methodInfo != null)
             {
-                var attrib = (AsyncStateMachineAttribute) methodInfo.GetCustomAttribute(attType);
-
-                return (attrib != null);
+                return methodInfo.GetCustomAttribute(attType) is AsyncStateMachineAttribute;
             }
 
             return false;

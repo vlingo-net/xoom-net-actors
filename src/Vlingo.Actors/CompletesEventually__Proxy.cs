@@ -15,76 +15,76 @@ namespace Vlingo.Actors
         private const string RepresentationStop = "Stop()";
         private const string RepresentationWith = "With(object)";
 
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public CompletesEventually__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
-        public IAddress Address => actor.Address;
+        public IAddress Address => _actor.Address;
 
-        public bool IsStopped => actor.IsStopped;
+        public bool IsStopped => _actor.IsStopped;
 
         public void Conclude()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IStoppable> consumer = x => x.Conclude();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, RepresentationConclude);
+                    _mailbox.Send(_actor, consumer, null, RepresentationConclude);
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, RepresentationConclude));
+                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, RepresentationConclude));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationConclude));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, RepresentationConclude));
             }
         }
 
         public void Stop()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IStoppable> consumer = x => x.Stop();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, RepresentationStop);
+                    _mailbox.Send(_actor, consumer, null, RepresentationStop);
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, RepresentationStop));
+                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, RepresentationStop));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationStop));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, RepresentationStop));
             }
         }
 
         public void With(object? outcome)
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<ICompletesEventually> consumer = x => x.With(outcome);
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, RepresentationWith);
+                    _mailbox.Send(_actor, consumer, null, RepresentationWith);
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<ICompletesEventually>(actor, consumer, RepresentationWith));
+                    _mailbox.Send(new LocalMessage<ICompletesEventually>(_actor, consumer, RepresentationWith));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationWith));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, RepresentationWith));
             }
         }
     }

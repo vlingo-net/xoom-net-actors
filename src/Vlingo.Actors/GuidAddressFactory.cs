@@ -31,7 +31,7 @@ namespace Vlingo.Actors
         public virtual IAddress FindableBy<T>(T id) => 
             Guid.TryParse(id!.ToString(), out var parsed) ? 
                 new GuidAddress(parsed) :
-                new GuidAddress(long.Parse(id!.ToString()).ToGuid());
+                new GuidAddress(long.Parse(id!.ToString()!).ToGuid());
 
         public virtual IAddress From(long reservedId, string name) =>
             Guid.TryParse(reservedId!.ToString(), out var parsed) ? 
@@ -70,6 +70,7 @@ namespace Vlingo.Actors
 
             var highest = _highId.Get();
 
+            // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
             while (!found)
             {
                 var guid = name == null ? _generator.Generate() : _generator.Generate(name);

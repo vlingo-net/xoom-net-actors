@@ -35,7 +35,7 @@ namespace Vlingo.Actors
     /// </example>
     public static class TaskExtensions
     {
-        public static Task AndThenTo<T>(this Task<T> task, Action<T> success, Action<Exception>? failure = null)
+        public static Task AndThenTo<T>(this Task<T> task, Action<T> success, Action<Exception?>? failure = null)
         {
             return task.ContinueWith(t =>
             {
@@ -51,7 +51,7 @@ namespace Vlingo.Actors
             }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        public static Task<TResult> ToApm<TResult>(this Task<TResult> task, AsyncCallback callback, object state)
+        public static Task<TResult> ToApm<TResult>(this Task<TResult> task, AsyncCallback? callback, object state)
         {
             if (task.AsyncState == state)
             {
@@ -69,7 +69,10 @@ namespace Vlingo.Actors
             {
                 if (task.IsFaulted)
                 {
-                    tcs.TrySetException(task.Exception.InnerExceptions);
+                    if (task.Exception != null)
+                    {
+                        tcs.TrySetException(task.Exception.InnerExceptions);
+                    }
                 }
                 else if (task.IsCanceled)
                 {

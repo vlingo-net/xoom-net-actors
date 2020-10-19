@@ -92,7 +92,7 @@ namespace Vlingo.Actors
 
         internal Actor Remove(IAddress address)
         {
-            if (_maps[MapIndex(address)].TryRemove(address, out Actor actor))
+            if (_maps[MapIndex(address)].TryRemove(address, out Actor? actor))
             {
                 return actor;
             }

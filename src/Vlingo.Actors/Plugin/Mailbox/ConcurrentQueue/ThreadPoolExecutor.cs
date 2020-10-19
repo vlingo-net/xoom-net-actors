@@ -14,39 +14,39 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     internal class ThreadPoolExecutor
     {
-        private readonly int maxConcurrentThreads;
-        private readonly Action<IRunnable> rejectionHandler;
-        private readonly ConcurrentQueue<IRunnable> queue;
-        private readonly AtomicBoolean isShuttingDown;
+        private readonly int _maxConcurrentThreads;
+        private readonly Action<IRunnable> _rejectionHandler;
+        private readonly ConcurrentQueue<IRunnable> _queue;
+        private readonly AtomicBoolean _isShuttingDown;
 
         public ThreadPoolExecutor(int maxConcurrentThreads, Action<IRunnable> rejectionHandler)
         {
-            this.maxConcurrentThreads = maxConcurrentThreads;
-            this.rejectionHandler = rejectionHandler;
-            queue = new ConcurrentQueue<IRunnable>();
-            isShuttingDown = new AtomicBoolean(false);
+            _maxConcurrentThreads = maxConcurrentThreads;
+            _rejectionHandler = rejectionHandler;
+            _queue = new ConcurrentQueue<IRunnable>();
+            _isShuttingDown = new AtomicBoolean(false);
         }
 
         public void Execute(IRunnable task)
         {
-            if (isShuttingDown.Get())
+            if (_isShuttingDown.Get())
             {
-                rejectionHandler.Invoke(task);
+                _rejectionHandler.Invoke(task);
                 return;
             }
 
-            queue.Enqueue(task);
+            _queue.Enqueue(task);
             TryStartExecution();
         }
 
         public void Shutdown()
         {
-            isShuttingDown.Set(true);
+            _isShuttingDown.Set(true);
         }
 
         private void TryStartExecution()
         {
-            if (!queue.IsEmpty && TryIncreaseRunningThreadCount())
+            if (!_queue.IsEmpty && TryIncreaseRunningThreadCount())
             {
                 ThreadPool.QueueUserWorkItem(new WaitCallback(_ => ThreadStartMethod()));
             }
@@ -54,7 +54,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 
         private void ThreadStartMethod()
         {
-            if (queue.TryDequeue(out IRunnable task))
+            if (_queue.TryDequeue(out IRunnable? task))
             {
                 try
                 {
@@ -68,24 +68,25 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             }
         }
 
-        private int currentThreadCount;
+        private int _currentThreadCount;
+        
         private bool TryIncreaseRunningThreadCount()
         {
-            int currentCountLocal = Interlocked.CompareExchange(ref currentThreadCount, 0, 0);
-            while (currentCountLocal < maxConcurrentThreads)
+            int currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
+            while (currentCountLocal < _maxConcurrentThreads)
             {
-                var valueAtTheTimeOfIncrement = Interlocked.CompareExchange(ref currentThreadCount, currentCountLocal + 1, currentCountLocal);
+                var valueAtTheTimeOfIncrement = Interlocked.CompareExchange(ref _currentThreadCount, currentCountLocal + 1, currentCountLocal);
                 if (valueAtTheTimeOfIncrement == currentCountLocal)
                 {
                     return true;
                 }
 
-                currentCountLocal = Interlocked.CompareExchange(ref currentThreadCount, 0, 0);
+                currentCountLocal = Interlocked.CompareExchange(ref _currentThreadCount, 0, 0);
             }
 
             return false;
         }
 
-        private void DecreaseRunningThreadCount() => Interlocked.Decrement(ref currentThreadCount);
+        private void DecreaseRunningThreadCount() => Interlocked.Decrement(ref _currentThreadCount);
     }
 }

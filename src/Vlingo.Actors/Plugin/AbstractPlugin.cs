@@ -17,7 +17,7 @@ namespace Vlingo.Actors.Plugin
         public abstract void Start(IRegistrar registrar);
         public abstract IPlugin With(IPluginConfiguration? overrideConfiguration);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || obj.GetType() != GetType())
             {

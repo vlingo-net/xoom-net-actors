@@ -29,9 +29,9 @@ namespace Vlingo.Actors
         
         public virtual bool IsDistributable => false;
 
-        public int CompareTo(IAddress other) => Id.CompareTo(other.Id);
+        public int CompareTo(IAddress? other) => Id.CompareTo(other?.Id);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || obj.GetType() != GetType())
             {

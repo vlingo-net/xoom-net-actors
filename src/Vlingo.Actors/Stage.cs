@@ -482,7 +482,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         internal ISupervisor CommonSupervisorOr<T>(ISupervisor defaultSupervisor)
         {
-            if (_commonSupervisors.TryGetValue(typeof(T), out ISupervisor value))
+            if (_commonSupervisors.TryGetValue(typeof(T), out ISupervisor? value))
             {
                 return value;
             }
@@ -859,7 +859,7 @@ namespace Vlingo.Actors
         private object ToTestActor(Type protocol)
         {
             var type = typeof(TestActor<>).MakeGenericType(protocol);
-            return Activator.CreateInstance(type, _actor, ProtocolActor, _actor.Address);
+            return Activator.CreateInstance(type, _actor, ProtocolActor, _actor.Address)!;
         }
     }
 }

@@ -11,23 +11,20 @@ namespace Vlingo.Actors.TestKit
 {
     public class TestState
     {
-        private readonly IDictionary<string, object> state;
+        private readonly IDictionary<string, object> _state;
 
-        public TestState()
-        {
-            state = new Dictionary<string, object>();
-        }
+        public TestState() => _state = new Dictionary<string, object>();
 
         public TestState PutValue(string name, object value)
         {
-            state[name] = value;
+            _state[name] = value;
             return this;
         }
 
         public T ValueOf<T>(string name)
         {
-            state.TryGetValue(name, out object value);
-            return (T)value;
+            _state.TryGetValue(name, out object? value);
+            return ((T) value!)!;
         }
     }
 }

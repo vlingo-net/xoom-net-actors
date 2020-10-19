@@ -235,11 +235,8 @@ namespace Vlingo.Actors
                     return _defaultLogger;
                 }
 
-                if (_loggerProviderKeeper != null)
-                {
-                    var maybeLoggerProvider = _loggerProviderKeeper.FindDefault();
-                    _defaultLogger = maybeLoggerProvider.Logger;
-                }
+                var maybeLoggerProvider = _loggerProviderKeeper.FindDefault();
+                _defaultLogger = maybeLoggerProvider?.Logger;
 
                 if (_defaultLogger == null)
                 {
@@ -305,9 +302,9 @@ namespace Vlingo.Actors
         /// <param name="loggerProvider">The <c>ILoggerProvider</c> to register.</param>
         public void Register(string name, bool isDefault, ILoggerProvider loggerProvider)
         {
-            var actualDefault = _loggerProviderKeeper.FindDefault() == null ? true : isDefault;
+            var actualDefault = _loggerProviderKeeper.FindDefault() == null || isDefault;
             _loggerProviderKeeper.Keep(name, actualDefault, loggerProvider);
-            _defaultLogger = _loggerProviderKeeper.FindDefault().Logger;
+            _defaultLogger = _loggerProviderKeeper.FindDefault()?.Logger;
         }
 
         /// <summary>
@@ -368,11 +365,7 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>ICompletesEventuallyProviderKeeper</c> to register.</param>
         public void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper)
         {
-            if (_completesProviderKeeper != null)
-            {
-                _completesProviderKeeper.Close();
-            }
-
+            _completesProviderKeeper.Close();
             _completesProviderKeeper = keeper;
         }
 
@@ -382,10 +375,7 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>ILoggerProviderKeeper</c> to register.</param>
         public void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper)
         {
-            if (_loggerProviderKeeper != null)
-            {
-                _loggerProviderKeeper.Close();
-            }
+            _loggerProviderKeeper.Close();
             _loggerProviderKeeper = keeper;
         }
 
@@ -395,10 +385,7 @@ namespace Vlingo.Actors
         /// <param name="keeper">The <c>IMailboxProviderKeeper</c> to register.</param>
         public void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper)
         {
-            if (_mailboxProviderKeeper != null)
-            {
-                _mailboxProviderKeeper.Close();
-            }
+            _mailboxProviderKeeper.Close();
             _mailboxProviderKeeper = keeper;
         }
 
@@ -417,7 +404,7 @@ namespace Vlingo.Actors
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            if(_dynamicDependencies.TryGetValue(name, out object value))
+            if(_dynamicDependencies.TryGetValue(name, out object? value))
             {
                 return (TDependency) value;
             }
@@ -445,7 +432,7 @@ namespace Vlingo.Actors
         {
             lock (_stageNamedMutex)
             {
-                if (!_stages.TryGetValue(name, out Stage stage))
+                if (!_stages.TryGetValue(name, out Stage? stage))
                 {
                     stage = new Stage(this, addressFactory, name);
                     if (!string.Equals(name, DefaultStage))

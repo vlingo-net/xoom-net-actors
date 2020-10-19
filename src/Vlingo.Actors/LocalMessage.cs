@@ -52,7 +52,7 @@ namespace Vlingo.Actors
         public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes? completes, string representation)
         {
             _actor = actor;
-            _consumer = x => consumer.Invoke(x == null ? default : (TConsumer)(object)x);
+            _consumer = x => consumer.Invoke((x == null ? default : (TConsumer)(object)x)!);
             _representation = representation;
             _completes = completes;
         }

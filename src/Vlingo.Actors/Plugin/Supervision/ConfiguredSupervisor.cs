@@ -57,7 +57,7 @@ namespace Vlingo.Actors.Plugin.Supervision
         public override int GetHashCode()
             => 31 * StageName.GetHashCode() + SupervisorName.GetHashCode();
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             if (other == null || other.GetType() != GetType())
             {

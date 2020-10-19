@@ -133,7 +133,7 @@ namespace Vlingo.Actors.Plugin.Logging.Console
         {
             System.Console.ForegroundColor = ColorFor(level);
             System.Console.WriteLine($"{DateTimeOffset.Now:MM/dd/yyyy hh:mm:ss.fff} [{Thread.CurrentThread.ManagedThreadId}] {Name}[{level}]: {message}");
-            var argString = string.Join("\n", args?.Select(x => x.ToString()));
+            var argString = string.Join("\n", args?.Select(x => x.ToString())!);
             System.Console.WriteLine($"{DateTimeOffset.Now:MM/dd/yyyy hh:mm:ss.fff} [{Thread.CurrentThread.ManagedThreadId}] {Name}[{level}]: args:\n{argString}");
             System.Console.ResetColor();
         }

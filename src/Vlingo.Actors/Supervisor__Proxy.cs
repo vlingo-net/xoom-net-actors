@@ -13,13 +13,13 @@ namespace Vlingo.Actors
     {
         private const string RepresentationInform1 = "inform(Throwable, Supervised)";
 
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public Supervisor__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
         public ISupervisionStrategy SupervisionStrategy => null!;
@@ -28,21 +28,21 @@ namespace Vlingo.Actors
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<ISupervisor> consumer = x => x.Inform(error, supervised);
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, RepresentationInform1);
+                    _mailbox.Send(_actor, consumer, null, RepresentationInform1);
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<ISupervisor>(actor, consumer, RepresentationInform1));
+                    _mailbox.Send(new LocalMessage<ISupervisor>(_actor, consumer, RepresentationInform1));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, RepresentationInform1));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, RepresentationInform1));
             }
         }
     }

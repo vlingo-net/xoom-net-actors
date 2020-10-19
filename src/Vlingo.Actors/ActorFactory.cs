@@ -16,10 +16,10 @@ namespace Vlingo.Actors
     {
         internal static readonly ThreadLocal<Environment?> ThreadLocalEnvironment = new ThreadLocal<Environment?>(false);
 
-        public static Type ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
+        public static Type? ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
             => ActorClassWithProtocol(actorClassname, typeof(TProtocol));
 
-        private static Type ActorClassWithProtocol(string actorClassname, Type protocolClass)
+        private static Type? ActorClassWithProtocol(string actorClassname, Type protocolClass)
         {
             try
             {
@@ -33,9 +33,9 @@ namespace Vlingo.Actors
             }
         }
 
-        private static void AssertActorWithProtocol(Type candidateActorClass, Type protocolClass)
+        private static void AssertActorWithProtocol(Type? candidateActorClass, Type protocolClass)
         {
-            var superclass = candidateActorClass.BaseType;
+            var superclass = candidateActorClass?.BaseType;
             while (superclass != null)
             {
                 if (superclass == typeof(Actor))
@@ -47,17 +47,19 @@ namespace Vlingo.Actors
 
             if (superclass == null)
             {
-                throw new ArgumentException($"Class must extend Vlingo.Actors.Actor: {candidateActorClass.FullName}");
+                throw new ArgumentException($"Class must extend Vlingo.Actors.Actor: {candidateActorClass?.FullName}");
             }
 
-            foreach (var protocolInterfaceClass in candidateActorClass.GetInterfaces())
+            var protocolInterfaceClasses = candidateActorClass?.GetInterfaces() ?? new Type[0];
+            foreach (var protocolInterfaceClass in protocolInterfaceClasses)
             {
                 if (protocolClass == protocolInterfaceClass)
                 {
                     return;
                 }
             }
-            throw new ArgumentException($"Actor class {candidateActorClass.FullName} must implement: {protocolClass.FullName}");
+            
+            throw new ArgumentException($"Actor class {candidateActorClass?.FullName} must implement: {protocolClass.FullName}");
         }
 
         internal static Actor ActorFor(
@@ -86,8 +88,11 @@ namespace Vlingo.Actors
 
             if (definitionParameterCount == 0)
             {
-                actor = (Actor)Activator.CreateInstance(definition.Type);
-                actor.LifeCycle.SendStart(actor);
+                if (definition.Type != null)
+                {
+                    actor = (Actor) Activator.CreateInstance(definition.Type)!;
+                    actor.LifeCycle.SendStart(actor);   
+                }
             }
             else
             {

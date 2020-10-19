@@ -26,7 +26,7 @@ namespace Vlingo.Actors
 
         public bool IsDistributable => false;
 
-        public int CompareTo(IAddress other)
+        public int CompareTo(IAddress? other)
         {
             if (other == null || other.GetType() != typeof(BasicAddress))
             {
@@ -37,7 +37,7 @@ namespace Vlingo.Actors
 
         public T IdTyped<T>(Func<string, T> typeConverter) => typeConverter(IdString);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj == null || obj.GetType() != typeof(BasicAddress))
             {

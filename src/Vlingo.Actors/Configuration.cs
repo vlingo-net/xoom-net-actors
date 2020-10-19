@@ -188,7 +188,7 @@ namespace Vlingo.Actors
 
         private IPluginConfiguration? OverrideConfiguration(IPlugin plugin)
         {
-            if(_configurationOverrides.TryGetValue(plugin.Configuration.GetType().Name, out var val))
+            if (_configurationOverrides.TryGetValue(plugin.Configuration.GetType().Name, out var val))
             {
                 return val;
             }
@@ -243,9 +243,9 @@ namespace Vlingo.Actors
             {
                 try
                 {
-                    var plugin = (IPlugin)Activator.CreateInstance(pluginClass);
+                    var plugin = (IPlugin) Activator.CreateInstance(pluginClass)!;
                     var pc = OverrideConfiguration(plugin);
-                    var reallyBuild = pc == null ? build : false;
+                    var reallyBuild = pc == null && build;
                     var configuredPlugin = plugin.With(pc);
 
                     if (reallyBuild)

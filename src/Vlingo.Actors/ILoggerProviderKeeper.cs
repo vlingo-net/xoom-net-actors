@@ -10,7 +10,7 @@ namespace Vlingo.Actors
     public interface ILoggerProviderKeeper
     {
         void Close();
-        ILoggerProvider FindDefault();
+        ILoggerProvider? FindDefault();
         ILoggerProvider FindNamed(string name);
         void Keep(string name, bool isDefault, ILoggerProvider loggerProvider);
 

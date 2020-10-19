@@ -46,7 +46,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
 
         public IMailbox ProvideMailboxFor(int? hashCode, IDispatcher? dispatcher)
         {
-            RingBufferDispatcher maybeDispatcher;
+            RingBufferDispatcher? maybeDispatcher;
             
             if (!hashCode.HasValue)
             {

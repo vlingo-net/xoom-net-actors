@@ -32,7 +32,7 @@ namespace Vlingo.Actors
         /// Answers the <c>DeadLetters</c> for this <c>Actor</c>.
         /// </summary>
         /// <value>Gets the <c>DeadLetters</c> for this <c>Actor</c>.</value>
-        public virtual IDeadLetters DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters!;
+        public virtual IDeadLetters? DeadLetters => LifeCycle.Environment.Stage.World.DeadLetters;
 
         /// <summary>
         /// Answers the <c>Scheduler</c> for this <c>Actor</c>.
@@ -102,7 +102,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="other">The <c>object</c> to which this <c>Actor</c> is compared</param>
         /// <returns><c>true</c> if the two objects are of same type and has the same <c>address</c>. <c>false</c> otherwise.</returns>
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
         {
             if (other == null || other.GetType() != GetType())
             {
@@ -203,7 +203,7 @@ namespace Vlingo.Actors
         /// <param name="protocol">The type of the child <c>Actor</c> to be created.</param>
         /// <param name="definition">The <c>Definition</c> of the child <c>Actor</c> to be created by this parent <c>Actor</c></param>
         /// <returns>A child <c>Actor</c> of type <paramref name="protocol"/> created by this parent <c>Actor</c>.</returns>
-        protected internal virtual object ChildActorFor(Type protocol, Definition definition)
+        protected internal virtual object? ChildActorFor(Type protocol, Definition definition)
         {
             var method = GetType().GetMethod(
                 "ChildActorFor",
@@ -217,7 +217,7 @@ namespace Vlingo.Actors
                 throw new InvalidOperationException("Cannot find 'ChildActorFor' method on Actor");
             }
                 
-            return method.MakeGenericMethod(protocol).Invoke(this, new object[] {definition});
+            return method.MakeGenericMethod(protocol).Invoke(definition, new object[] {definition});
         }
 
         /// <summary>
@@ -228,21 +228,17 @@ namespace Vlingo.Actors
         /// <returns><code>Protocols</code></returns>
         protected internal Protocols ChildActorFor(Type[] protocols, Definition definition)
         {
-            if(definition.Supervisor != null)
+            if (definition.Supervisor != null)
             {
                 return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, definition.Supervisor, Logger);
             }
-            else
+
+            if (this is ISupervisor)
             {
-                if(this is ISupervisor)
-                {
-                    return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, LifeCycle.LookUpProxy<ISupervisor>(), Logger);
-                }
-                else
-                {
-                    return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, null, Logger);
-                }
+                return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, LifeCycle.LookUpProxy<ISupervisor>(), Logger);
             }
+
+            return LifeCycle.Environment.Stage.ActorFor(protocols, definition, this, null, Logger);
         }
 
         /// <summary>
@@ -300,20 +296,14 @@ namespace Vlingo.Actors
         /// <summary>
         /// Secures this <c>Actor</c>.
         /// </summary>
-        protected virtual void Secure()
-        {
-            LifeCycle.Secure();
-        }
+        protected virtual void Secure() => LifeCycle.Secure();
 
         /// <summary>
         /// Answers this <c>Actor</c> as a <typeparamref name="T"/> protocol. This <c>Actor</c> must implement the <typeparamref name="T"/> protocol.
         /// </summary>
         /// <typeparam name="T">The protocol type</typeparam>
         /// <returns>This <c>Actor</c> as <typeparamref name="T"/></returns>
-        protected internal T SelfAs<T>()
-        {
-            return LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
-        }
+        protected internal T SelfAs<T>() => LifeCycle.Environment.Stage.ActorProxyFor<T>(this, LifeCycle.Environment.Mailbox);
 
         /// <summary>
         /// Answers the <c>Stage</c> of this <c>Actor</c>.
@@ -337,10 +327,7 @@ namespace Vlingo.Actors
         /// </summary>
         /// <param name="name">The <c>string</c> name of the <c>Stage</c> to find.</param>
         /// <returns>The <c>Stage</c> with the given <paramref name="name"/></returns>
-        protected internal virtual Stage StageNamed(string name)
-        {
-            return LifeCycle.Environment.Stage.World.StageNamed(name);
-        }
+        protected internal virtual Stage StageNamed(string name) => LifeCycle.Environment.Stage.World.StageNamed(name);
 
         //=======================================
         // stowing/dispersing
@@ -349,20 +336,15 @@ namespace Vlingo.Actors
         /// <summary>
         /// Starts the process of dispersing any messages stowed for this <c>Actor</c>.
         /// </summary>
-        protected internal virtual void DisperseStowedMessages()
-        {
-            LifeCycle.Environment.Mailbox.Resume(Mailbox.Paused);
-        }
+        protected internal virtual void DisperseStowedMessages() => LifeCycle.Environment.Mailbox.Resume(Mailbox.Paused);
 
         /// <summary>
         /// Starts the process of stowing messages for this <c>Actor</c>, and registers <paramref name="stowageOverrides"/> as
         /// the protocol that will trigger dispersal.
         /// </summary>
         /// <param name="stowageOverrides">The protocol <c>Type</c>(s) that will trigger dispersal</param>
-        protected internal virtual void StowMessages(params Type[] stowageOverrides)
-        {
+        protected internal virtual void StowMessages(params Type[] stowageOverrides) =>
             LifeCycle.Environment.Mailbox.SuspendExceptFor(Mailbox.Paused, stowageOverrides);
-        }
 
         //=======================================
         // life cycle overrides

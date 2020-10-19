@@ -11,94 +11,94 @@ namespace Vlingo.Actors
 {
     public class DeadLetters__Proxy : IDeadLetters
     {
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public DeadLetters__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
-        public bool IsStopped => actor.IsStopped;
+        public bool IsStopped => _actor.IsStopped;
 
         public void Stop()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = x => x.Stop();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Stop()");
+                    _mailbox.Send(_actor, consumer, null, "Stop()");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "Stop()"));
+                    _mailbox.Send(new LocalMessage<IDeadLetters>(_actor, consumer, "Stop()"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Stop()"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Stop()"));
             }
         }
 
         public void FailedDelivery(DeadLetter deadLetter)
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = x => x.FailedDelivery(deadLetter);
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "FailedDelivery(DeadLetter)");
+                    _mailbox.Send(_actor, consumer, null, "FailedDelivery(DeadLetter)");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "FailedDelivery(DeadLetter)"));
+                    _mailbox.Send(new LocalMessage<IDeadLetters>(_actor, consumer, "FailedDelivery(DeadLetter)"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "FailedDelivery(DeadLetter)"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "FailedDelivery(DeadLetter)"));
             }
         }
 
         public void RegisterListener(IDeadLettersListener listener)
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IDeadLetters> consumer = x => x.RegisterListener(listener);
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "RegisterListener(DeadLettersListener)");
+                    _mailbox.Send(_actor, consumer, null, "RegisterListener(DeadLettersListener)");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IDeadLetters>(actor, consumer, "RegisterListener(DeadLettersListener)"));
+                    _mailbox.Send(new LocalMessage<IDeadLetters>(_actor, consumer, "RegisterListener(DeadLettersListener)"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "RegisterListener(DeadLettersListener)"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "RegisterListener(DeadLettersListener)"));
             }
         }
 
         public void Conclude()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IStoppable> consumer = x => x.Conclude();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Conclude()");
+                    _mailbox.Send(_actor, consumer, null, "Conclude()");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Conclude()"));
+                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Conclude()"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Conclude()"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Conclude()"));
             }
         }
     }

@@ -12,16 +12,16 @@ namespace Vlingo.Actors
     internal sealed class BasicAddressFactory : IAddressFactory
     {
         private static readonly IAddress None = new BasicAddress(0, "(none)");
-        private readonly AtomicLong highId;
-        private readonly AtomicLong nextId;
+        private readonly AtomicLong _highId;
+        private readonly AtomicLong _nextId;
 
         internal BasicAddressFactory()
         {
-            highId = new AtomicLong(World.HighRootId);
-            nextId = new AtomicLong(1);
+            _highId = new AtomicLong(World.HighRootId);
+            _nextId = new AtomicLong(1);
         }
 
-        public IAddress FindableBy<T>(T id) => new BasicAddress(long.Parse(id!.ToString()));
+        public IAddress FindableBy<T>(T id) => new BasicAddress(long.Parse(id?.ToString()!));
 
         public IAddress From(long reservedId, string name) => new BasicAddress(reservedId, name);
 
@@ -29,17 +29,17 @@ namespace Vlingo.Actors
 
         public IAddress From(string idString, string name) => new BasicAddress(long.Parse(idString), name);
 
-        public long TestNextIdValue() => nextId.Get(); // for test only
+        public long TestNextIdValue() => _nextId.Get(); // for test only
 
-        public IAddress Unique() => new BasicAddress(nextId.GetAndIncrement());
+        public IAddress Unique() => new BasicAddress(_nextId.GetAndIncrement());
 
-        public IAddress UniquePrefixedWith(string prefixedWith) => new BasicAddress(nextId.GetAndIncrement(), prefixedWith, true);
+        public IAddress UniquePrefixedWith(string prefixedWith) => new BasicAddress(_nextId.GetAndIncrement(), prefixedWith, true);
 
-        public IAddress UniqueWith(string? name) => new BasicAddress(nextId.GetAndIncrement(), name);
+        public IAddress UniqueWith(string? name) => new BasicAddress(_nextId.GetAndIncrement(), name);
 
         public IAddress WithHighId() => WithHighId(null);
 
-        public IAddress WithHighId(string? name) => new BasicAddress(highId.DecrementAndGet(), name);
+        public IAddress WithHighId(string? name) => new BasicAddress(_highId.DecrementAndGet(), name);
 
         IAddress IAddressFactory.None() => None;
     }

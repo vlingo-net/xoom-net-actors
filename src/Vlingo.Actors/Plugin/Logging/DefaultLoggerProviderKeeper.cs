@@ -13,32 +13,29 @@ namespace Vlingo.Actors.Plugin.Logging
 {
     public sealed class DefaultLoggerProviderKeeper : ILoggerProviderKeeper
     {
-        private readonly IDictionary<string, LoggerProviderInfo> loggerProviderInfos;
+        private readonly IDictionary<string, LoggerProviderInfo> _loggerProviderInfos;
 
-        public DefaultLoggerProviderKeeper()
-        {
-            loggerProviderInfos = new Dictionary<string, LoggerProviderInfo>();
-        }
+        public DefaultLoggerProviderKeeper() => _loggerProviderInfos = new Dictionary<string, LoggerProviderInfo>();
 
         public void Close()
         {
-            foreach (var info in loggerProviderInfos.Values)
+            foreach (var info in _loggerProviderInfos.Values)
             {
-                info.loggerProvider.Close();
+                info.LoggerProvider.Close();
             }
         }
 
-        public ILoggerProvider FindDefault()
-            => loggerProviderInfos.Values
-                .Where(info => info.isDefault)
-                .Select(info => info.loggerProvider)
+        public ILoggerProvider? FindDefault()
+            => _loggerProviderInfos.Values
+                .Where(info => info.IsDefault)
+                .Select(info => info.LoggerProvider)
                 .FirstOrDefault();
 
         public ILoggerProvider FindNamed(string name)
         {
-            if (loggerProviderInfos.ContainsKey(name))
+            if (_loggerProviderInfos.ContainsKey(name))
             {
-                return loggerProviderInfos[name].loggerProvider;
+                return _loggerProviderInfos[name].LoggerProvider;
             }
 
             throw new InvalidOperationException($"No registered LoggerProvider named: {name}");
@@ -46,7 +43,7 @@ namespace Vlingo.Actors.Plugin.Logging
 
         public void Keep(string name, bool isDefault, ILoggerProvider loggerProvider)
         {
-            if (loggerProviderInfos.Count == 0 || FindDefault() == null)
+            if (_loggerProviderInfos.Count == 0 || FindDefault() == null)
             {
                 isDefault = true;
             }
@@ -56,29 +53,29 @@ namespace Vlingo.Actors.Plugin.Logging
                 UndefaultCurrentDefault();
             }
 
-            loggerProviderInfos[name] = new LoggerProviderInfo(name, loggerProvider, isDefault);
+            _loggerProviderInfos[name] = new LoggerProviderInfo(name, loggerProvider, isDefault);
         }
 
         private void UndefaultCurrentDefault()
         {
-            var defaultItems = loggerProviderInfos.Where(x => x.Value.isDefault).ToList();
+            var defaultItems = _loggerProviderInfos.Where(x => x.Value.IsDefault).ToList();
             defaultItems
                 .ForEach(item =>
                 {
-                    loggerProviderInfos[item.Key] = new LoggerProviderInfo(item.Value.name, item.Value.loggerProvider, false);
+                    _loggerProviderInfos[item.Key] = new LoggerProviderInfo(item.Value.Name, item.Value.LoggerProvider, false);
                 });
         }
 
         private class LoggerProviderInfo
         {
-            public readonly bool isDefault;
-            public readonly ILoggerProvider loggerProvider;
-            public readonly string name;
+            public readonly bool IsDefault;
+            public readonly ILoggerProvider LoggerProvider;
+            public readonly string Name;
             public LoggerProviderInfo(string name, ILoggerProvider loggerProvider, bool isDefault)
             {
-                this.name = name;
-                this.loggerProvider = loggerProvider;
-                this.isDefault = isDefault;
+                Name = name;
+                LoggerProvider = loggerProvider;
+                IsDefault = isDefault;
             }
         }
     }

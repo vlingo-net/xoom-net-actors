@@ -61,7 +61,7 @@ namespace Vlingo.Actors
         {
             var classPath = new List<FileInfo>
             {
-                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.main", RootOfMainClasses))
+                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.main", RootOfMainClasses)!)
             };
             var type = DynaType.Main;
             var rootOfGenerated = RootOfGeneratedSources(type);
@@ -73,7 +73,7 @@ namespace Vlingo.Actors
         {
             var classPath = new List<FileInfo>
             {
-                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.test", RootOfTestClasses))
+                new FileInfo(Properties.Instance.GetProperty("proxy.generated.classes.test", RootOfTestClasses)!)
             };
             var type = DynaType.Test;
             var rootOfGenerated = RootOfGeneratedSources(type);
@@ -105,8 +105,8 @@ namespace Vlingo.Actors
 
         private static DirectoryInfo RootOfGeneratedSources(DynaType type)
             => type == DynaType.Main ?
-                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.main", GeneratedSources)) :
-                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.test", GeneratedTestSources));
+                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.main", GeneratedSources)!) :
+                new DirectoryInfo(Properties.Instance.GetProperty("proxy.generated.sources.test", GeneratedTestSources)!);
 
         private ProxyGenerator(IList<FileInfo> rootOfClasses, DirectoryInfo rootOfGenerated, DynaType type, bool persist, ILogger logger)
         {
@@ -150,8 +150,8 @@ namespace Vlingo.Actors
             namespaces.Add("System");
             namespaces.Add("System.Collections.Generic");
             namespaces.Add("System.Threading.Tasks");
-            namespaces.Add(typeof(Actor).Namespace);
-            namespaces.Add(typeof(AtomicBoolean).Namespace); // Vlingo.Common
+            namespaces.Add(typeof(Actor).Namespace!);
+            namespaces.Add(typeof(AtomicBoolean).Namespace!); // Vlingo.Common
 
             return string.Join("\n", namespaces.Select(x => $"using {x};"));
             
@@ -400,7 +400,7 @@ namespace Vlingo.Actors
             return builder.ToString();
         }
 
-        private string DefaultReturnValueString(Type type)
+        private string? DefaultReturnValueString(Type type)
         {
             if(type == typeof(void))
             {
@@ -427,7 +427,7 @@ namespace Vlingo.Actors
                 return $"{type.Name}.{Activator.CreateInstance(type)}";
             }
 
-            return Activator.CreateInstance(type).ToString();
+            return Activator.CreateInstance(type)?.ToString();
         }
 
         private static readonly IDictionary<Type, string> SimpleTypeNames = new Dictionary<Type, string>
@@ -450,8 +450,7 @@ namespace Vlingo.Actors
             [typeof(ushort)] = "ushort"
         };
 
-        private static readonly string[] ReservedKeywords = new string[13]
-        {
+        private static readonly string[] ReservedKeywords = {
             "object",
             "event",
             "struct",
@@ -469,14 +468,14 @@ namespace Vlingo.Actors
 
         private string GetSimpleTypeName(Type type)
         {
-            if(SimpleTypeNames.ContainsKey(type))
+            if (SimpleTypeNames.ContainsKey(type))
             {
                 return SimpleTypeNames[type];
             }
 
-            if(Nullable.GetUnderlyingType(type) != null)
+            if (Nullable.GetUnderlyingType(type) != null)
             {
-                return GetSimpleTypeName(Nullable.GetUnderlyingType(type)) + "?";
+                return $"{GetSimpleTypeName(Nullable.GetUnderlyingType(type)!)}?";
             }
 
             if (type.IsGenericType)
@@ -490,14 +489,11 @@ namespace Vlingo.Actors
             return type.FullName ?? type.Name;
         }
 
-        private string TypeFullNameToString(string typeFullName)
-        {
-            return typeFullName.Replace("+", ".");
-        }
+        private string TypeFullNameToString(string typeFullName) => typeFullName.Replace("+", ".");
 
-        private string PrefixReservedKeywords(string name)
+        private string? PrefixReservedKeywords(string? name)
         {
-            if(ReservedKeywords.Contains(name))
+            if (ReservedKeywords.Contains(name))
             {
                 return $"@{name}";
             }
@@ -558,9 +554,9 @@ namespace Vlingo.Actors
                     .GetGenericArguments()
                     .Select(i => (i.Name, string.Join(", ", i.GetGenericParameterConstraints().Select(c => c.FullName))));
 
-                var validConstraints = constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2));
+                var validConstraints = constraintPairs.Where(p => !string.IsNullOrEmpty(p.Item2)).ToList();
                 
-                if (validConstraints.Count() == 0)
+                if (validConstraints.Count == 0)
                 {
                     return string.Empty;
                 }
@@ -586,7 +582,7 @@ namespace Vlingo.Actors
                 interfaces = type.GetInterfaces();
             }
 
-            if (interfaces == null || interfaces.Length == 0)
+            if (interfaces.Length == 0)
             {
                 return false;
             }
@@ -601,7 +597,7 @@ namespace Vlingo.Actors
 
         private class MethodInfoComparer : IEqualityComparer<MethodInfo>
         {
-            public bool Equals(MethodInfo x, MethodInfo y)
+            public bool Equals(MethodInfo? x, MethodInfo? y)
             {
                 if (x == null && y == null)
                 {

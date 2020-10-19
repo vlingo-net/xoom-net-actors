@@ -12,32 +12,32 @@ namespace Vlingo.Actors
 {
     public class Cancellable__Proxy : ICancellable
     {
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public Cancellable__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
         public bool Cancel()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<ICancellable> consumer = x => x.Cancel();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Cancel()");
+                    _mailbox.Send(_actor, consumer, null, "Cancel()");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<ICancellable>(actor, consumer, "Cancel()"));
+                    _mailbox.Send(new LocalMessage<ICancellable>(_actor, consumer, "Cancel()"));
                 }
                 
                 return true;
             }
 
-            actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Cancel()"));
+            _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Cancel()"));
             return false;
         }
     }

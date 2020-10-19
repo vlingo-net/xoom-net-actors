@@ -99,7 +99,7 @@ namespace Vlingo.Actors
                 {
                     var closedMsgType = message.GetType().GetGenericArguments().First();
                     var stowedLocalMsgType = typeof(StowedLocalMessage<>).MakeGenericType(closedMsgType);
-                    toStow = (IMessage)Activator.CreateInstance(stowedLocalMsgType, message);
+                    toStow = (IMessage)Activator.CreateInstance(stowedLocalMsgType, message)!;
                 }
 
                 stowedMessages!.Enqueue(toStow);

@@ -22,7 +22,7 @@ namespace Vlingo.Actors.TestKit
         {
             get
             {
-                return ThreadLocalInstance.Value;
+                return ThreadLocalInstance.Value!;
             }
             set
             {

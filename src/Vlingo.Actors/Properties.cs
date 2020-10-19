@@ -24,9 +24,9 @@ namespace Vlingo.Actors
 
         public static Properties Instance => SingleInstance.Value;
 
-        public static long GetLong(string key, long defaultValue) => Get(key, long.Parse, defaultValue);
+        public static long GetLong(string key, long defaultValue) => Get(key, long.Parse!, defaultValue);
         
-        public static float GetFloat(string key, float defaultValue) => Get(key, float.Parse, defaultValue);
+        public static float GetFloat(string key, float defaultValue) => Get(key, float.Parse!, defaultValue);
 
         private static T Get<T>(string key, Func<string?, T> parse, T defaultValue)
         {

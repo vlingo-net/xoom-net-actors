@@ -24,25 +24,25 @@ namespace Vlingo.Actors.Plugin
         public bool GetBoolean(string key, bool defaultValue)
         {
             var value = GetString(key, defaultValue.ToString());
-            return bool.Parse(value);
+            return value == null ? defaultValue : bool.Parse(value);
         }
 
         public float GetFloat(string key, float defaultValue)
         {
             var value = GetString(key, defaultValue.ToString(CultureInfo.InvariantCulture));
-            return float.Parse(value, CultureInfo.InvariantCulture);
+            return value == null ? defaultValue : float.Parse(value, CultureInfo.InvariantCulture);
         }
 
         public int GetInteger(string key, int defaultValue)
         {
             var value = GetString(key, defaultValue.ToString());
-            return int.Parse(value);
+            return value == null ? defaultValue : int.Parse(value);
         }
         
         public long GetLong(string key, long defaultValue)
         {
             var value = GetString(key, defaultValue.ToString());
-            return long.Parse(value);
+            return value == null ? defaultValue : long.Parse(value);
         }
 
         public string? GetString(string key, string? defaultValue) => _properties.GetProperty(Key(key), defaultValue);

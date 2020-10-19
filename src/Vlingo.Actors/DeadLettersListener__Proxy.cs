@@ -11,32 +11,32 @@ namespace Vlingo.Actors
 {
     public class DeadLettersListener__Proxy : IDeadLettersListener
     {
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public DeadLettersListener__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
         public void Handle(DeadLetter deadLetter)
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IDeadLettersListener> consumer = x => x.Handle(deadLetter);
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Handle(DeadLetter)");
+                    _mailbox.Send(_actor, consumer, null, "Handle(DeadLetter)");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IDeadLettersListener>(actor, consumer, "Handle(DeadLetter)"));
+                    _mailbox.Send(new LocalMessage<IDeadLettersListener>(_actor, consumer, "Handle(DeadLetter)"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Handle(DeadLetter)"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Handle(DeadLetter)"));
             }
         }
     }

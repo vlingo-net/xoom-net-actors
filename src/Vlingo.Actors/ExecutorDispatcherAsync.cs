@@ -79,7 +79,7 @@ namespace Vlingo.Actors
             return null;
         }
         
-        private static Exception? UnwrapAggregateException(AggregateException aggregateException)
+        private static Exception? UnwrapAggregateException(AggregateException? aggregateException)
         {
             if (aggregateException == null)
             {

@@ -11,54 +11,54 @@ namespace Vlingo.Actors
 {
     public class Stoppable__Proxy : IStoppable
     {
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        private readonly Actor _actor;
+        private readonly IMailbox _mailbox;
 
         public Stoppable__Proxy(Actor actor, IMailbox mailbox)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            _actor = actor;
+            _mailbox = mailbox;
         }
 
-        public bool IsStopped => actor.IsStopped;
+        public bool IsStopped => _actor.IsStopped;
 
         public void Conclude()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IStoppable> consumer = x => x.Conclude();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Conclude()");
+                    _mailbox.Send(_actor, consumer, null, "Conclude()");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Conclude()"));
+                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Conclude()"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Conclude()"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Conclude()"));
             }
         }
 
         public void Stop()
         {
-            if (!actor.IsStopped)
+            if (!_actor.IsStopped)
             {
                 Action<IStoppable> consumer = x => x.Stop();
-                if (mailbox.IsPreallocated)
+                if (_mailbox.IsPreallocated)
                 {
-                    mailbox.Send(actor, consumer, null, "Stop()");
+                    _mailbox.Send(_actor, consumer, null, "Stop()");
                 }
                 else
                 {
-                    mailbox.Send(new LocalMessage<IStoppable>(actor, consumer, "Stop()"));
+                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Stop()"));
                 }
             }
             else
             {
-                actor.DeadLetters.FailedDelivery(new DeadLetter(actor, "Stop()"));
+                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Stop()"));
             }
         }
     }

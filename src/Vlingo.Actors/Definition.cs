@@ -388,7 +388,7 @@ namespace Vlingo.Actors
                 Evictable = evictable;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (this == obj)
                 {
@@ -414,7 +414,7 @@ namespace Vlingo.Actors
 
             public override string ToString() => $"Definition(ActorName='{ActorName}', MailboxName='{MailboxName}', Parameters='{Parameters.Select(p => p.ToString())}', Parent='{Parent}', type='{Type}')";
 
-            private bool Equals(IEnumerable<object> p1, IEnumerable<object> p2)
+            private bool Equals(IEnumerable<object>? p1, IEnumerable<object>? p2)
             {
                 if (p1 == null || p2 == null)
                 {

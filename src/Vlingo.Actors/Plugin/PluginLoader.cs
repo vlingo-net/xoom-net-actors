@@ -55,14 +55,14 @@ namespace Vlingo.Actors.Plugin
         {
             var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
             var classNameKey = $"plugin.{pluginName}.classname";
-            var className = properties.GetProperty(classNameKey) ?? throw new ArgumentNullException("properties.GetProperty(classNameKey)");
+            var className = properties.GetProperty(classNameKey) ?? throw new ArgumentException("properties.GetProperty(classNameKey)");
 
             try
             {
                 if (!plugins.TryGetValue(className, out var plugin))
                 {
                     var pluginClass = Type.GetType(className, true, true);
-                    plugin = (IPlugin)Activator.CreateInstance(pluginClass);
+                    plugin = (IPlugin)Activator.CreateInstance(pluginClass!)!;
                     plugins[className] = plugin;
                 }
             }
