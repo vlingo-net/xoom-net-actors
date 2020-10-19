@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Vlingo.Common;
@@ -287,7 +286,7 @@ namespace Vlingo.Actors
                 mailboxConsumer);
             var completesReturnStatement = isACompletes ? (isAsyncAwaitCompletes ? "      return tcs.Task.Result;\n" : "      return completes;\n") : "";
             var taskReturnStatement = isTask ? "      return tcs.Task.Unwrap();\n" : "";
-            var elseDead = string.Format("      this.actor.DeadLetters.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
+            var elseDead = string.Format("      this.actor.DeadLetters?.FailedDelivery(new DeadLetter(this.actor, {0}));", representationName);
             var returnValue = DefaultReturnValueString(method.ReturnType);
             var returnStatement = string.IsNullOrEmpty(returnValue) ? "" : string.Format("    return {0};\n", returnValue);
 
