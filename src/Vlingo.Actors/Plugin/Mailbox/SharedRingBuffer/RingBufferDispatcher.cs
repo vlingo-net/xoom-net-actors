@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Common;
@@ -33,9 +34,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             _backoffTokenSource = CancellationTokenSource.CreateLinkedTokenSource(_dispatcherTokenSource.Token);
         }
 
-        internal IMailbox Mailbox { get; private set; }
+        internal IMailbox Mailbox { get; }
 
-        public bool RequiresExecutionNotification { get; private set; }
+        public bool RequiresExecutionNotification { get; }
 
         public void Close()
         {
@@ -67,7 +68,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
                     return;
                 }
 
-                _started = Task.Run(() => Run(), _dispatcherTokenSource.Token);
+                _started = Task.Run(Run, _dispatcherTokenSource.Token);
             }
         }
 
@@ -77,7 +78,14 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
             {
                 if (!Deliver())
                 {
-                    await _backoff.Now(_backoffTokenSource.Token);
+                    try
+                    {
+                        await _backoff.Now(_backoffTokenSource.Token);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // nothing to do
+                    }
                 }
             }
         }
