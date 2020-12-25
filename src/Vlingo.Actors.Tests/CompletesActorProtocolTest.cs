@@ -15,10 +15,9 @@ namespace Vlingo.Actors.Tests
 {
     public class CompletesActorProtocolTest : ActorsTest
     {
-        internal const string Hello = "Hello, Completes!";
+        private const string Hello = "Hello, Completes!";
         private const string HelloNot = "Bye!";
         private const string Prefix = "*** ";
-
 
         [Fact]
         public void TestReturnsCompletesForSideEffects()
@@ -98,7 +97,7 @@ namespace Vlingo.Actors.Tests
 
             var thread = new Thread(() =>
             {
-                Thread.Sleep(150);
+                Thread.Sleep(1500);
                 oneCompletes.With(1); 
             });
             thread.Start();
@@ -155,7 +154,7 @@ namespace Vlingo.Actors.Tests
             {
                 try
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(1000);
                 }
                 catch (ThreadInterruptedException) { }
 
@@ -166,7 +165,7 @@ namespace Vlingo.Actors.Tests
             {
                 try
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(1000);
                 }
                 catch (ThreadInterruptedException) { }
 
@@ -183,7 +182,7 @@ namespace Vlingo.Actors.Tests
             internal readonly AccessSafely Received;
             private readonly AtomicBoolean _exceptionThrown = new AtomicBoolean(false);
 
-            public TestResults(AccessSafely received) => Received = received;
+            private TestResults(AccessSafely received) => Received = received;
 
             public static TestResults AfterCompleting(int times)
             {
