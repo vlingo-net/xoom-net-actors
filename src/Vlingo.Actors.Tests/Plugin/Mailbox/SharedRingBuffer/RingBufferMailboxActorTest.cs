@@ -6,17 +6,23 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Threading.Tasks;
 using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
 using Vlingo.Actors.TestKit;
 using Vlingo.Common;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 {
     public class RingBufferMailboxActorTest : ActorsTest
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public RingBufferMailboxActorTest(ITestOutputHelper testOutputHelper) => _testOutputHelper = testOutputHelper;
+
         private const int MailboxSize = 64;
         private const int MaxCount = 1024;
 
@@ -25,7 +31,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
         private const int ThroughputWarmUpCount = 4194304;
 
         [Fact]
-        public void TestBasicDispatch()
+        public async Task TestBasicDispatch()
         {
             Init(MailboxSize);
             var testResults = new TestResults(MaxCount);
@@ -39,6 +45,8 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
             {
                 countTaker.Take(count);
             }
+
+            await Task.Delay(10);
 
             Assert.Equal(MaxCount, testResults.GetHighest());
         }
@@ -76,7 +84,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 
             var timeSpent = DateTime.UtcNow - startTime;
 
-            Console.WriteLine("Ms: " + timeSpent.TotalMilliseconds + " FOR " + ThroughputMaxCount + " MESSAGES IS " + (ThroughputMaxCount / timeSpent.TotalSeconds) + " PER SECOND");
+            _testOutputHelper.WriteLine("Ms: {0} FOR {1} MESSAGES IS {2} PER SECOND", timeSpent.TotalMilliseconds, ThroughputMaxCount, ThroughputMaxCount / timeSpent.TotalSeconds);
 
             Assert.Equal(ThroughputMaxCount, testResults.GetHighest());
         }
