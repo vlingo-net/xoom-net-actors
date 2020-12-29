@@ -13,15 +13,15 @@ namespace Vlingo.Actors
 {
     public class StageSupervisedActor<T> : ISupervised
     {
-        private readonly Actor actor;
+        private readonly Actor _actor;
 
         protected internal StageSupervisedActor(Actor actor, Exception error)
         {
-            this.actor = actor;
+            _actor = actor;
             Error = error;
         }
 
-        public virtual IAddress Address => actor.Address;
+        public virtual IAddress Address => _actor.Address;
 
         public virtual void Escalate() => Supervisor.Supervisor.Inform(Error, this);
 
@@ -35,7 +35,7 @@ namespace Vlingo.Actors
             {
                 if (scope == Scope.One)
                 {
-                    RestartWithin(actor, period, intensity);
+                    RestartWithin(_actor, period, intensity);
                 }
                 else
                 {
@@ -49,15 +49,15 @@ namespace Vlingo.Actors
 
         public virtual void Resume()
         {
-            actor.LifeCycle.BeforeResume<T>(actor, Error);
-            actor.LifeCycle.Resume();
+            _actor.LifeCycle.BeforeResume<T>(_actor, Error);
+            _actor.LifeCycle.Resume();
         }
 
         public virtual void Stop(Scope scope)
         {
             if(scope == Scope.One)
             {
-                actor.Stop();
+                _actor.Stop();
             }
             else
             {
@@ -68,19 +68,19 @@ namespace Vlingo.Actors
             }
         }
 
-        public virtual void Suspend() => actor.LifeCycle.Suspend();
+        public virtual void Suspend() => _actor.LifeCycle.Suspend();
 
-        public virtual ISupervisor Supervisor => actor.LifeCycle.Supervisor<T>();
+        public virtual ISupervisor Supervisor => _actor.LifeCycle.Supervisor<T>();
 
         public virtual Exception Error { get; }
 
         private IEnumerable<Actor> SelfWithSiblings()
-            => EnvironmentOf(EnvironmentOf(actor).Parent!).Children.Values;
+            => EnvironmentOf(EnvironmentOf(_actor).Parent!).Children.Values;
 
         private static Environment EnvironmentOf(Actor actor) => actor.LifeCycle.Environment;
 
         private bool FailureThresholdReached(long period, int intensity)
-            => EnvironmentOf(actor).FailureMark.FailedWithExcessiveFailures(period, intensity);
+            => EnvironmentOf(_actor).FailureMark.FailedWithExcessiveFailures(period, intensity);
 
         private void RestartWithin(Actor actor, long period, int intensity)
         {

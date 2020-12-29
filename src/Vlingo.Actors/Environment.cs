@@ -34,6 +34,10 @@ namespace Vlingo.Actors
         private readonly AtomicBoolean _stopped;
         private Type[]? _stowageOverrides;
 
+        public static Environment Of(Actor actor) => actor.LifeCycle.Environment;
+        
+        public int PendingMessages => Mailbox.PendingMessages;
+
         protected internal Environment(
             Stage stage,
             IAddress address,
