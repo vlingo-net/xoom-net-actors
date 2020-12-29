@@ -14,15 +14,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
         private readonly ConcurrentQueueMailboxPluginConfiguration _configuration;
         private IDispatcher? _executorDispatcher;
 
-        public ConcurrentQueueMailboxPlugin()
-        {
-            _configuration = ConcurrentQueueMailboxPluginConfiguration.Define();
-        }
+        public ConcurrentQueueMailboxPlugin(string name) => _configuration = ConcurrentQueueMailboxPluginConfiguration.Define(name);
 
-        private ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration)
-        {
-            _configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
-        }
+        private ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration) => _configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
 
         public override string Name => _configuration.Name;
 

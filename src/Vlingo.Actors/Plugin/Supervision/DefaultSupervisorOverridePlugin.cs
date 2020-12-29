@@ -9,23 +9,17 @@ namespace Vlingo.Actors.Plugin.Supervision
 {
     public class DefaultSupervisorOverridePlugin : AbstractPlugin
     {
-        private readonly DefaultSupervisorOverridePluginConfiguration configuration;
+        private readonly DefaultSupervisorOverridePluginConfiguration _configuration;
 
-        public DefaultSupervisorOverridePlugin()
-        {
-            configuration = DefaultSupervisorOverridePluginConfiguration.Define();
-        }
+        public DefaultSupervisorOverridePlugin(string? name = null) => _configuration = DefaultSupervisorOverridePluginConfiguration.Define();
 
-        private DefaultSupervisorOverridePlugin(IPluginConfiguration configuration)
-        {
-            this.configuration = (DefaultSupervisorOverridePluginConfiguration)configuration;
-        }
+        private DefaultSupervisorOverridePlugin(IPluginConfiguration configuration) => _configuration = (DefaultSupervisorOverridePluginConfiguration)configuration;
 
         public override string Name => "override_supervisor";
 
         public override int Pass => 2;
 
-        public override IPluginConfiguration Configuration => configuration;
+        public override IPluginConfiguration Configuration => _configuration;
 
         public override void Close()
         {
@@ -33,7 +27,7 @@ namespace Vlingo.Actors.Plugin.Supervision
 
         public override void Start(IRegistrar registrar)
         {
-            foreach(var supervisor in configuration.Supervisors)
+            foreach(var supervisor in _configuration.Supervisors)
             {
                 registrar.RegisterDefaultSupervisor(supervisor.StageName, supervisor.SupervisorName, supervisor.SupervisorClass);
             }

@@ -9,34 +9,34 @@ namespace Vlingo.Actors.Plugin.Mailbox
 {
     public class DefaultMailboxProviderKeeperPlugin : IPlugin
     {
-        private readonly IMailboxProviderKeeper keeper;
-        private readonly DefaultMailboxProviderKeeperPluginConfiguration configuration;
+        private readonly IMailboxProviderKeeper _keeper;
+        private readonly DefaultMailboxProviderKeeperPluginConfiguration _configuration;
 
         public DefaultMailboxProviderKeeperPlugin(
             IMailboxProviderKeeper keeper,
             DefaultMailboxProviderKeeperPluginConfiguration configuration)
         {
-            this.keeper = keeper;
-            this.configuration = configuration;
+            this._keeper = keeper;
+            this._configuration = configuration;
         }
 
         private DefaultMailboxProviderKeeperPlugin(IPluginConfiguration configuration, DefaultMailboxProviderKeeperPlugin plugin)
         {
-            keeper = plugin.keeper;
-            this.configuration = (DefaultMailboxProviderKeeperPluginConfiguration)configuration;
+            _keeper = plugin._keeper;
+            this._configuration = (DefaultMailboxProviderKeeperPluginConfiguration)configuration;
         }
 
-        public string Name => configuration.Name;
+        public string Name => _configuration.Name;
 
         public int Pass => 0;
 
-        public IPluginConfiguration Configuration => configuration;
+        public IPluginConfiguration Configuration => _configuration;
 
         public void Close()
         {
         }
 
-        public void Start(IRegistrar registrar) => registrar.RegisterMailboxProviderKeeper(keeper);
+        public void Start(IRegistrar registrar) => registrar.RegisterMailboxProviderKeeper(_keeper);
 
         public IPlugin With(IPluginConfiguration? overrideConfiguration)
             => overrideConfiguration == null ? this : new DefaultMailboxProviderKeeperPlugin(overrideConfiguration, this);

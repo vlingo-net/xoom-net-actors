@@ -16,7 +16,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
         private readonly SharedRingBufferMailboxPluginConfiguration _configuration;
         private readonly ConcurrentDictionary<int, RingBufferDispatcher> _dispatchers;
 
-        public SharedRingBufferMailboxPlugin()
+        public SharedRingBufferMailboxPlugin(string? name = null)
         {
             _configuration = SharedRingBufferMailboxPluginConfiguration.Define();
             _dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);

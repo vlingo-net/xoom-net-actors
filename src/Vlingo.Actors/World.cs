@@ -517,10 +517,7 @@ namespace Vlingo.Actors
         /// Get the name of the default mailbox. (INTERNAL ONLY)
         /// </summary>
         /// <returns></returns>
-        internal string FindDefaultMailboxName()
-        {
-            return _mailboxProviderKeeper.FindDefault();
-        }
+        internal string FindDefaultMailboxName() => _mailboxProviderKeeper.FindDefault();
 
         private readonly object _defaultParentMutex = new object();
         /// <summary>

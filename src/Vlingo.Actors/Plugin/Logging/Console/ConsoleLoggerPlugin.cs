@@ -9,8 +9,8 @@ namespace Vlingo.Actors.Plugin.Logging.Console
 {
     public class ConsoleLoggerPlugin : AbstractPlugin, ILoggerProvider
     {
-        private readonly ConsoleLoggerPluginConfiguration consoleLoggerPluginConfiguration;
-        private int pass = 1;
+        private readonly ConsoleLoggerPluginConfiguration _consoleLoggerPluginConfiguration;
+        private int _pass = 1;
 
         public static ILoggerProvider RegisterStandardLogger(string name, IRegistrar registrar)
         {
@@ -26,19 +26,19 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             return plugin;
         }
 
-        public ConsoleLoggerPlugin()
+        public ConsoleLoggerPlugin(string? name = null)
         {
-            consoleLoggerPluginConfiguration = ConsoleLoggerPluginConfiguration.Define();
+            _consoleLoggerPluginConfiguration = ConsoleLoggerPluginConfiguration.Define();
             Logger = Actors.Logger.NoOpLogger;
         }
 
         private ConsoleLoggerPlugin(IPluginConfiguration configuration)
         {
-            consoleLoggerPluginConfiguration = (ConsoleLoggerPluginConfiguration)configuration;
+            _consoleLoggerPluginConfiguration = (ConsoleLoggerPluginConfiguration)configuration;
             Logger = Actors.Logger.NoOpLogger;
         }
 
-        public override string Name => consoleLoggerPluginConfiguration.Name;
+        public override string Name => _consoleLoggerPluginConfiguration.Name;
 
         public ILogger Logger { get; private set; }
 
@@ -47,23 +47,23 @@ namespace Vlingo.Actors.Plugin.Logging.Console
             Logger.Close();
         }
 
-        public override int Pass => pass;
+        public override int Pass => _pass;
 
-        public override IPluginConfiguration Configuration => consoleLoggerPluginConfiguration;
+        public override IPluginConfiguration Configuration => _consoleLoggerPluginConfiguration;
 
         public override void Start(IRegistrar registrar)
         {
             // pass 0 or 1 is bootstrap, pass 2 is for reals
-            if (pass < 2)
+            if (_pass < 2)
             {
-                Logger = new ConsoleLogger(consoleLoggerPluginConfiguration.Name);
-                registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
-                pass = 2;
+                Logger = new ConsoleLogger(_consoleLoggerPluginConfiguration.Name);
+                registrar.Register(_consoleLoggerPluginConfiguration.Name, _consoleLoggerPluginConfiguration.IsDefaultLogger, this);
+                _pass = 2;
             }
-            else if (pass == 2 && registrar.World != null)
+            else if (_pass == 2 && registrar.World != null)
             {
                 Logger = registrar.World.ActorFor<ILogger>(Definition.Has<ConsoleLoggerActor>(Definition.Parameters(Logger), Logger));
-                registrar.Register(consoleLoggerPluginConfiguration.Name, consoleLoggerPluginConfiguration.IsDefaultLogger, this);
+                registrar.Register(_consoleLoggerPluginConfiguration.Name, _consoleLoggerPluginConfiguration.IsDefaultLogger, this);
             }
         }
 

@@ -9,10 +9,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.TestKit
 {
     public sealed class TestMailboxPlugin : AbstractPlugin, IMailboxProvider
     {
-        public TestMailboxPlugin(IRegistrar registrar)
-        {
-            Start(registrar);
-        }
+        public TestMailboxPlugin(IRegistrar registrar) => Start(registrar);
 
         public override string Name => TestMailbox.Name;
 

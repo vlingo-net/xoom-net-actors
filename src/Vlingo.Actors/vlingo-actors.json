@@ -5,6 +5,7 @@
       "ringMailbox": true,
       "arrayQueueMailbox": true,
       "queueMailbox": true,
+      "reuseQueueMailbox": true,
       "consoleLogger": true,
       "common_supervisors": true,
       "override_supervisor": true,
@@ -36,6 +37,13 @@
       "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
       "defaultMailbox": true,
       "numberOfDispatchersFactor": 1.5,
+      "dispatcherThrottlingCount": 1
+    },
+    "reuseQueueMailbox": {
+      "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
+      "defaultMailbox": false,
+      "numberOfDispatchersFactor": 0.5,
+      "numberOfDispatchers": 0,
       "dispatcherThrottlingCount": 1
     },
     "consoleLogger": {

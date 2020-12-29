@@ -9,35 +9,26 @@ namespace Vlingo.Actors.Plugin.Completes
 {
     public class PooledCompletesPlugin : AbstractPlugin
     {
-        private readonly PooledCompletesPluginConfiguration pooledCompletesPluginConfiguration;
+        private readonly PooledCompletesPluginConfiguration _pooledCompletesPluginConfiguration;
 
-        private ICompletesEventuallyProvider? completesEventuallyProvider;
+        private ICompletesEventuallyProvider? _completesEventuallyProvider;
 
-        public PooledCompletesPlugin()
-        {
-            pooledCompletesPluginConfiguration = PooledCompletesPluginConfiguration.Define();
-        }
+        public PooledCompletesPlugin(string? name = null) => _pooledCompletesPluginConfiguration = PooledCompletesPluginConfiguration.Define();
 
-        private PooledCompletesPlugin(IPluginConfiguration configuration)
-        {
-            pooledCompletesPluginConfiguration = (PooledCompletesPluginConfiguration)configuration;
-        }
+        private PooledCompletesPlugin(IPluginConfiguration configuration) => _pooledCompletesPluginConfiguration = (PooledCompletesPluginConfiguration)configuration;
 
         public override string Name => Configuration.Name;
 
         public override int Pass => 2;
 
-        public override IPluginConfiguration Configuration => pooledCompletesPluginConfiguration;
+        public override IPluginConfiguration Configuration => _pooledCompletesPluginConfiguration;
 
-        public override void Close()
-        {
-            completesEventuallyProvider!.Close();
-        }
+        public override void Close() => _completesEventuallyProvider!.Close();
 
         public override void Start(IRegistrar registrar)
         {
-            completesEventuallyProvider = new CompletesEventuallyPool(pooledCompletesPluginConfiguration.PoolSize, pooledCompletesPluginConfiguration.Mailbox!);
-            registrar.Register(pooledCompletesPluginConfiguration.Name, completesEventuallyProvider!);
+            _completesEventuallyProvider = new CompletesEventuallyPool(_pooledCompletesPluginConfiguration.PoolSize, _pooledCompletesPluginConfiguration.Mailbox!);
+            registrar.Register(_pooledCompletesPluginConfiguration.Name, _completesEventuallyProvider!);
         }
 
         public override IPlugin With(IPluginConfiguration? overrideConfiguration)

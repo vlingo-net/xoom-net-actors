@@ -243,7 +243,7 @@ namespace Vlingo.Actors
             {
                 try
                 {
-                    var plugin = (IPlugin) Activator.CreateInstance(pluginClass)!;
+                    var plugin = (IPlugin) Activator.CreateInstance(pluginClass, (string) null!)!;
                     var pc = OverrideConfiguration(plugin);
                     var reallyBuild = pc == null && build;
                     var configuredPlugin = plugin.With(pc);

@@ -11,7 +11,7 @@ namespace Vlingo.Actors.Plugin.Eviction
     {
         private readonly DirectoryEvictionConfiguration _configuration;
 
-        public DirectoryEvictionPlugin() : this(DirectoryEvictionConfiguration.Define())
+        public DirectoryEvictionPlugin(string? name = null) : this(DirectoryEvictionConfiguration.Define())
         {
         }
 

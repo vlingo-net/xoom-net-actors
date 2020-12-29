@@ -16,7 +16,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         private readonly ManyToOneConcurrentArrayQueuePluginConfiguration _configuration;
         private readonly ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher> _dispatchers;
 
-        public ManyToOneConcurrentArrayQueuePlugin()
+        public ManyToOneConcurrentArrayQueuePlugin(string? name = null)
         {
             _configuration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
             _dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);

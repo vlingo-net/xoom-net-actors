@@ -9,12 +9,9 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ConcurrentQueueMailboxPluginConfiguration : IPluginConfiguration
     {
-        private ConcurrentQueueMailboxPluginConfiguration()
-        {
-            Name = "queueMailbox";
-        }
+        private ConcurrentQueueMailboxPluginConfiguration(string? name = null) => Name = name ?? "queueMailbox";
 
-        public static ConcurrentQueueMailboxPluginConfiguration Define() => new ConcurrentQueueMailboxPluginConfiguration();
+        public static ConcurrentQueueMailboxPluginConfiguration Define(string? name = null) => new ConcurrentQueueMailboxPluginConfiguration(name);
 
         public ConcurrentQueueMailboxPluginConfiguration WithDefaultMailbox()
         {

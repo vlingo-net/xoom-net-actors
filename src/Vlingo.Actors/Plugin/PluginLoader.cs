@@ -14,12 +14,9 @@ namespace Vlingo.Actors.Plugin
     {
         private const string PluginNamePrefix = "plugin.name.";
 
-        private readonly IDictionary<string, IPlugin> plugins;
+        private readonly IDictionary<string, IPlugin> _plugins;
 
-        public PluginLoader()
-        {
-            plugins = new Dictionary<string, IPlugin>();
-        }
+        public PluginLoader() => _plugins = new Dictionary<string, IPlugin>();
 
         public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties)
         {
@@ -31,7 +28,7 @@ namespace Vlingo.Actors.Plugin
                 }
             }
 
-            return plugins.Values;
+            return _plugins.Values;
         }
 
         private ISet<string> FindEnabledPlugins(Properties properties)
@@ -56,14 +53,18 @@ namespace Vlingo.Actors.Plugin
             var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
             var classNameKey = $"plugin.{pluginName}.classname";
             var className = properties.GetProperty(classNameKey) ?? throw new ArgumentException("properties.GetProperty(classNameKey)");
-
+            var pluginUniqueName = $"{pluginName}:{className}";
+            
             try
             {
-                if (!plugins.TryGetValue(className, out var plugin))
+                if (!_plugins.TryGetValue(pluginUniqueName, out _))
                 {
-                    var pluginClass = Type.GetType(className, true, true);
-                    plugin = (IPlugin)Activator.CreateInstance(pluginClass!)!;
-                    plugins[className] = plugin;
+                    if (!_plugins.TryGetValue(className, out var plugin))
+                    {
+                        var pluginClass = Type.GetType(className, true, true);
+                        plugin = (IPlugin)Activator.CreateInstance(pluginClass!, pluginName)!;
+                        _plugins[pluginUniqueName] = plugin;
+                    }   
                 }
             }
             catch (Exception ex)
