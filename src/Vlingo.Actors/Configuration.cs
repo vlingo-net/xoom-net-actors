@@ -48,7 +48,8 @@ namespace Vlingo.Actors
 
         public Configuration With(CommonSupervisorsPluginConfiguration configuration)
         {
-            CommonSupervisorsPluginConfiguration = configuration;
+            CommonSupervisorsPluginConfiguration ??= configuration;
+            
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -57,7 +58,7 @@ namespace Vlingo.Actors
 
         public Configuration With(ConcurrentQueueMailboxPluginConfiguration configuration)
         {
-            ConcurrentQueueMailboxPluginConfiguration = configuration;
+            ConcurrentQueueMailboxPluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -66,7 +67,7 @@ namespace Vlingo.Actors
 
         public Configuration With(DefaultSupervisorOverridePluginConfiguration configuration)
         {
-            DefaultSupervisorOverridePluginConfiguration = configuration;
+            DefaultSupervisorOverridePluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -75,7 +76,7 @@ namespace Vlingo.Actors
 
         public Configuration With(ConsoleLoggerPluginConfiguration configuration)
         {
-            ConsoleLoggerPluginConfiguration = configuration;
+            ConsoleLoggerPluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -84,7 +85,7 @@ namespace Vlingo.Actors
 
         public Configuration With(ManyToOneConcurrentArrayQueuePluginConfiguration configuration)
         {
-            ManyToOneConcurrentArrayQueuePluginConfiguration = configuration;
+            ManyToOneConcurrentArrayQueuePluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -93,7 +94,7 @@ namespace Vlingo.Actors
 
         public Configuration With(PooledCompletesPluginConfiguration configuration)
         {
-            PooledCompletesPluginConfiguration = configuration;
+            PooledCompletesPluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -102,7 +103,7 @@ namespace Vlingo.Actors
 
         public Configuration With(SharedRingBufferMailboxPluginConfiguration configuration)
         {
-            SharedRingBufferMailboxPluginConfiguration = configuration;
+            SharedRingBufferMailboxPluginConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
@@ -111,7 +112,7 @@ namespace Vlingo.Actors
         
         public Configuration With(DirectoryEvictionConfiguration configuration)
         {
-            DirectoryEvictionConfiguration = configuration;
+            DirectoryEvictionConfiguration ??= configuration;
             AddConfigurationOverride(configuration);
             return this;
         }
