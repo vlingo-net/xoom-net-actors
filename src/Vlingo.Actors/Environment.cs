@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Vlingo.Common;
@@ -15,7 +16,7 @@ namespace Vlingo.Actors
     public class Environment
     {
         internal IAddress Address { get; }
-        internal List<Actor> Children { get; }
+        internal ConcurrentDictionary<long, Actor> Children { get; }
         internal IAddress? CompletesEventuallyAddress { get; private set; }
         internal Definition Definition { get; }
         internal FailureMark FailureMark { get; }
@@ -57,7 +58,7 @@ namespace Vlingo.Actors
             MaybeSupervisor = maybeSupervisor;
             FailureMark = new FailureMark();
             Logger = logger;
-            Children = new List<Actor>();
+            Children = new ConcurrentDictionary<long, Actor>();
             ProxyCache = new Dictionary<Type, object>(1);
             Stowage = new Stowage();
             _stowageOverrides = null;
@@ -67,10 +68,9 @@ namespace Vlingo.Actors
             _stopped = new AtomicBoolean(false);
         }
 
-        internal void AddChild(Actor child)
-        {
-            Children.Add(child);
-        }
+        internal void AddChild(Actor child) => Children.AddOrUpdate(child.Address.Id, _ => child, (id, _) => child);
+
+        internal void RemoveChild(Actor child) => Children.TryRemove(child.Address.Id, out _);
 
         internal ICompletesEventually CompletesEventually(ResultCompletes completes)
         {
@@ -89,10 +89,7 @@ namespace Vlingo.Actors
             if (proxy != null) ProxyCache[proxy.GetType()] = proxy;
         }
 
-        internal void CacheProxy(Type proxyType, object proxy)
-        {
-            ProxyCache[proxyType] = proxy;
-        }
+        internal void CacheProxy(Type proxyType, object proxy) => ProxyCache[proxyType] = proxy;
 
         internal T LookUpProxy<T>()
         {
@@ -110,10 +107,9 @@ namespace Vlingo.Actors
 
         internal bool IsSecured => _secured.Get();
 
-        internal void SetSecured()
-        {
-            _secured.Set(true);
-        }
+        internal void SetSecured() => _secured.Set(true);
+
+        internal void RemoveFromParent(Actor actor) => Parent?.LifeCycle.Environment.RemoveChild(actor);
 
         internal bool IsStopped => _stopped.Get();
 
@@ -138,14 +134,15 @@ namespace Vlingo.Actors
             return false;
         }
 
-        internal void StowageOverrides(params Type[] overrides)
-        {
-            _stowageOverrides = overrides;
-        }
+        internal void StowageOverrides(params Type[] overrides) => _stowageOverrides = overrides;
 
         private void StopChildren()
         {
-            Children.ForEach(c => c.Stop());
+            foreach (var idChildPair in Children)
+            {
+                idChildPair.Value.Stop();
+            }
+            
             Children.Clear();
         }
     }

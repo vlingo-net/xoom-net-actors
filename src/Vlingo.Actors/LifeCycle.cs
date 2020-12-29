@@ -52,6 +52,7 @@ namespace Vlingo.Actors
         {
             Environment.Stop();
             AfterStop(actor);
+            Environment.RemoveFromParent(actor);
         }
 
         #region Standard Lifecycle
