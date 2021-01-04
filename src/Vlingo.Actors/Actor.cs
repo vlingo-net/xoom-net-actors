@@ -26,7 +26,7 @@ namespace Vlingo.Actors
         /// Answers the <c>address</c> of this <c>Actor</c>.
         /// </summary>
         /// <value>Gets the <c>Address</c> of this <c>Actor</c>.</value>
-        public virtual IAddress Address => LifeCycle.Address;
+        public IAddress Address => LifeCycle.Address;
 
         /// <summary>
         /// Answers the <c>DeadLetters</c> for this <c>Actor</c>.
