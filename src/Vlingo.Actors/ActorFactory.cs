@@ -98,7 +98,25 @@ namespace Vlingo.Actors
             {
                 foreach (var ctor in definition.Type!.GetConstructors())
                 {
-                    if (ctor.GetParameters().Length != definitionParameterCount)
+                    var expectedConstructorParameters = definition.InternalParameters().ToList();
+                    var actualParametersInfosOfConstructor = ctor.GetParameters();
+                    if (actualParametersInfosOfConstructor.Length != definitionParameterCount)
+                    {
+                        continue;
+                    }
+
+                    var differentParameterType = false;
+                    for (var i = 0; i < actualParametersInfosOfConstructor.Length; i++)
+                    {
+                        if (actualParametersInfosOfConstructor[i].ParameterType != expectedConstructorParameters[i].GetType()
+                            && !actualParametersInfosOfConstructor[i].ParameterType.IsAssignableFrom(expectedConstructorParameters[i].GetType()))
+                        {
+                            differentParameterType = true;
+                            break;
+                        }
+                    }
+                    
+                    if (differentParameterType)
                         continue;
 
                     actor = Start(ctor, address, definition, logger);
@@ -137,8 +155,7 @@ namespace Vlingo.Actors
                     {
                         args = definition.InternalParameters().ToArray();
                     }
-
-
+                    
                     actor = (Actor)ctor.Invoke(definition.InternalParameters().ToArray());
                     actor.LifeCycle.SendStart(actor);
                     return actor;
