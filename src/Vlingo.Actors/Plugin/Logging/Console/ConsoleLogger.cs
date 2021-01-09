@@ -8,7 +8,6 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Vlingo.Actors.Logging;
 
 namespace Vlingo.Actors.Plugin.Logging.Console
 {

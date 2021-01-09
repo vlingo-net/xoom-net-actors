@@ -6,7 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Actors.Logging;
+using Vlingo.Actors.Plugin.Logging;
 using Vlingo.Actors.Plugin.Logging.Console;
 using Vlingo.Actors.Plugin.Logging.NoOp;
 

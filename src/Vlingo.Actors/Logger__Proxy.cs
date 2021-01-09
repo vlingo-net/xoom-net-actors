@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Actors.Plugin.Logging;
 
 namespace Vlingo.Actors
 {
@@ -381,7 +382,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Trace(Logging.LogEvent logEvent)
+        public void Trace(LogEvent logEvent)
         {
             if (!_actor.IsStopped)
             {
@@ -402,7 +403,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Debug(Logging.LogEvent logEvent)
+        public void Debug(LogEvent logEvent)
         {
             if (!_actor.IsStopped)
             {
@@ -423,7 +424,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Info(Logging.LogEvent logEvent)
+        public void Info(LogEvent logEvent)
         {
             if (!_actor.IsStopped)
             {
@@ -444,7 +445,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Warn(Logging.LogEvent logEvent)
+        public void Warn(LogEvent logEvent)
         {
             if (!_actor.IsStopped)
             {
@@ -465,7 +466,7 @@ namespace Vlingo.Actors
             }
         }
 
-        public void Error(Logging.LogEvent logEvent)
+        public void Error(LogEvent logEvent)
         {
             if (!_actor.IsStopped)
             {
