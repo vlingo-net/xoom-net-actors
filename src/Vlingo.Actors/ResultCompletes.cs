@@ -127,6 +127,13 @@ namespace Vlingo.Actors
             return (ICompletes<TNewResult>)_completes;
         }
 
+        public ICompletes<T> AndThen(Func<T, T> function)
+        {
+            _completes.AndThen(function);
+            SetOutcome();
+            return _completes;
+        }
+
         public ICompletes<T> AndThenConsume(TimeSpan timeout, T failedOutcomeValue, Action<T> consumer)
         {
             _completes = Completes().AndThenConsume(timeout, failedOutcomeValue, consumer);
