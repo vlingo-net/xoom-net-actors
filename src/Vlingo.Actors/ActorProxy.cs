@@ -43,8 +43,9 @@ namespace Vlingo.Actors
                 {
                     newProxy = TryCreate(actor, mailbox, protocol, proxyClassnameForLookup);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    actor.Logger.Error($"Proxy creation failed because of '{e.Message}' but still trying", e);
                     newProxy = TryGenerateCreate(protocol, actor, mailbox, proxyClassnameForGeneration, proxyClassnameForLookup);
                 }
 
@@ -90,8 +91,9 @@ namespace Vlingo.Actors
                 var generator = ProxyGenerator.ForMain(true, actor.Logger);
                 return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName, lookupTypeName);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                actor.Logger.Error($"Trying generate proxy but it failed because of '{e.Message}' but still trying", e);
                 try
                 {
                     var generator = ProxyGenerator.ForTest(true, actor.Logger);
