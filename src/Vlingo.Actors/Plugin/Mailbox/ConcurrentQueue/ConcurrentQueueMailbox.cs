@@ -41,6 +41,7 @@ namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
             {
                 // do nothing
             }
+            _dispatcher.Close();
         }
 
         public bool IsClosed => _dispatcher.IsClosed;

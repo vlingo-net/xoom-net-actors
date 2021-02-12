@@ -41,13 +41,13 @@ namespace Vlingo.Actors
         public virtual Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
         
         /// <inheritdoc cref="IRelocatable"/>
-        public void StateSnapshot<S>(S stateSnapshot)
+        public void StateSnapshot<TS>(TS stateSnapshot)
         {
             // no-op
         }
 
         /// <inheritdoc cref="IRelocatable"/>
-        public S StateSnapshot<S>() => default!; // no-op
+        public TS StateSnapshot<TS>() => default!; // no-op
 
         /// <summary>
         /// The default implementation of <c>Start()</c>, which is a no-op. Override if needed.
@@ -84,7 +84,7 @@ namespace Vlingo.Actors
         /// <summary>
         /// Received from the surrounding <see cref="TestActor{T}"/> to indicate
         /// that it is in use, enabling any special test initialization as
-        /// eded. This is received (1) with a <code>TestContext</code> when the
+        /// ended. This is received (1) with a <code>TestContext</code> when the
         /// <code>TestActor</code> is first constructed, and (2) with <code>null</code>
         /// before each <code>TestMailbox</code> delivery.
         /// </summary>
@@ -157,12 +157,12 @@ namespace Vlingo.Actors
         /// for the <paramref name="eventualOutcome"/> to be set in my <c>CompletesEventually()</c>.
         /// </summary>
         /// <param name="eventualOutcome">The <see cref="ICompletes"/> the provides an eventual outcome</param>
-        /// <typeparam name="R">The return type of <see cref="ICompletes"/></typeparam>
-        /// <returns><see cref="ICompletes"/> of type <typeparamref name="R"/></returns>
-        protected internal ICompletes<R> AnswerFrom<R>(ICompletes<R> eventualOutcome)
+        /// <typeparam name="TR">The return type of <see cref="ICompletes"/></typeparam>
+        /// <returns><see cref="ICompletes"/> of type <typeparamref name="TR"/></returns>
+        protected internal ICompletes<TR> AnswerFrom<TR>(ICompletes<TR> eventualOutcome)
         {
             eventualOutcome.AndThenConsume(value => CompletesEventually().With(value));
-            return (ICompletes<R>)Completes();
+            return (ICompletes<TR>)Completes();
         }
 
         /// <summary>
