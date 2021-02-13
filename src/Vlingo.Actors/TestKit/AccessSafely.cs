@@ -205,13 +205,13 @@ namespace Vlingo.Actors.TestKit
         /// Answer the value associated with <paramref name="name"/>.
         /// </summary>
         /// <typeparam name="T">The type of the parameter to the function.</typeparam>
-        /// <typeparam name="R">The type of the return value associated with the name.</typeparam>
+        /// <typeparam name="TR">The type of the return value associated with the name.</typeparam>
         /// <param name="name">The name of the value to answer.</param>
         /// <param name="parameter">The <typeparamref name="T"/> typed function parameter.</param>
         /// <returns></returns>
-        public virtual R ReadFrom<T, R>(string name, T parameter)
+        public virtual TR ReadFrom<T, TR>(string name, T parameter)
         {
-            var function = GetRequiredFunction<T, R>(name);
+            var function = GetRequiredFunction<T, TR>(name);
 
             until.Completes();
 
