@@ -244,7 +244,8 @@ namespace Vlingo.Actors.Tests
         }
 
         [Fact]
-        public void TestSingleThreadLookupOrStartFindsActorPreviouslyStartedWithActorFor() {
+        public void TestSingleThreadLookupOrStartFindsActorPreviouslyStartedWithActorFor()
+        {
             var address = World.AddressFactory.Unique();
             var definition = Definition.Has(() => new ParentInterfaceActor());
             World.Stage.ActorFor<INoProtocol>(definition, address);
