@@ -399,12 +399,12 @@ namespace Vlingo.Actors
         /// <summary>
         /// Answers the <typeparamref name="TDependency"/> instance of the <paramref name="name"/> named dependency.
         /// </summary>
-        /// <typeparam name="TDependency">The dependecy type.</typeparam>
+        /// <typeparam name="TDependency">The dependency type.</typeparam>
         /// <param name="name">The <c>string</c> name of dynamic dependency.</param>
         /// <returns></returns>
         public TDependency ResolveDynamic<TDependency>(string name)
         {
-            if(_dynamicDependencies.TryGetValue(name, out object? value))
+            if(_dynamicDependencies.TryGetValue(name, out var value))
             {
                 return (TDependency) value;
             }
