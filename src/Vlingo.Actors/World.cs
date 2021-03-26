@@ -390,11 +390,18 @@ namespace Vlingo.Actors
         }
 
         /// <summary>
-        /// Registers the dynamic dependencies by <paramref name="name"/>.
+        /// Registers the dynamic <paramref name="value"/> with the <paramref name="name"/> key.
+        /// The <paramref name="value"/> cannot be replaced by a subsequent registration using the same <paramref name="name"/>.
         /// </summary>
         /// <param name="name">The <c>string</c> name of the dynamic dependency.</param>
-        /// <param name="dep">The dependency <c>object</c> to register.</param>
-        public void RegisterDynamic(string name, object dep) => _dynamicDependencies[name] = dep;
+        /// <param name="value">The dependency <c>object</c> to register.</param>
+        public void RegisterDynamic(string name, object value)
+        {
+            if (!_dynamicDependencies.ContainsKey(name))
+            {
+                _dynamicDependencies[name] = value;
+            }
+        }
 
         /// <summary>
         /// Answers the <typeparamref name="TDependency"/> instance of the <paramref name="name"/> named dependency.
