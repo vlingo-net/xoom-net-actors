@@ -1,12 +1,11 @@
 using System;
 using Vlingo.Actors;
-using Vlingo.Xoom.Common;
 
-namespace Vlingo.Common
+namespace Vlingo.Xoom.Common
 {
     public class Scheduled__Proxy<T> : IScheduled<T>
     {
-        private const string IntervalSignalRepresentation1 = "IntervalSignal(Vlingo.Common.IScheduled<T>, T)";
+        private const string IntervalSignalRepresentation1 = "IntervalSignal(Vlingo.Xoom.Common.IScheduled<T>, T)";
 
         private readonly Actor _actor;
         private readonly IMailbox _mailbox;

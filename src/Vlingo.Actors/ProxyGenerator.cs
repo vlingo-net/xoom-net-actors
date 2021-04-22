@@ -150,7 +150,7 @@ namespace Vlingo.Actors
             namespaces.Add("System.Collections.Generic");
             namespaces.Add("System.Threading.Tasks");
             namespaces.Add(typeof(Actor).Namespace!);
-            namespaces.Add(typeof(AtomicBoolean).Namespace!); // Vlingo.Common
+            namespaces.Add(typeof(AtomicBoolean).Namespace!); // Vlingo.Xoom.Common
 
             return string.Join("\n", namespaces.Select(x => $"using {x};"));
             

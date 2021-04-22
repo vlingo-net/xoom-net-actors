@@ -7,7 +7,7 @@
 
 using System;
 using Newtonsoft.Json;
-using Vlingo.Common.Serialization;
+using Vlingo.Xoom.Common.Serialization;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
