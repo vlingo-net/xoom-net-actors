@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 
@@ -20,17 +20,17 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
     {
         private const int Total = 10_000;
 
-        private readonly IDispatcher dispatcher;
+        private readonly IDispatcher _dispatcher;
 
         public ExecutorDispatcherTest()
         {
-            dispatcher = new ExecutorDispatcher(1, 1f);
+            _dispatcher = new ExecutorDispatcher(1, 1f);
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            dispatcher.Close();
+            _dispatcher.Close();
         }
 
         [Fact]
@@ -46,15 +46,15 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
                 var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
                 mailbox.Send(message);
-                dispatcher.Execute(mailbox);
+                _dispatcher.Execute(mailbox);
             }
 
-            dispatcher.Close();
+            _dispatcher.Close();
 
             Action<ICountTaker> consumer2 = consumerActor => consumerActor.Take(10);
             var message2 = new LocalMessage<ICountTaker>(actor, consumer2, "Take(int)");
             mailbox.Send(message2);
-            dispatcher.Execute(mailbox);
+            _dispatcher.Execute(mailbox);
 
             var counts = testResults.GetCounts();
             Assert.Equal(3, counts.Count);
@@ -77,7 +77,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
                 var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
                 mailbox.Send(message);
-                dispatcher.Execute(mailbox);
+                _dispatcher.Execute(mailbox);
             }
 
             List<int> counts = testResults.GetCounts();
@@ -91,21 +91,20 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         [Fact]
         public void TestRequiresExecutionNotification()
         {
-            Assert.False(dispatcher.RequiresExecutionNotification);
+            Assert.False(_dispatcher.RequiresExecutionNotification);
         }
-
 
         private class TestMailbox : IMailbox
         {
-            private readonly TestResults testResults;
-            private readonly ILogger logger;
-            private readonly ConcurrentQueue<IMessage> queue;
+            private readonly TestResults _testResults;
+            private readonly ILogger _logger;
+            private readonly ConcurrentQueue<IMessage> _queue;
 
             public TestMailbox(TestResults testResults, ILogger logger)
             {
-                this.testResults = testResults;
-                this.logger = logger;
-                queue = new ConcurrentQueue<IMessage>();
+                _testResults = testResults;
+                _logger = logger;
+                _queue = new ConcurrentQueue<IMessage>();
             }
             
             public TaskScheduler TaskScheduler { get; }
@@ -128,7 +127,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public IMessage Receive()
             {
-                if (queue.TryDequeue(out var message))
+                if (_queue.TryDequeue(out var message))
                 {
                     return message;
                 }
@@ -139,22 +138,22 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             public void Run()
             {
                 var message = Receive();
-                if (testResults.shouldLog)
+                if (_testResults.ShouldLog)
                 {
-                    logger.Debug($"TestMailBox: Run: received: {message}");
+                    _logger.Debug($"TestMailBox: Run: received: {message}");
                 }
 
                 if (message != null)
                 {
                     message.Deliver();
-                    if (testResults.shouldLog)
+                    if (_testResults.ShouldLog)
                     {
-                        logger.Debug($"TestMailBox: Run: adding: {testResults.GetHighest()}");
+                        _logger.Debug($"TestMailBox: Run: adding: {_testResults.GetHighest()}");
                     }
                 }
             }
 
-            public void Send(IMessage message) => queue.Enqueue(message);
+            public void Send(IMessage message) => _queue.Enqueue(message);
 
             public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
                 => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
@@ -165,31 +164,31 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
         private class CountTakerActor : Actor, ICountTaker
         {
-            private readonly TestResults testResults;
-            private readonly ILogger logger;
+            private readonly TestResults _testResults;
+            private readonly ILogger _logger;
 
             public CountTakerActor(TestResults testResults, ILogger logger)
             {
-                this.testResults = testResults;
-                this.logger = logger;
+                _testResults = testResults;
+                _logger = logger;
             }
 
-            public void Take(int count) => testResults.Take(count, logger);
+            public void Take(int count) => _testResults.Take(count, _logger);
         }
 
         private class TestResults
         {
-            private readonly AccessSafely safely;
-            internal readonly bool shouldLog;
+            private readonly AccessSafely _safely;
+            internal readonly bool ShouldLog;
 
             public TestResults(int happenings, bool shouldLog)
             {
-                this.shouldLog = shouldLog;
+                ShouldLog = shouldLog;
 
                 var counts = new List<int>();
                 var highest = new AtomicInteger(0);
 
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(happenings)
                     .WritingWith<int, ILogger>("results", (count, logger) =>
                     {
@@ -213,11 +212,11 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                     .ReadingWith("highest", highest.Get);
             }
 
-            public void Take(int count, ILogger logger) => safely.WriteUsing("results", count, logger);
+            public void Take(int count, ILogger logger) => _safely.WriteUsing("results", count, logger);
 
-            public List<int> GetCounts() => safely.ReadFrom<List<int>>("results");
+            public List<int> GetCounts() => _safely.ReadFrom<List<int>>("results");
 
-            public int GetHighest() => safely.ReadFrom<int>("highest");
+            public int GetHighest() => _safely.ReadFrom<int>("highest");
         }
     }
 }

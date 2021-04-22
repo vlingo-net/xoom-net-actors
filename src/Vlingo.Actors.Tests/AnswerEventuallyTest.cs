@@ -7,15 +7,15 @@
 
 using System;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
 {
     public class AnswerEventuallyTest : IDisposable
     {
-        private AtomicInteger _value = new AtomicInteger(0);
-        private IAnswerGiver _answerGiver;
+        private readonly AtomicInteger _value = new AtomicInteger(0);
+        private readonly IAnswerGiver _answerGiver;
         private readonly World _world;
         
         [Fact]

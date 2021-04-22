@@ -12,7 +12,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors
 {

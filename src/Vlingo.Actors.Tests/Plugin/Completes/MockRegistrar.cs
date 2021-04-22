@@ -6,20 +6,19 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Common;
 
 namespace Vlingo.Actors.Tests.Plugin.Completes
 {
     public class MockRegistrar : IRegistrar
     {
-        public int registerCount;
+        public int RegisterCount;
 
         public World World => null;
 
         public void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider)
         {
             completesEventuallyProvider.InitializeUsing(null);
-            ++registerCount;
+            ++RegisterCount;
         }
 
         public void Register(string name, bool isDefault, ILoggerProvider loggerProvider)

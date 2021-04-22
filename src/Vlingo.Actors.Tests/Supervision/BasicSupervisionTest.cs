@@ -7,7 +7,7 @@
 
 using System;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Supervision

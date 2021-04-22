@@ -8,19 +8,19 @@
 using System;
 using System.Threading;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
     public class StopAllSupervisorActor : Actor, ISupervisor
     {
         public static readonly ThreadLocal<StopAllSupervisorActor> Instance = new ThreadLocal<StopAllSupervisorActor>();
-        private readonly StopAllSupervisorResult result;
+        private readonly StopAllSupervisorResult _result;
 
         public StopAllSupervisorActor(StopAllSupervisorResult result)
         {
             Instance.Value = this;
-            this.result = result;
+            _result = result;
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
@@ -30,7 +30,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.Stop(SupervisionStrategy.Scope);
-            result.Access.WriteUsing("informedCount", 1);
+            _result.Access.WriteUsing("informedCount", 1);
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy

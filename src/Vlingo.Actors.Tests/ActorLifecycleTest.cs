@@ -6,7 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -37,47 +37,47 @@ namespace Vlingo.Actors.Tests
 
         private class TestResults
         {
-            private readonly AtomicBoolean receivedBeforeStart = new AtomicBoolean(false);
-            private readonly AtomicBoolean receivedAfterStop = new AtomicBoolean(false);
-            internal readonly AccessSafely received;
+            private readonly AtomicBoolean _receivedBeforeStart = new AtomicBoolean(false);
+            private readonly AtomicBoolean _receivedAfterStop = new AtomicBoolean(false);
+            internal readonly AccessSafely Received;
 
             private TestResults(AccessSafely received)
             {
-                this.received = received;
+                this.Received = received;
             }
 
             public static TestResults AfterCompleting(int times)
             {
                 var testResults = new TestResults(AccessSafely.AfterCompleting(times));
-                testResults.received.WritingWith<bool>("receivedBeforeStart", testResults.receivedBeforeStart.Set);
-                testResults.received.ReadingWith("receivedBeforeStart", testResults.receivedBeforeStart.Get);
-                testResults.received.WritingWith<bool>("receivedAfterStop", testResults.receivedAfterStop.Set);
-                testResults.received.ReadingWith("receivedAfterStop", testResults.receivedAfterStop.Get);
+                testResults.Received.WritingWith<bool>("receivedBeforeStart", testResults._receivedBeforeStart.Set);
+                testResults.Received.ReadingWith("receivedBeforeStart", testResults._receivedBeforeStart.Get);
+                testResults.Received.WritingWith<bool>("receivedAfterStop", testResults._receivedAfterStop.Set);
+                testResults.Received.ReadingWith("receivedAfterStop", testResults._receivedAfterStop.Get);
                 return testResults;
             }
 
-            public bool GetReceivedBeforeStart() => received.ReadFrom<bool>("receivedBeforeStart");
+            public bool GetReceivedBeforeStart() => Received.ReadFrom<bool>("receivedBeforeStart");
 
-            public bool GetReceivedAfterStop() => received.ReadFrom<bool>("receivedAfterStop");
+            public bool GetReceivedAfterStop() => Received.ReadFrom<bool>("receivedAfterStop");
         }
 
         private class LifecycleActor : Actor, IStoppable
         {
-            private readonly TestResults testResults;
+            private readonly TestResults _testResults;
 
             public LifecycleActor(TestResults testResults)
             {
-                this.testResults = testResults;
+                this._testResults = testResults;
             }
 
             protected internal override void BeforeStart()
             {
-                testResults.received.WriteUsing("receivedBeforeStart", true);
+                _testResults.Received.WriteUsing("receivedBeforeStart", true);
             }
 
             protected internal override void AfterStop()
             {
-                testResults.received.WriteUsing("receivedAfterStop", true);
+                _testResults.Received.WriteUsing("receivedAfterStop", true);
             }
         }
     }

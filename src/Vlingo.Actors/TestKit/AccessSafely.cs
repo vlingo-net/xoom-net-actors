@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.TestKit
 {
@@ -19,34 +19,34 @@ namespace Vlingo.Actors.TestKit
     /// </summary>
     public class AccessSafely
     {
-        private readonly AtomicInteger totalWrites;
-        private readonly object @lock;
-        private readonly IDictionary<string, object> biConsumers;
-        private readonly IDictionary<string, object> consumers;
-        private readonly IDictionary<string, object> functions;
-        private readonly IDictionary<string, object> suppliers;
-        private readonly TestUntil until;
+        private readonly AtomicInteger _totalWrites;
+        private readonly object _lock;
+        private readonly IDictionary<string, object> _biConsumers;
+        private readonly IDictionary<string, object> _consumers;
+        private readonly IDictionary<string, object> _functions;
+        private readonly IDictionary<string, object> _suppliers;
+        private readonly TestUntil _until;
 
         private AccessSafely(AccessSafely existing, int happenings)
         {
-            totalWrites = existing.totalWrites;
-            until = TestUntil.Happenings(happenings);
-            biConsumers = existing.biConsumers;
-            consumers = existing.consumers;
-            functions = existing.functions;
-            suppliers = existing.suppliers;
-            @lock = new object();
+            _totalWrites = existing._totalWrites;
+            _until = TestUntil.Happenings(happenings);
+            _biConsumers = existing._biConsumers;
+            _consumers = existing._consumers;
+            _functions = existing._functions;
+            _suppliers = existing._suppliers;
+            _lock = new object();
         }
 
         private AccessSafely(int happenings)
         {
-            totalWrites = new AtomicInteger(0);
-            until = TestUntil.Happenings(happenings);
-            biConsumers = new Dictionary<string, object>();
-            consumers = new Dictionary<string, object>();
-            functions = new Dictionary<string, object>();
-            suppliers = new Dictionary<string, object>();
-            @lock = new object();
+            _totalWrites = new AtomicInteger(0);
+            _until = TestUntil.Happenings(happenings);
+            _biConsumers = new Dictionary<string, object>();
+            _consumers = new Dictionary<string, object>();
+            _functions = new Dictionary<string, object>();
+            _suppliers = new Dictionary<string, object>();
+            _lock = new object();
         }
 
         private AccessSafely() : this(0)
@@ -55,7 +55,7 @@ namespace Vlingo.Actors.TestKit
 
         private Func<T, R> GetRequiredFunction<T, R>(string name)
         {
-            if (functions.TryGetValue(name, out var obj))
+            if (_functions.TryGetValue(name, out var obj))
             {
                 if (obj != null)
                 {
@@ -68,7 +68,7 @@ namespace Vlingo.Actors.TestKit
 
         public Func<T> GetRequiredSupplier<T>(string name)
         {
-            if (suppliers.TryGetValue(name, out var obj))
+            if (_suppliers.TryGetValue(name, out var obj))
             {
                 if (obj != null)
                 {
@@ -114,7 +114,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely ReadingWith<T, R>(string name, Func<T, R> function)
         {
-            functions[name] = function;
+            _functions[name] = function;
             return this;
         }
 
@@ -127,7 +127,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely ReadingWith<T>(string name, Func<T> supplier)
         {
-            suppliers[name] = supplier;
+            _suppliers[name] = supplier;
             return this;
         }
 
@@ -140,7 +140,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely ReadingWith<T>(string name, Action<T> supplier)
         {
-            suppliers[name] = supplier;
+            _suppliers[name] = supplier;
             return this;
         }
         
@@ -152,7 +152,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely WritingWith(string name, Action consumer)
         {
-            consumers[name] = consumer;
+            _consumers[name] = consumer;
             return this;
         }
 
@@ -165,7 +165,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely WritingWith<T>(string name, Action<T> consumer)
         {
-            consumers[name] = consumer;
+            _consumers[name] = consumer;
             return this;
         }
 
@@ -179,7 +179,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual AccessSafely WritingWith<T1, T2>(string name, Action<T1, T2> consumer)
         {
-            biConsumers[name] = consumer;
+            _biConsumers[name] = consumer;
             return this;
         }
 
@@ -193,9 +193,9 @@ namespace Vlingo.Actors.TestKit
         {
             var supplier = GetRequiredSupplier<T>(name);
 
-            until.Completes();
+            _until.Completes();
 
-            lock (@lock)
+            lock (_lock)
             {
                 return supplier.Invoke();
             }
@@ -205,17 +205,17 @@ namespace Vlingo.Actors.TestKit
         /// Answer the value associated with <paramref name="name"/>.
         /// </summary>
         /// <typeparam name="T">The type of the parameter to the function.</typeparam>
-        /// <typeparam name="TR">The type of the return value associated with the name.</typeparam>
+        /// <typeparam name="Tr">The type of the return value associated with the name.</typeparam>
         /// <param name="name">The name of the value to answer.</param>
         /// <param name="parameter">The <typeparamref name="T"/> typed function parameter.</param>
         /// <returns></returns>
-        public virtual TR ReadFrom<T, TR>(string name, T parameter)
+        public virtual Tr ReadFrom<T, Tr>(string name, T parameter)
         {
-            var function = GetRequiredFunction<T, TR>(name);
+            var function = GetRequiredFunction<T, Tr>(name);
 
-            until.Completes();
+            _until.Completes();
 
-            lock (@lock)
+            lock (_lock)
             {
                 return function.Invoke(parameter);
             }
@@ -250,7 +250,7 @@ namespace Vlingo.Actors.TestKit
             {
                 for (long count = 0; count < retries; ++count)
                 {
-                    lock (@lock)
+                    lock (_lock)
                     {
                         value = supplier.Invoke();
                         if (Equals(expected, value))
@@ -280,7 +280,7 @@ namespace Vlingo.Actors.TestKit
         {
             var supplier = GetRequiredSupplier<T>(name);
 
-            lock (@lock)
+            lock (_lock)
             {
                 return supplier.Invoke();
             }
@@ -298,7 +298,7 @@ namespace Vlingo.Actors.TestKit
         {
             var function = GetRequiredFunction<T, R>(name);
 
-            lock (@lock)
+            lock (_lock)
             {
                 return function.Invoke(parameter);
             }
@@ -312,24 +312,24 @@ namespace Vlingo.Actors.TestKit
         /// <param name="value">The <typeparamref name="T"/> typed value to write.</param>
         public virtual void WriteUsing<T>(string name, T value)
         {
-            if (!consumers.ContainsKey(name))
+            if (!_consumers.ContainsKey(name))
             {
                 throw new ArgumentOutOfRangeException(nameof(name), $"Unknown function: {name}");
             }
 
-            lock (@lock)
+            lock (_lock)
             {
-                totalWrites.IncrementAndGet();
-                if (consumers[name] is Action<T> actionT)
+                _totalWrites.IncrementAndGet();
+                if (_consumers[name] is Action<T> actionT)
                 {
                     actionT!.Invoke(value);
                 }
                 else
                 {
-                    (consumers[name] as Action)!();   
+                    (_consumers[name] as Action)!();   
                 }
 
-                until.Happened();
+                _until.Happened();
             }
         }
 
@@ -343,16 +343,16 @@ namespace Vlingo.Actors.TestKit
         /// <param name="value2">The <typeparamref name="T2"/> typed value to write.</param>
         public virtual void WriteUsing<T1, T2>(string name, T1 value1, T2 value2)
         {
-            if (!biConsumers.ContainsKey(name))
+            if (!_biConsumers.ContainsKey(name))
             {
                 throw new ArgumentOutOfRangeException(nameof(name), $"Unknown function: {name}");
             }
 
-            lock (@lock)
+            lock (_lock)
             {
-                totalWrites.IncrementAndGet();
-                (biConsumers[name] as Action<T1, T2>)!.Invoke(value1, value2);
-                until.Happened();
+                _totalWrites.IncrementAndGet();
+                (_biConsumers[name] as Action<T1, T2>)!.Invoke(value1, value2);
+                _until.Happened();
             }
         }
 
@@ -363,9 +363,9 @@ namespace Vlingo.Actors.TestKit
         {
             get
             {
-                lock (@lock)
+                lock (_lock)
                 {
-                    return totalWrites.Get();
+                    return _totalWrites.Get();
                 }
             }
         }
@@ -383,9 +383,9 @@ namespace Vlingo.Actors.TestKit
             {
                 for (long count = 0; count < retries; ++count)
                 {
-                    lock (@lock)
+                    lock (_lock)
                     {
-                        var total = totalWrites.Get();
+                        var total = _totalWrites.Get();
                         if (total > lesser)
                         {
                             return total;

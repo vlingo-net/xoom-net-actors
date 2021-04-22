@@ -11,7 +11,7 @@ using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 using Xunit.Abstractions;
 

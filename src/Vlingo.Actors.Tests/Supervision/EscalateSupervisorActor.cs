@@ -7,18 +7,15 @@
 
 using System;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.Tests.Supervision
 {
     public class EscalateSupervisorActor : Actor, ISupervisor
     {
-        private readonly EscalateSupervisorTestResults testResults;
+        private readonly EscalateSupervisorTestResults _testResults;
 
-        public EscalateSupervisorActor(EscalateSupervisorTestResults testResults)
-        {
-            this.testResults = testResults;
-        }
+        public EscalateSupervisorActor(EscalateSupervisorTestResults testResults) => _testResults = testResults;
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
 
@@ -27,7 +24,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.Escalate();
-            testResults.Access.WriteUsing("informedCount", 1);
+            _testResults.Access.WriteUsing("informedCount", 1);
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy

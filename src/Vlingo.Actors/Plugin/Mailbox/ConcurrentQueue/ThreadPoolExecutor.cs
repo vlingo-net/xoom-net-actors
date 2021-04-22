@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
 {

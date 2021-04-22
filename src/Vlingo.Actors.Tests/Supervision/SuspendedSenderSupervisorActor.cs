@@ -7,7 +7,7 @@
 
 using System;
 using System.Threading;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests.Supervision
@@ -15,14 +15,14 @@ namespace Vlingo.Actors.Tests.Supervision
     public class SuspendedSenderSupervisorActor : Actor, ISupervisor, IFailureControlSender
     {
         public static readonly ThreadLocal<SuspendedSenderSupervisorActor> Instance = new ThreadLocal<SuspendedSenderSupervisorActor>();
-        private readonly SuspendedSenderSupervisorResults results;
-        private IFailureControl failureControl;
-        private int times;
+        private readonly SuspendedSenderSupervisorResults _results;
+        private IFailureControl _failureControl;
+        private int _times;
 
         public SuspendedSenderSupervisorActor(SuspendedSenderSupervisorResults results)
         {
             Instance.Value = this;
-            this.results = results;
+            _results = results;
         }
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
@@ -32,18 +32,18 @@ namespace Vlingo.Actors.Tests.Supervision
 
         public void Inform(Exception error, ISupervised supervised)
         {
-            for (var idx = 1; idx <= times; ++idx)
+            for (var idx = 1; idx <= _times; ++idx)
             {
-                failureControl.AfterFailureCount(idx);
+                _failureControl.AfterFailureCount(idx);
             }
             supervised.Resume();
-            results.Access.WriteUsing("informedCount", 1);
+            _results.Access.WriteUsing("informedCount", 1);
         }
 
         public void SendUsing(IFailureControl failureControl, int times)
         {
-            this.failureControl = failureControl;
-            this.times = times;
+            _failureControl = failureControl;
+            _times = times;
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy
@@ -58,7 +58,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public class SuspendedSenderSupervisorResults
         {
             public AccessSafely Access { get; private set; }
-            public AtomicInteger informedCount = new AtomicInteger(0);
+            public AtomicInteger InformedCount = new AtomicInteger(0);
 
             public SuspendedSenderSupervisorResults()
             {
@@ -69,8 +69,8 @@ namespace Vlingo.Actors.Tests.Supervision
             {
                 Access = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("informedCount", (int increment) => informedCount.Set(informedCount.Get() + increment))
-                    .ReadingWith("informedCount", () => informedCount.Get());
+                    .WritingWith("informedCount", (int increment) => InformedCount.Set(InformedCount.Get() + increment))
+                    .ReadingWith("informedCount", () => InformedCount.Get());
                 return Access;
             }
         }

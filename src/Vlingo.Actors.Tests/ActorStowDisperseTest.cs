@@ -7,7 +7,7 @@
 
 using System;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -30,8 +30,8 @@ namespace Vlingo.Actors.Tests
 
             protocols._2.Override();
 
-            Assert.Equal(1, results.overrideAccess.ReadFrom<int>("overrideReceivedCount"));
-            Assert.Equal(10, results.stowedAccess.ReadFrom<int>("stowReceivedCount"));
+            Assert.Equal(1, results.OverrideAccess.ReadFrom<int>("overrideReceivedCount"));
+            Assert.Equal(10, results.StowedAccess.ReadFrom<int>("stowReceivedCount"));
         }
 
         [Fact]
@@ -50,59 +50,59 @@ namespace Vlingo.Actors.Tests
 
             protocols._2.Crash();
 
-            Assert.Equal(1, results.overrideAccess.ReadFrom<int>("overrideReceivedCount"));
-            Assert.Equal(10, results.stowedAccess.ReadFrom<int>("stowReceivedCount"));
+            Assert.Equal(1, results.OverrideAccess.ReadFrom<int>("overrideReceivedCount"));
+            Assert.Equal(10, results.StowedAccess.ReadFrom<int>("stowReceivedCount"));
         }
 
         private class Results
         {
-            public readonly AccessSafely overrideAccess;
-            public readonly AccessSafely stowedAccess;
-            public readonly AtomicInteger overrideReceivedCount;
-            public readonly AtomicInteger stowReceivedCount;
+            public readonly AccessSafely OverrideAccess;
+            public readonly AccessSafely StowedAccess;
+            public readonly AtomicInteger OverrideReceivedCount;
+            public readonly AtomicInteger StowReceivedCount;
 
             public Results(int overrideReceived, int stowReceived)
             {
-                overrideReceivedCount = new AtomicInteger(0);
-                stowReceivedCount = new AtomicInteger(0);
+                OverrideReceivedCount = new AtomicInteger(0);
+                StowReceivedCount = new AtomicInteger(0);
 
-                stowedAccess = AccessSafely
+                StowedAccess = AccessSafely
                     .AfterCompleting(stowReceived)
-                    .WritingWith("stowReceivedCount", (int increment) => stowReceivedCount.Set(stowReceivedCount.Get() + increment))
-                    .ReadingWith("stowReceivedCount", () => stowReceivedCount.Get());
+                    .WritingWith("stowReceivedCount", (int increment) => StowReceivedCount.Set(StowReceivedCount.Get() + increment))
+                    .ReadingWith("stowReceivedCount", () => StowReceivedCount.Get());
 
-                overrideAccess = AccessSafely
+                OverrideAccess = AccessSafely
                     .AfterCompleting(overrideReceived)
-                    .WritingWith("overrideReceivedCount", (int increment) => overrideReceivedCount.Set(overrideReceivedCount.Get() + increment))
-                    .ReadingWith("overrideReceivedCount", () => overrideReceivedCount.Get());
+                    .WritingWith("overrideReceivedCount", (int increment) => OverrideReceivedCount.Set(OverrideReceivedCount.Get() + increment))
+                    .ReadingWith("overrideReceivedCount", () => OverrideReceivedCount.Get());
             }
         }
 
         private class StowTestActor : Actor, IOverrideStowage, IStowThese
         {
-            private readonly Results results;
+            private readonly Results _results;
 
             public StowTestActor(Results results)
             {
-                this.results = results;
+                _results = results;
                 StowMessages(typeof(IOverrideStowage));
             }
 
             public void Crash()
             {
-                results.overrideAccess.WriteUsing("overrideReceivedCount", 1);
+                _results.OverrideAccess.WriteUsing("overrideReceivedCount", 1);
                 throw new ApplicationException("Intended failure");
             }
 
             public void Override()
             {
-                results.overrideAccess.WriteUsing("overrideReceivedCount", 1);
+                _results.OverrideAccess.WriteUsing("overrideReceivedCount", 1);
                 DisperseStowedMessages();
             }
 
             public void Stow()
             {
-                results.stowedAccess.WriteUsing("stowReceivedCount", 1);
+                _results.StowedAccess.WriteUsing("stowReceivedCount", 1);
             }
 
             protected internal override void BeforeResume(Exception reason)

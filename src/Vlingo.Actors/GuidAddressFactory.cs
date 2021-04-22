@@ -6,8 +6,8 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Common;
-using Vlingo.Common.Identity;
+using Vlingo.Xoom.Common;
+using Vlingo.Xoom.Common.Identity;
 using Vlingo.Xoom.UUID;
 
 namespace Vlingo.Actors
@@ -19,7 +19,7 @@ namespace Vlingo.Actors
         private readonly IIdentityGenerator _generator;
         private IdentityGeneratorType _type;
 
-        private AtomicLong _highId;
+        private readonly AtomicLong _highId;
         
         public GuidAddressFactory(IdentityGeneratorType type)
         {

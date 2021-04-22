@@ -12,8 +12,8 @@ using System.Linq.Expressions;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Logging;
 using Vlingo.Actors.Plugin.Mailbox;
-using Vlingo.Common;
-using Vlingo.Common.Compiler;
+using Vlingo.Xoom.Common;
+using Vlingo.Xoom.Common.Compiler;
 
 namespace Vlingo.Actors
 {

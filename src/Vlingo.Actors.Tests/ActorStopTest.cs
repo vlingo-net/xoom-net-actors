@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 
@@ -86,92 +86,92 @@ namespace Vlingo.Actors.Tests
 
         private class ChildCreatingStoppableActor : Actor, IChildCreatingStoppable
         {
-            private readonly TestResults results;
+            private readonly TestResults _results;
 
             public ChildCreatingStoppableActor(TestResults results)
             {
-                this.results = results;
+                this._results = results;
             }
 
             public void CreateChildren()
             {
                 var pre = Address.Name;
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.1"));
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.2"));
-                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(results), $"{pre}.3"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(_results), $"{pre}.1"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(_results), $"{pre}.2"));
+                ChildActorFor<IChildCreatingStoppable>(Definition.Has<ChildCreatingStoppableActor>(Definition.Parameters(_results), $"{pre}.3"));
             }
 
             protected internal override void BeforeStart()
             {
                 base.BeforeStart();
-                results.beforeStartCountAccess.WriteUsing("value", 1);
+                _results.BeforeStartCountAccess.WriteUsing("value", 1);
             }
 
             protected internal override void AfterStop()
             {
-                if (results.terminatingAccess.ReadFromNow<bool>("value"))
+                if (_results.TerminatingAccess.ReadFromNow<bool>("value"))
                 {
-                    results.terminatingStopCountAccess.WriteUsing("value", 1);
+                    _results.TerminatingStopCountAccess.WriteUsing("value", 1);
                 }
                 else
                 {
-                    results.stopCountAccess.WriteUsing("value", 1);
+                    _results.StopCountAccess.WriteUsing("value", 1);
                 }
             }
         }
 
         private class TestResults
         {
-            internal AccessSafely beforeStartCountAccess = AccessSafely.AfterCompleting(1);
-            internal AtomicInteger beforeStartCount = new AtomicInteger(0);
+            internal AccessSafely BeforeStartCountAccess = AccessSafely.AfterCompleting(1);
+            internal readonly AtomicInteger BeforeStartCount = new AtomicInteger(0);
 
-            internal AccessSafely stopCountAccess = AccessSafely.AfterCompleting(1);
-            internal AtomicInteger stopCount = new AtomicInteger(0);
+            internal AccessSafely StopCountAccess = AccessSafely.AfterCompleting(1);
+            internal readonly AtomicInteger StopCount = new AtomicInteger(0);
 
-            internal AccessSafely terminatingAccess = AccessSafely.AfterCompleting(1);
-            internal AtomicBoolean terminating = new AtomicBoolean(false);
+            internal AccessSafely TerminatingAccess = AccessSafely.AfterCompleting(1);
+            internal readonly AtomicBoolean Terminating = new AtomicBoolean(false);
 
-            internal AccessSafely terminatingStopCountAccess = AccessSafely.AfterCompleting(1);
-            internal AtomicInteger terminatingStopCount = new AtomicInteger(0);
+            internal AccessSafely TerminatingStopCountAccess = AccessSafely.AfterCompleting(1);
+            internal readonly AtomicInteger TerminatingStopCount = new AtomicInteger(0);
 
             public AccessSafely BeforeStartCountAccessCompletes(int times)
             {
-                beforeStartCountAccess = AccessSafely
+                BeforeStartCountAccess = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("value", (int value) => beforeStartCount.Set(beforeStartCount.Get() + value))
-                    .ReadingWith("value", () => beforeStartCount.Get());
+                    .WritingWith("value", (int value) => BeforeStartCount.Set(BeforeStartCount.Get() + value))
+                    .ReadingWith("value", () => BeforeStartCount.Get());
 
-                return beforeStartCountAccess;
+                return BeforeStartCountAccess;
             }
 
             public AccessSafely StopCountAccessCompletes(int times)
             {
-                stopCountAccess = AccessSafely
+                StopCountAccess = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("value", (int value) => stopCount.Set(stopCount.Get() + value))
-                    .ReadingWith("value", () => stopCount.Get());
+                    .WritingWith("value", (int value) => StopCount.Set(StopCount.Get() + value))
+                    .ReadingWith("value", () => StopCount.Get());
 
-                return stopCountAccess;
+                return StopCountAccess;
             }
 
             public AccessSafely TerminatingAccessCompletes(int times)
             {
-                terminatingAccess = AccessSafely
+                TerminatingAccess = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("value", (bool flag) => terminating.Set(flag))
-                    .ReadingWith("value", () => terminating.Get());
+                    .WritingWith("value", (bool flag) => Terminating.Set(flag))
+                    .ReadingWith("value", () => Terminating.Get());
 
-                return terminatingAccess;
+                return TerminatingAccess;
             }
 
             public AccessSafely TerminatingStopCountAccessCompletes(int times)
             {
-                terminatingStopCountAccess = AccessSafely
+                TerminatingStopCountAccess = AccessSafely
                     .AfterCompleting(times)
-                    .WritingWith("value", (int value) => terminatingStopCount.Set(terminatingStopCount.Get() + value))
-                    .ReadingWith("value", () => terminatingStopCount.Get());
+                    .WritingWith("value", (int value) => TerminatingStopCount.Set(TerminatingStopCount.Get() + value))
+                    .ReadingWith("value", () => TerminatingStopCount.Get());
 
-                return terminatingStopCountAccess;
+                return TerminatingStopCountAccess;
             }
         }
     }

@@ -9,7 +9,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors
 {

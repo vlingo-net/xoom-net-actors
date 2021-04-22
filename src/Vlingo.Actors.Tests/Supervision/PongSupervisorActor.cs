@@ -7,7 +7,7 @@
 
 using System;
 using System.Threading;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests.Supervision

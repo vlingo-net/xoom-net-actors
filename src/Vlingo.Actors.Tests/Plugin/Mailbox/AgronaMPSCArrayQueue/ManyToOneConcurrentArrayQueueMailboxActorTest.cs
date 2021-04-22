@@ -8,7 +8,7 @@
 using Vlingo.Actors.Plugin;
 using Vlingo.Actors.Plugin.Completes;
 using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 

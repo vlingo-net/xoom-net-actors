@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Vlingo.Actors;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Common
 {

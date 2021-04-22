@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests
@@ -117,27 +117,24 @@ namespace Vlingo.Actors.Tests
 
         private class TestConsumerWorker : Actor, IOneArgConsumerProtocol
         {
-            private readonly Results results;
+            private readonly Results _results;
 
-            public TestConsumerWorker(Results results)
-            {
-                this.results = results;
-            }
+            public TestConsumerWorker(Results results) => _results = results;
 
-            public void Remember(int number) => results.Access.WriteUsing("answers", number);
+            public void Remember(int number) => _results.Access.WriteUsing("answers", number);
         }
 
         private class Results
         {
-            private readonly int[] answers;
-            private int index;
+            private readonly int[] _answers;
+            private int _index;
 
             public AccessSafely Access { get; private set; }
 
             public Results(int totalAnswers)
             {
-                answers = new int[totalAnswers];
-                index = 0;
+                _answers = new int[totalAnswers];
+                _index = 0;
                 Access = AfterCompleting(totalAnswers);
             }
 
@@ -145,8 +142,8 @@ namespace Vlingo.Actors.Tests
             {
                 Access = AccessSafely
                     .AfterCompleting(steps)
-                    .WritingWith<int>("answers", answer => answers[index++] = answer)
-                    .ReadingWith<int, int>("answers", indx => answers[indx]);
+                    .WritingWith<int>("answers", answer => _answers[_index++] = answer)
+                    .ReadingWith<int, int>("answers", indx => _answers[indx]);
 
                 return Access;
             }

@@ -7,7 +7,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {

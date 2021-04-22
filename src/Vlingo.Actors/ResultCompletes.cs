@@ -7,8 +7,8 @@
 
 using System;
 using System.Threading.Tasks;
-using Vlingo.Common;
-using Vlingo.Common.Completion.Tasks;
+using Vlingo.Xoom.Common;
+using Vlingo.Xoom.Common.Completion.Tasks;
 
 namespace Vlingo.Actors
 {
@@ -45,7 +45,7 @@ namespace Vlingo.Actors
 
     internal class ResultCompletes<T> : ResultCompletes, ICompletes<T>
     {
-        private ICompletes<T> _completes = Common.Completes.Using<T>(new Scheduler());
+        private ICompletes<T> _completes = Xoom.Common.Completes.Using<T>(new Scheduler());
         
         public bool IsCompleted => Completes().IsCompleted;
 

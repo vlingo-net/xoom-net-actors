@@ -6,18 +6,15 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors
 {
     internal class DirectoryScannerActor : Actor, IDirectoryScanner
     {
-        private readonly Directory directory;
+        private readonly Directory _directory;
 
-        public DirectoryScannerActor(Directory directory)
-        {
-            this.directory = directory;
-        }
+        public DirectoryScannerActor(Directory directory) => _directory = directory;
 
         public ICompletes<T> ActorOf<T>(IAddress address)
             => Completes().With(InternalActorOf<T>(address));
@@ -31,7 +28,7 @@ namespace Vlingo.Actors
 
         private T InternalActorOf<T>(IAddress address)
         {
-            var actor = directory.ActorOf(address);
+            var actor = _directory.ActorOf(address);
             try
             {
                 if(actor != null)

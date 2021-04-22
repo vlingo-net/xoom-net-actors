@@ -8,7 +8,7 @@
 using System;
 using System.Threading;
 using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 

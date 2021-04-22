@@ -7,7 +7,7 @@
 
 using System;
 using System.Threading;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 
 namespace Vlingo.Actors.Tests.Supervision
@@ -16,24 +16,24 @@ namespace Vlingo.Actors.Tests.Supervision
     {
         public static ThreadLocal<PingActor> Instance = new ThreadLocal<PingActor>();
 
-        private readonly PingTestResults testResults;
+        private readonly PingTestResults _testResults;
 
         public PingActor(PingTestResults testResults)
         {
-            this.testResults = testResults;
+            _testResults = testResults;
             Instance.Value = this;
         }
 
         public void Ping()
         {
-            testResults.Access.WriteUsing("pingCount", 1);
+            _testResults.Access.WriteUsing("pingCount", 1);
             throw new ApplicationException("Intended Ping failure.");
         }
 
         public override void Stop()
         {
             base.Stop();
-            testResults.Access.WriteUsing("stopCount", 1);
+            _testResults.Access.WriteUsing("stopCount", 1);
         }
 
         public class PingTestResults

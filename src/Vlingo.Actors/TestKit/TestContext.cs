@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.TestKit
 {
@@ -18,7 +18,7 @@ namespace Vlingo.Actors.TestKit
         public TestContext(int times)
         {
             Access = AccessSafely.AfterCompleting(times);
-            reference = new AtomicReference<object>();
+            _reference = new AtomicReference<object>();
             SetUpWriteRead();
         }
 
@@ -43,7 +43,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual TestContext InitialReferenceValueOf<T>(T value)
         {
-            reference.Set(value);
+            _reference.Set(value);
             return this;
         }
 
@@ -51,7 +51,7 @@ namespace Vlingo.Actors.TestKit
         /// A reference to any object that may be of use to the test.
         /// Use ReferenceValue&lt;T&gt;() to cast the inner object to a specific type.
         /// </summary>
-        private readonly AtomicReference<object> reference;
+        private readonly AtomicReference<object> _reference;
 
         /// <summary>
         /// Track number of expected happenings. Use resetHappeningsTo(n)
@@ -71,7 +71,7 @@ namespace Vlingo.Actors.TestKit
         /// <returns></returns>
         public virtual T ReferenceValue<T>()
         {
-            var result = reference.Get();
+            var result = _reference.Get();
             if (result == null)
             {
                 return default!;
@@ -109,8 +109,8 @@ namespace Vlingo.Actors.TestKit
         private void SetUpWriteRead()
         {
             Access
-                .WritingWith<object>("reference", value => reference.Set(value))
-                .ReadingWith("reference", () => reference.Get());
+                .WritingWith<object>("reference", value => _reference.Set(value))
+                .ReadingWith("reference", () => _reference.Get());
         }
     }
 }

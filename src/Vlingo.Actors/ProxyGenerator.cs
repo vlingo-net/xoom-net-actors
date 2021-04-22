@@ -12,11 +12,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Vlingo.Common;
-using Vlingo.Common.Compiler;
+using Vlingo.Xoom.Common;
+using Vlingo.Xoom.Common.Compiler;
 
-using static Vlingo.Common.Compiler.DynaFile;
-using static Vlingo.Common.Compiler.DynaNaming;
+using static Vlingo.Xoom.Common.Compiler.DynaFile;
+using static Vlingo.Xoom.Common.Compiler.DynaNaming;
 
 namespace Vlingo.Actors
 {

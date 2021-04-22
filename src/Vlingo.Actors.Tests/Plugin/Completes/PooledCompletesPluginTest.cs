@@ -23,7 +23,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
             completes.With(7);
 
-            Assert.Equal(1, registrar.registerCount);
+            Assert.Equal(1, registrar.RegisterCount);
             Assert.Equal(1, plugin.completesEventuallyProvider.initializeUsing);
             Assert.Equal(1, plugin.completesEventuallyProvider.provideCompletesForCount);
             Assert.Equal(2, completesResults.WithCount.Get());

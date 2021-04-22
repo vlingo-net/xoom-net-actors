@@ -6,7 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Vlingo.Actors.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 
 namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
@@ -27,24 +27,21 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 
         public class OneBehaviorActor : Actor, IOneBehavior
         {
-            private readonly TestResults results;
+            private readonly TestResults _results;
 
-            public OneBehaviorActor(TestResults results)
-            {
-                this.results = results;
-            }
+            public OneBehaviorActor(TestResults results) => _results = results;
 
-            public void DoSomething() => results.Invoked();
+            public void DoSomething() => _results.Invoked();
         }
 
         public class TestResults
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
 
             public TestResults(int happenings)
             {
                 var times = new AtomicInteger(0);
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(happenings)
                     .WritingWith<int>("times", _ => times.IncrementAndGet())
                     .ReadingWith("times", times.Get);
@@ -52,10 +49,10 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 
             public int Times
             {
-                get => safely.ReadFrom<int>("times");
+                get => _safely.ReadFrom<int>("times");
             }
 
-            public void Invoked() => safely.WriteUsing("times", 1);
+            public void Invoked() => _safely.WriteUsing("times", 1);
         }
     }
 

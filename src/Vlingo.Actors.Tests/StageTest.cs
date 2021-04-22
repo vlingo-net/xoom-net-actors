@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Actors.Plugin.Mailbox.TestKit;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Xunit;
 using TestResults = Vlingo.Actors.Tests.WorldTest.TestResults;
 using SimpleActor = Vlingo.Actors.Tests.WorldTest.SimpleActor;

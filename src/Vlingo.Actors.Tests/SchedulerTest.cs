@@ -6,7 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 using Vlingo.Actors.TestKit;
 using Xunit;
 
@@ -14,18 +14,18 @@ namespace Vlingo.Actors.Tests
 {
     public class SchedulerTest : ActorsTest
     {
-        private readonly IScheduled<CounterHolder> scheduled;
-        private readonly Scheduler scheduler;
+        private readonly IScheduled<CounterHolder> _scheduled;
+        private readonly Scheduler _scheduler;
 
         public SchedulerTest()
         {
-            scheduled = new Scheduled();
-            scheduler = new Scheduler();
+            _scheduled = new Scheduled();
+            _scheduler = new Scheduler();
         }
 
         public override void Dispose()
         {
-            scheduler.Close();
+            _scheduler.Close();
             base.Dispose();
         }
 
@@ -34,7 +34,7 @@ namespace Vlingo.Actors.Tests
         {
             var holder = new CounterHolder(1);
 
-            scheduler.ScheduleOnce(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
+            _scheduler.ScheduleOnce(_scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
 
             Assert.Equal(1, holder.GetCounter());
         }
@@ -44,7 +44,7 @@ namespace Vlingo.Actors.Tests
         {
             var holder = new CounterHolder(505);
 
-            scheduler.Schedule(scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
+            _scheduler.Schedule(_scheduled, holder, TimeSpan.Zero, TimeSpan.FromMilliseconds(1));
 
             Assert.True(holder.GetCounter() > 500);
         }

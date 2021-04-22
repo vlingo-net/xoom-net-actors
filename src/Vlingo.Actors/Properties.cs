@@ -7,7 +7,7 @@
 
 using System;
 using System.IO;
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors
 {

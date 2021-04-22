@@ -5,30 +5,30 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Common;
+using Vlingo.Xoom.Common;
 
 namespace Vlingo.Actors.Plugin.Completes
 {
     public class CompletesEventuallyPool : ICompletesEventuallyProvider
     {
-        private readonly AtomicLong completesEventuallyId;
-        private readonly ICompletesEventually[] pool;
-        private readonly AtomicLong poolIndex;
-        private readonly long poolSize;
-        private readonly string mailboxName;
+        private readonly AtomicLong _completesEventuallyId;
+        private readonly ICompletesEventually[] _pool;
+        private readonly AtomicLong _poolIndex;
+        private readonly long _poolSize;
+        private readonly string _mailboxName;
 
         public CompletesEventuallyPool(int poolSize, string mailboxName)
         {
-            completesEventuallyId = new AtomicLong(0);
-            this.poolSize = poolSize;
-            this.mailboxName = mailboxName;
-            poolIndex = new AtomicLong(0);
-            pool = new ICompletesEventually[poolSize];
+            _completesEventuallyId = new AtomicLong(0);
+            this._poolSize = poolSize;
+            this._mailboxName = mailboxName;
+            _poolIndex = new AtomicLong(0);
+            _pool = new ICompletesEventually[poolSize];
         }
 
         public void Close()
         {
-            foreach(var completes in pool)
+            foreach(var completes in _pool)
             {
                 completes.Stop();
             }
@@ -38,38 +38,38 @@ namespace Vlingo.Actors.Plugin.Completes
         {
             get
             {
-                int index = (int)(poolIndex.IncrementAndGet() % poolSize);
-                return pool[index];
+                int index = (int)(_poolIndex.IncrementAndGet() % _poolSize);
+                return _pool[index];
             }
         }
 
         public void InitializeUsing(Stage stage)
         {
-            for (var idx = 0; idx < poolSize; ++idx)
+            for (var idx = 0; idx < _poolSize; ++idx)
             {
-                pool[idx] = stage.ActorFor<ICompletesEventually>(
+                _pool[idx] = stage.ActorFor<ICompletesEventually>(
                     Definition.Has<CompletesEventuallyActor>(
                         Definition.NoParameters,
-                        mailboxName,
+                        _mailboxName,
                         "completes-eventually-" + (idx + 1)));
             }
         }
 
         public ICompletesEventually ProvideCompletesFor(ICompletes? clientCompletes)
             => new PooledCompletes(
-                completesEventuallyId.GetAndIncrement(),
+                _completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventually);
 
         public ICompletesEventually ProvideCompletesFor(IAddress address, ICompletes? clientCompletes)
             => new PooledCompletes(
-                completesEventuallyId.GetAndIncrement(),
+                _completesEventuallyId.GetAndIncrement(),
                 clientCompletes,
                 CompletesEventuallyOf(address));
 
         private ICompletesEventually CompletesEventuallyOf(IAddress address)
         {
-            foreach (var completesEventually in pool)
+            foreach (var completesEventually in _pool)
             {
                 if (completesEventually.Address.Equals(address))
                 {
