@@ -6,19 +6,16 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class RestartFiveInOneSupervisorActor : Actor, ISupervisor
     {
-        private readonly RestartFiveInOneSupervisorTestResults testResults;
+        private readonly RestartFiveInOneSupervisorTestResults _testResults;
 
-        public RestartFiveInOneSupervisorActor(RestartFiveInOneSupervisorTestResults testResults)
-        {
-            this.testResults = testResults;
-        }
+        public RestartFiveInOneSupervisorActor(RestartFiveInOneSupervisorTestResults testResults) => _testResults = testResults;
 
         public ISupervisionStrategy SupervisionStrategy { get; } = new SupervisionStrategyImpl();
 
@@ -27,7 +24,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            testResults.Access.WriteUsing("informedCount", 1);
+            _testResults.Access.WriteUsing("informedCount", 1);
         }
 
         private class SupervisionStrategyImpl : ISupervisionStrategy

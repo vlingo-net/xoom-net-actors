@@ -5,10 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class MockCompletes<T> : BasicCompletes<T> where T:class
     {

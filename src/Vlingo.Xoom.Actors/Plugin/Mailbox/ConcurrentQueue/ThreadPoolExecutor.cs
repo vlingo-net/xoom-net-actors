@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     internal class ThreadPoolExecutor
     {

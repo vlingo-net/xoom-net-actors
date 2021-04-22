@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin
 {
     public abstract class AbstractPlugin : IPlugin
     {
@@ -27,9 +27,7 @@ namespace Vlingo.Actors.Plugin
             return string.Equals(Name, ((IPlugin)obj).Name);
         }
 
-        public override int GetHashCode()
-        {
-            return $"{GetType().FullName}::{Name}".GetHashCode();
-        }
+        public override int GetHashCode() =>
+            $"{GetType().FullName}::{Name}".GetHashCode();
     }
 }

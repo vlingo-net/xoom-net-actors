@@ -1,10 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Vlingo.Actors.Plugin.Logging.Console;
+﻿// Copyright (c) 2012-2021 VLINGO LABS. All rights reserved.
+//
+// This Source Code Form is subject to the terms of the
+// Mozilla Public License, v. 2.0. If a copy of the MPL
+// was not distributed with this file, You can obtain
+// one at https://mozilla.org/MPL/2.0/.
+
+using Vlingo.Xoom.Actors.Plugin.Logging.Console;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Logging
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Logging
 {
     public class ConsoleLoggerTest
     {

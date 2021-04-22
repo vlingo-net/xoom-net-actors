@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class Startable__Proxy : IStartable
     {

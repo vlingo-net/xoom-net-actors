@@ -7,11 +7,11 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     sealed class Evictable
     {
-        private Actor _actor;
+        private readonly Actor _actor;
         private long _activeOn;
 
         internal Evictable(Actor actor)

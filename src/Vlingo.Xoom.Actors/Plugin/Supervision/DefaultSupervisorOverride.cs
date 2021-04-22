@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision
 {
     public sealed class DefaultSupervisorOverride : Actor, ISupervisor
     {

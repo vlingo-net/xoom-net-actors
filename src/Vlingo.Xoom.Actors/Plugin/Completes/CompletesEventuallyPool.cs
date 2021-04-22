@@ -7,7 +7,7 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Plugin.Completes
 {
     public class CompletesEventuallyPool : ICompletesEventuallyProvider
     {
@@ -20,8 +20,8 @@ namespace Vlingo.Actors.Plugin.Completes
         public CompletesEventuallyPool(int poolSize, string mailboxName)
         {
             _completesEventuallyId = new AtomicLong(0);
-            this._poolSize = poolSize;
-            this._mailboxName = mailboxName;
+            _poolSize = poolSize;
+            _mailboxName = mailboxName;
             _poolIndex = new AtomicLong(0);
             _pool = new ICompletesEventually[poolSize];
         }

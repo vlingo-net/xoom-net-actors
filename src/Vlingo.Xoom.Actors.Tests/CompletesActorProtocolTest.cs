@@ -7,11 +7,11 @@
 
 using System;
 using System.Threading;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class CompletesActorProtocolTest : ActorsTest
     {

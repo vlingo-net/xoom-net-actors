@@ -6,9 +6,9 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using static Vlingo.Actors.SupervisionStrategyConstants;
+using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public sealed class PublicRootActor : Actor, ISupervisor
     {

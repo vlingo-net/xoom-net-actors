@@ -8,10 +8,10 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// The abstract base class of all concrete <c>Actor</c> types. This base provides common

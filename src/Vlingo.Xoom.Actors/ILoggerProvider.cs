@@ -5,10 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin.Logging.Console;
-using Vlingo.Actors.Plugin.Logging.NoOp;
+using Vlingo.Xoom.Actors.Plugin.Logging.Console;
+using Vlingo.Xoom.Actors.Plugin.Logging.NoOp;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public interface ILoggerProvider
     {

@@ -8,17 +8,17 @@
 using System;
 using System.Threading;
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     public class TestUntil : IDisposable
     {
-        private readonly CountdownEvent countDownEvent;
+        private readonly CountdownEvent _countDownEvent;
 
         public static TestUntil Happenings(int times) => new TestUntil(count: times);
 
         public void CompleteNow()
         {
-            while (!countDownEvent.IsSet)
+            while (!_countDownEvent.IsSet)
             {
                 Happened();
             }
@@ -28,7 +28,7 @@ namespace Vlingo.Actors.TestKit
         {
             try
             {
-                countDownEvent.Wait();
+                _countDownEvent.Wait();
             }
             catch (Exception)
             {
@@ -40,8 +40,8 @@ namespace Vlingo.Actors.TestKit
         {
             try
             {
-                countDownEvent.Wait(TimeSpan.FromMilliseconds(timeout));
-                return countDownEvent.CurrentCount == 0;
+                _countDownEvent.Wait(TimeSpan.FromMilliseconds(timeout));
+                return _countDownEvent.CurrentCount == 0;
             }
             catch (Exception)
             {
@@ -51,25 +51,25 @@ namespace Vlingo.Actors.TestKit
 
         public TestUntil Happened()
         {
-            if (!countDownEvent.IsSet)
+            if (!_countDownEvent.IsSet)
             {
-                countDownEvent.Signal();
+                _countDownEvent.Signal();
             }
 
             return this;
         }
 
-        public int Remaining => countDownEvent.CurrentCount;
+        public int Remaining => _countDownEvent.CurrentCount;
 
-        public void ResetHappeningsTo(int times) => countDownEvent.Reset(times);
+        public void ResetHappeningsTo(int times) => _countDownEvent.Reset(times);
 
-        public override string ToString() => $"TestUntil[count={countDownEvent.CurrentCount}]";
+        public override string ToString() => $"TestUntil[count={_countDownEvent.CurrentCount}]";
         
-        public void Dispose() => countDownEvent.Dispose();
+        public void Dispose() => _countDownEvent.Dispose();
 
         private TestUntil(int count)
         {
-            countDownEvent = new CountdownEvent(initialCount: count);
+            _countDownEvent = new CountdownEvent(initialCount: count);
         }
     }
 }

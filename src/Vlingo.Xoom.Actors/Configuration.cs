@@ -7,16 +7,16 @@
 
 using System;
 using System.Collections.Generic;
-using Vlingo.Actors.Plugin;
-using Vlingo.Actors.Plugin.Completes;
-using Vlingo.Actors.Plugin.Eviction;
-using Vlingo.Actors.Plugin.Logging.Console;
-using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
-using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
-using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
-using Vlingo.Actors.Plugin.Supervision;
+using Vlingo.Xoom.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin.Completes;
+using Vlingo.Xoom.Actors.Plugin.Eviction;
+using Vlingo.Xoom.Actors.Plugin.Logging.Console;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer;
+using Vlingo.Xoom.Actors.Plugin.Supervision;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class Configuration
     {

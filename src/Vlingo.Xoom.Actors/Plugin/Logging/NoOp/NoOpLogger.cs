@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors.Plugin.Logging.NoOp
+namespace Vlingo.Xoom.Actors.Plugin.Logging.NoOp
 {
     public class NoOpLogger : ILogger
     {

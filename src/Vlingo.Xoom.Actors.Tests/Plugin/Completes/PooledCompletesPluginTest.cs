@@ -7,7 +7,7 @@
 
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Completes
 {
     public class PooledCompletesPluginTest
     {
@@ -18,14 +18,14 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
             var plugin = new MockCompletesPlugin(completesResults);
             var registrar = new MockRegistrar();
             plugin.Start(registrar);
-            plugin.completesEventuallyProvider.completesEventually.With(new object());
-            var completes = (MockCompletesEventually)plugin.completesEventuallyProvider.ProvideCompletesFor(null);
+            plugin.CompletesEventuallyProvider.completesEventually.With(new object());
+            var completes = (MockCompletesEventually)plugin.CompletesEventuallyProvider.ProvideCompletesFor(null);
 
             completes.With(7);
 
             Assert.Equal(1, registrar.RegisterCount);
-            Assert.Equal(1, plugin.completesEventuallyProvider.initializeUsing);
-            Assert.Equal(1, plugin.completesEventuallyProvider.provideCompletesForCount);
+            Assert.Equal(1, plugin.CompletesEventuallyProvider.initializeUsing);
+            Assert.Equal(1, plugin.CompletesEventuallyProvider.provideCompletesForCount);
             Assert.Equal(2, completesResults.WithCount.Get());
             Assert.Equal(2, completes.completesResults.WithCount.Get());
             Assert.Equal(7, completes.completesResults.Outcome.Get());

@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 {
     public class PropertiesFileConfigRingBufferMailboxActorTest : ActorsTest
     {

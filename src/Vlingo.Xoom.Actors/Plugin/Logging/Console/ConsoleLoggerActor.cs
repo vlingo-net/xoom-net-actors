@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors.Plugin.Logging.Console
+namespace Vlingo.Xoom.Actors.Plugin.Logging.Console
 {
     public class ConsoleLoggerActor : Actor, ILogger
     {

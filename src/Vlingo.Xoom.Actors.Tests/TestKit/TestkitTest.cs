@@ -5,11 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.TestKit
+namespace Vlingo.Xoom.Actors.Tests.TestKit
 {
     public class TestkitTest : ActorsTest
     {

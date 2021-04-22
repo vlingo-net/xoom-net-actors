@@ -8,7 +8,7 @@
 using System;
 using Vlingo.Xoom.Common.Compiler;
 
-namespace Vlingo.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision
 {
     internal class ConfiguredSupervisor
     {

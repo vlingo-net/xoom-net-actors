@@ -10,7 +10,7 @@ using Vlingo.Xoom.Common;
 using Vlingo.Xoom.Common.Identity;
 using Vlingo.Xoom.UUID;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class GuidAddressFactory : IAddressFactory
     {

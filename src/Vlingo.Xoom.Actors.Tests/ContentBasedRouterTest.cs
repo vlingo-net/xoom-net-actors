@@ -9,10 +9,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ContentBasedRouterTest : ActorsTest
     {

@@ -9,14 +9,14 @@ using System;
 using System.Threading;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ActorMessageSendingSpeedTest
     {
         private const int Max = 100_000_000;
 
-        private static DateTime StartTime;
-        private static DateTime EndTime;
+        private static DateTime _startTime;
+        private static DateTime _endTime;
 
         [Fact]
         public void Test100millionSendsOnQueueMailbox()
@@ -52,15 +52,15 @@ namespace Vlingo.Actors.Tests
             Console.WriteLine("======================================");
             Console.WriteLine("WARM UP: STARTING FOR MAILBOX TYPE: " + mailboxType);
             // warm up
-            EndTime = DateTime.MinValue;
-            SingleOperationActor.instance.totalValue = 0;
+            _endTime = DateTime.MinValue;
+            SingleOperationActor.Instance.TotalValue = 0;
             for (int idx = 1; idx <= Max; ++idx)
             {
                 actor.Keep(idx);
             }
             Console.WriteLine("WARM UP: SENT ALL, WAITING FOR COMPLETION");
 
-            while (EndTime == DateTime.MinValue)
+            while (_endTime == DateTime.MinValue)
             {
                 Thread.Sleep(100);
             }
@@ -70,20 +70,20 @@ namespace Vlingo.Actors.Tests
             Console.WriteLine("SPEED TEST: START FOR MAILBOX TYPE: " + mailboxType);
 
             // speed test
-            EndTime = DateTime.MinValue;
-            SingleOperationActor.instance.totalValue = 0;
-            StartTime = DateTime.UtcNow;
+            _endTime = DateTime.MinValue;
+            SingleOperationActor.Instance.TotalValue = 0;
+            _startTime = DateTime.UtcNow;
             for (int idx = 1; idx <= Max; ++idx)
             {
                 actor.Keep(idx);
             }
 
-            while (EndTime == DateTime.MinValue)
+            while (_endTime == DateTime.MinValue)
             {
                 Thread.Sleep(500);
             }
 
-            var totalTime = EndTime - StartTime;
+            var totalTime = _endTime - _startTime;
             var totalSeconds = totalTime.TotalSeconds;
 
             Console.WriteLine("SPEED TEST: ENDED FOR MAILBOX TYPE: " + mailboxType);
@@ -95,20 +95,17 @@ namespace Vlingo.Actors.Tests
 
         private class SingleOperationActor : Actor, ISingleOperation
         {
-            public int totalValue;
-            internal static SingleOperationActor instance;
+            public int TotalValue;
+            internal static SingleOperationActor Instance;
 
-            public SingleOperationActor()
-            {
-                instance = this;
-            }
+            public SingleOperationActor() => Instance = this;
 
             public void Keep(int value)
             {
-                totalValue = value;
+                TotalValue = value;
                 if (value == Max)
                 {
-                    EndTime = DateTime.UtcNow;
+                    _endTime = DateTime.UtcNow;
                 }
             }
         }

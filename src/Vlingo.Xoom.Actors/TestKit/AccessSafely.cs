@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     /// <summary>
     /// Facilitate thread-safe accessing of shared data, both for writing and reading. The

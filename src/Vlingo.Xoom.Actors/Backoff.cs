@@ -9,43 +9,43 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public sealed class Backoff
     {
-        private const long BACKOFF_CAP = 4096;
-        private const long BACKOFF_RESET = 0L;
-        private const long BACKOFF_START = 1L;
+        private const long BackoffCap = 4096;
+        private const long BackoffReset = 0L;
+        private const long BackoffStart = 1L;
 
-        private long backoff;
-        private readonly bool isFixed;
+        private long _backoff;
+        private readonly bool _isFixed;
 
         public Backoff()
         {
-            backoff = BACKOFF_RESET;
-            isFixed = false;
+            _backoff = BackoffReset;
+            _isFixed = false;
         }
 
         public Backoff(long fixedBackoff)
         {
-            backoff = fixedBackoff;
-            isFixed = true;
+            _backoff = fixedBackoff;
+            _isFixed = true;
         }
 
         public async Task Now(CancellationToken token)
         {
-            if (!isFixed)
+            if (!_isFixed)
             {
-                if (backoff == BACKOFF_RESET)
+                if (_backoff == BackoffReset)
                 {
-                    backoff = BACKOFF_START;
+                    _backoff = BackoffStart;
                 }
-                else if (backoff < BACKOFF_CAP)
+                else if (_backoff < BackoffCap)
                 {
-                    backoff = backoff * 2;
+                    _backoff = _backoff * 2;
                 }
             }
-            await YieldFor(backoff, token);
+            await YieldFor(_backoff, token);
         }
 
         public async Task Now()
@@ -53,10 +53,7 @@ namespace Vlingo.Actors
             await Now(CancellationToken.None);
         }
 
-        public void Reset()
-        {
-            backoff = BACKOFF_RESET;
-        }
+        public void Reset() => _backoff = BackoffReset;
 
         private async Task YieldFor(long aMillis, CancellationToken token)
         {

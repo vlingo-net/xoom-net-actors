@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     public class TestState
     {

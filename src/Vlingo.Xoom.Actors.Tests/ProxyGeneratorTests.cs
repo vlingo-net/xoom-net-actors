@@ -9,7 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ProxyGeneratorTests : ActorsTest
     {

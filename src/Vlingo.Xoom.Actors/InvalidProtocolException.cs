@@ -9,11 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class InvalidProtocolException : Exception
     {
-        private const long SerialVersionID = 1L;
+        private const long SerialVersionId = 1L;
 
         public InvalidProtocolException(string protocolName, IList<Failure> failures)
             : base(ToReadableMessage(protocolName, failures))
@@ -28,17 +28,17 @@ namespace Vlingo.Actors
 
         public class Failure
         {
-            private readonly string method;
-            private readonly string cause;
+            private readonly string _method;
+            private readonly string _cause;
 
             public Failure(string method, string cause)
             {
-                this.method = method;
-                this.cause = cause;
+                _method = method;
+                _cause = cause;
             }
 
             public override string ToString()
-                => $"In method `{method}`: \n\t\t{cause}";
+                => $"In method `{_method}`: \n\t\t{_cause}";
         }
     }
 }

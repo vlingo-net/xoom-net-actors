@@ -14,11 +14,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 using Vlingo.Xoom.Common.Compiler;
-
 using static Vlingo.Xoom.Common.Compiler.DynaFile;
 using static Vlingo.Xoom.Common.Compiler.DynaNaming;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     internal class ProxyGenerator
     {

@@ -7,52 +7,46 @@
 
 using System;
 
-namespace Vlingo.Actors.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Plugin.Completes
 {
     public sealed class DefaultCompletesEventuallyProviderKeeper : ICompletesEventuallyProviderKeeper
     {
-        private CompletesEventuallyProviderInfo? completesEventuallyProviderInfo;
+        private CompletesEventuallyProviderInfo? _completesEventuallyProviderInfo;
 
-        public void Close()
-        {
-            completesEventuallyProviderInfo?.completesEventuallyProvider.Close();
-        }
+        public void Close() => _completesEventuallyProviderInfo?.CompletesEventuallyProvider.Close();
 
         public ICompletesEventuallyProvider FindDefault()
         {
-            if (completesEventuallyProviderInfo == null)
+            if (_completesEventuallyProviderInfo == null)
             {
                 throw new InvalidOperationException("No registered default CompletesEventuallyProvider.");
             }
 
-            return completesEventuallyProviderInfo.completesEventuallyProvider;
+            return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
         }
 
-        public void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider)
-        {
-            completesEventuallyProviderInfo = new CompletesEventuallyProviderInfo(name, completesEventuallyProvider, true);
-        }
+        public void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider) => _completesEventuallyProviderInfo = new CompletesEventuallyProviderInfo(name, completesEventuallyProvider, true);
 
         public ICompletesEventuallyProvider ProviderFor(string name)
         {
-            if (completesEventuallyProviderInfo == null)
+            if (_completesEventuallyProviderInfo == null)
             {
                 throw new InvalidOperationException($"No registered CompletesEventuallyProvider named: {name}");
             }
 
-            return completesEventuallyProviderInfo.completesEventuallyProvider;
+            return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
         }
 
         private class CompletesEventuallyProviderInfo
         {
-            public bool isDefault;
-            public readonly ICompletesEventuallyProvider completesEventuallyProvider;
-            public string name;
+            public bool IsDefault;
+            public readonly ICompletesEventuallyProvider CompletesEventuallyProvider;
+            public string Name;
             public CompletesEventuallyProviderInfo(string name, ICompletesEventuallyProvider completesEventuallyProvider, bool isDefault)
             {
-                this.name = name;
-                this.completesEventuallyProvider = completesEventuallyProvider;
-                this.isDefault = isDefault;
+                Name = name;
+                CompletesEventuallyProvider = completesEventuallyProvider;
+                IsDefault = isDefault;
             }
         }
     }

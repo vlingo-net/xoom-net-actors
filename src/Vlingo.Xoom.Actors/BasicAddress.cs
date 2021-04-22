@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public sealed class BasicAddress : IAddress
     {
@@ -62,7 +62,7 @@ namespace Vlingo.Actors
         internal BasicAddress(long reservedId, string? name, bool prefixName)
         {
             _id = reservedId;
-            this._name = name == null ? null : prefixName ? name + _id : name;
+            _name = name == null ? null : prefixName ? name + _id : name;
         }
     }
 }

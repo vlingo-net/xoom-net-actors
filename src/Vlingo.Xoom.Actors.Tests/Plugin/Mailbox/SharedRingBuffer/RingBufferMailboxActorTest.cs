@@ -7,15 +7,15 @@
 
 using System;
 using System.Threading.Tasks;
-using Vlingo.Actors.Plugin;
-using Vlingo.Actors.Plugin.Completes;
-using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin.Completes;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 {
     public class RingBufferMailboxActorTest : ActorsTest
     {

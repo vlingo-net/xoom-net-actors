@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IMailboxProvider
     {

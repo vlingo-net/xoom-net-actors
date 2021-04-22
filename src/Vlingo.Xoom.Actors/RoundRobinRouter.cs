@@ -5,32 +5,29 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class RoundRobinRouter<P> : Router<P>
     {
-        private int poolIndex;
+        private int _poolIndex;
 
-        public RoundRobinRouter(RouterSpecification<P> specification) : base(specification)
-        {
-            poolIndex = 0;
-        }
+        public RoundRobinRouter(RouterSpecification<P> specification) : base(specification) => _poolIndex = 0;
 
-        internal int PoolIndex => poolIndex;
+        internal int PoolIndex => _poolIndex;
 
         protected internal override Routing<P> ComputeRouting() => Routing.With(NextRoutee());
 
         protected internal virtual Routee<P> NextRoutee()
         {
             var routees = Routees;
-            poolIndex = IncrementAndGetPoolIndex() % routees.Count;
-            return routees[poolIndex];
+            _poolIndex = IncrementAndGetPoolIndex() % routees.Count;
+            return routees[_poolIndex];
         }
 
         private int IncrementAndGetPoolIndex()
         {
-            poolIndex = (poolIndex == int.MaxValue) ? 0 : poolIndex + 1;
-            return poolIndex;
+            _poolIndex = (_poolIndex == int.MaxValue) ? 0 : _poolIndex + 1;
+            return _poolIndex;
         }
     }
 }

@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class BroadcastRouterTest : ActorsTest
     {
@@ -59,40 +59,37 @@ namespace Vlingo.Actors.Tests
 
         private class MathCommandWorker : Actor, IThreeArgConsumerProtocol
         {
-            private readonly TestResults testResults;
+            private readonly TestResults _testResults;
 
             public MathCommandWorker(TestResults testResults)
             {
-                this.testResults = testResults;
+                _testResults = testResults;
             }
 
             public void DoSomeMath(int arg1, int arg2, int arg3)
             {
                 var sum = arg1 + arg2 + arg3;
                 var product = arg1 * arg2 * arg3;
-                testResults.received.WriteUsing("receivedCount", 1);
+                _testResults.Received.WriteUsing("receivedCount", 1);
             }
         }
 
         private class TestResults
         {
-            private readonly AtomicInteger receivedCount = new AtomicInteger(0);
-            internal readonly AccessSafely received;
+            private readonly AtomicInteger _receivedCount = new AtomicInteger(0);
+            internal readonly AccessSafely Received;
 
-            public TestResults(AccessSafely received)
-            {
-                this.received = received;
-            }
+            public TestResults(AccessSafely received) => Received = received;
 
             public static TestResults AfterCompleting(int times)
             {
                 var testResults = new TestResults(AccessSafely.AfterCompleting(times));
-                testResults.received.WritingWith<int>("receivedCount", _ => testResults.receivedCount.IncrementAndGet());
-                testResults.received.ReadingWith("receivedCount", testResults.receivedCount.Get);
+                testResults.Received.WritingWith<int>("receivedCount", _ => testResults._receivedCount.IncrementAndGet());
+                testResults.Received.ReadingWith("receivedCount", testResults._receivedCount.Get);
                 return testResults;
             }
 
-            public int GetReceivedCount() => received.ReadFrom<int>("receivedCount");
+            public int GetReceivedCount() => Received.ReadFrom<int>("receivedCount");
         }
     }
 

@@ -7,10 +7,10 @@
 
 using System;
 using System.Threading;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class StopAllSupervisorActor : Actor, ISupervisor
     {

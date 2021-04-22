@@ -6,9 +6,9 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Actors.Plugin.Logging;
+using Vlingo.Xoom.Actors.Plugin.Logging;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class Logger__Proxy : ILogger
     {

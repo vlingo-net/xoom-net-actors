@@ -7,7 +7,7 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public sealed class FailureMark
     {

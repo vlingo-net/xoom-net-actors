@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class Environment
     {

@@ -6,11 +6,11 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Collections.Generic;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class CharactersTest : ActorsTest
     {
@@ -35,7 +35,7 @@ namespace Vlingo.Actors.Tests
 
         private class Results
         {
-            internal readonly AccessSafely counters;
+            internal readonly AccessSafely Counters;
 
             public Results(int times)
             {
@@ -43,17 +43,17 @@ namespace Vlingo.Actors.Tests
                 var two = new AtomicInteger(0);
                 var three = new AtomicInteger(0);
 
-                counters = AccessSafely.AfterCompleting(times);
+                Counters = AccessSafely.AfterCompleting(times);
 
-                counters.WritingWith<int>("one", x => one.AddAndGet(x));
-                counters.ReadingWith("one", one.Get);
-                counters.WritingWith<int>("two", x => two.AddAndGet(x));
-                counters.ReadingWith("two", two.Get);
-                counters.WritingWith<int>("three", x => three.AddAndGet(x));
-                counters.ReadingWith("three", three.Get);
+                Counters.WritingWith<int>("one", x => one.AddAndGet(x));
+                Counters.ReadingWith("one", one.Get);
+                Counters.WritingWith<int>("two", x => two.AddAndGet(x));
+                Counters.ReadingWith("two", two.Get);
+                Counters.WritingWith<int>("three", x => three.AddAndGet(x));
+                Counters.ReadingWith("three", three.Get);
             }
 
-            public int GetCounterValue(string name) => counters.ReadFrom<int>(name);
+            public int GetCounterValue(string name) => Counters.ReadFrom<int>(name);
         }
 
         private class ThreeBehaviorsState : IThreeBehaviors
@@ -77,46 +77,46 @@ namespace Vlingo.Actors.Tests
 
             public void One()
             {
-                results.counters.WriteUsing("one", incrementBy);
+                results.Counters.WriteUsing("one", incrementBy);
                 characters.Become(TWO);
             }
 
             public void Two()
             {
-                results.counters.WriteUsing("two", incrementBy);
+                results.Counters.WriteUsing("two", incrementBy);
                 characters.Become(THREE);
             }
 
             public void Three()
             {
-                results.counters.WriteUsing("three", incrementBy);
+                results.Counters.WriteUsing("three", incrementBy);
                 characters.Become(ONE);
             }
         }
 
         private class ThreeBehaviorsActor : Actor, IThreeBehaviors
         {
-            private readonly Characters<IThreeBehaviors> characters;
+            private readonly Characters<IThreeBehaviors> _characters;
 
             public ThreeBehaviorsActor(Results results)
             {
                 var one = new ThreeBehaviorsState(results, 1);
                 var two = new ThreeBehaviorsState(results, 2);
                 var three = new ThreeBehaviorsState(results, 3);
-                characters = new Characters<IThreeBehaviors>(new List<IThreeBehaviors>
+                _characters = new Characters<IThreeBehaviors>(new List<IThreeBehaviors>
                 {
                     one, two, three
                 });
-                one.SetCharacters(characters);
-                two.SetCharacters(characters);
-                three.SetCharacters(characters);
+                one.SetCharacters(_characters);
+                two.SetCharacters(_characters);
+                three.SetCharacters(_characters);
             }
 
-            public void One() => characters.Current.One();
+            public void One() => _characters.Current.One();
 
-            public void Two() => characters.Current.Two();
+            public void Two() => _characters.Current.Two();
 
-            public void Three() => characters.Current.Three();
+            public void Three() => _characters.Current.Three();
         }
     }
 

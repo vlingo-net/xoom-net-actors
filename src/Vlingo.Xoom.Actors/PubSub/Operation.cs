@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Actors.PubSub
+namespace Vlingo.Xoom.Actors.PubSub
 {
     internal delegate bool Operation(ISet<ISubscriber> existingSubscriber, ISubscriber givenSubscriber);
 

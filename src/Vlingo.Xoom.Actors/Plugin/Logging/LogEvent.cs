@@ -9,7 +9,7 @@ using System;
 using System.Text;
 using System.Threading;
 
-namespace Vlingo.Actors.Plugin.Logging
+namespace Vlingo.Xoom.Actors.Plugin.Logging
 {
     public class LogEvent
     {

@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     /// <summary>
     /// Actor that has an immediately delivered mailbox for use in testing.

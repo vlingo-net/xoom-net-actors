@@ -7,10 +7,10 @@
 
 using System;
 using System.Threading;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class PingSupervisorActor : Actor, ISupervisor
     {
@@ -31,7 +31,7 @@ namespace Vlingo.Actors.Tests.Supervision
         public void Inform(Exception error, ISupervised supervised)
         {
             supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-            TestResults.Get().Access.WriteUsing("informedCount", 1);
+            TestResults.Get()?.Access.WriteUsing("informedCount", 1);
         }
 
         internal class PingSupervisorTestResults

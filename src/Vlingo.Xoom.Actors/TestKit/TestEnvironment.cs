@@ -5,10 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin.Logging.Console;
-using Vlingo.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     internal class TestEnvironment : Environment
     {

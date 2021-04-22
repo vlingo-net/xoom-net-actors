@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin
 {
     public class PluginLoader
     {

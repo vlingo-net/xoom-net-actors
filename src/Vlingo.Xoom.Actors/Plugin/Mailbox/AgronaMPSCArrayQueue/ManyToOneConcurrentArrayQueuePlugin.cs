@@ -6,10 +6,10 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Linq;
 using System.Collections.Concurrent;
+using System.Linq;
 
-namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
     public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IMailboxProvider
     {

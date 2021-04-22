@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public static class ExpressionExtensions
     {

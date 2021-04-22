@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// See <see cref="Routing{P}"/>
@@ -39,7 +39,7 @@ namespace Vlingo.Actors
     /// </summary>
     public class Routing<P>
     {
-        private readonly ArraySegment<Routee<P>> routees;
+        private readonly ArraySegment<Routee<P>> _routees;
 
         internal Routing() : this(null)
         {
@@ -48,16 +48,16 @@ namespace Vlingo.Actors
         internal Routing(ICollection<Routee<P>>? routees)
         {
             var routeesCollection = routees ?? new List<Routee<P>>();
-            this.routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());
+            _routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());
         }
 
-        public virtual Routee<P> First => routees.ElementAt(0);
+        public virtual Routee<P> First => _routees.ElementAt(0);
 
-        public virtual IReadOnlyList<Routee<P>> Routees => routees;
+        public virtual IReadOnlyList<Routee<P>> Routees => _routees;
 
-        public virtual bool IsEmpty => routees.Count == 0;
+        public virtual bool IsEmpty => _routees.Count == 0;
 
-        public override string ToString() => $"Routing[routees={routees}]";
+        public override string ToString() => $"Routing[routees={_routees}]";
 
         public virtual void Validate()
         {

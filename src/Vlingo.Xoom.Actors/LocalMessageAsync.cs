@@ -7,7 +7,7 @@
 
 using System.Threading.Tasks;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class LocalMessageAsync : LocalMessage<IAsyncMessage>
     {

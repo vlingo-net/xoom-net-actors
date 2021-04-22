@@ -7,9 +7,9 @@
 
 using System;
 using System.Collections.Generic;
-using static Vlingo.Actors.SupervisionStrategyConstants;
+using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class StageSupervisedActor<T> : ISupervised
     {

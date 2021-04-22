@@ -7,10 +7,10 @@
 
 using System;
 using System.Threading.Tasks;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class TaskExtensionsTest : IDisposable
     {

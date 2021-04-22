@@ -9,12 +9,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 {
     public class ExecutorDispatcherTest : ActorsTest
     {

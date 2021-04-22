@@ -5,34 +5,34 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using NSubstitute;
 using System;
-using Vlingo.Actors.Plugin.Mailbox;
+using NSubstitute;
+using Vlingo.Xoom.Actors.Plugin.Mailbox;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox
 {
     public class DefaultMailboxProviderKeeperTest
     {
-        private readonly static string MAILBOX_NAME = "Mailbox-" + Guid.NewGuid().ToString();
-        private readonly static int SOME_HASHCODE = Guid.NewGuid().GetHashCode();
+        private readonly static string MailboxName = "Mailbox-" + Guid.NewGuid().ToString();
+        private readonly static int SomeHashcode = Guid.NewGuid().GetHashCode();
 
-        private readonly IMailboxProvider mailboxProvider;
-        private readonly IMailboxProviderKeeper keeper;
+        private readonly IMailboxProvider _mailboxProvider;
+        private readonly IMailboxProviderKeeper _keeper;
 
         public DefaultMailboxProviderKeeperTest()
         {
-            mailboxProvider = Substitute.For<IMailboxProvider>();
-            keeper = new DefaultMailboxProviderKeeper();
-            keeper.Keep(MAILBOX_NAME, false, mailboxProvider);
+            _mailboxProvider = Substitute.For<IMailboxProvider>();
+            _keeper = new DefaultMailboxProviderKeeper();
+            _keeper.Keep(MailboxName, false, _mailboxProvider);
         }
 
         [Fact]
         public void TestThatAssignsAMailboxFromTheSpecifiedProvider()
         {
-            keeper.AssignMailbox(MAILBOX_NAME, SOME_HASHCODE);
-            mailboxProvider.Received(1)
-                .ProvideMailboxFor(Arg.Is<int>(x => x == SOME_HASHCODE));
+            _keeper.AssignMailbox(MailboxName, SomeHashcode);
+            _mailboxProvider.Received(1)
+                .ProvideMailboxFor(Arg.Is<int>(x => x == SomeHashcode));
         }
 
         [Fact]
@@ -41,31 +41,31 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox
             var newDefault = Substitute.For<IMailboxProvider>();
             var name = Guid.NewGuid().ToString();
 
-            keeper.Keep(name, true, newDefault);
+            _keeper.Keep(name, true, newDefault);
 
-            Assert.Equal(name, keeper.FindDefault());
+            Assert.Equal(name, _keeper.FindDefault());
         }
 
         [Fact]
         public void TestThatClosesAllProviders()
         {
-            keeper.Close();
+            _keeper.Close();
 
-            mailboxProvider.Received(1)
+            _mailboxProvider.Received(1)
                 .Close();
         }
 
         [Fact]
         public void TestThatIsValidMailboxNameChecksForMailboxExistance()
         {
-            Assert.True(keeper.IsValidMailboxName(MAILBOX_NAME));
-            Assert.False(keeper.IsValidMailboxName(MAILBOX_NAME + "_does_not_exist"));
+            Assert.True(_keeper.IsValidMailboxName(MailboxName));
+            Assert.False(_keeper.IsValidMailboxName(MailboxName + "_does_not_exist"));
         }
 
         [Fact]
         public void TestThatAssigningAnUnknownMailboxFailsGracefully()
         {
-            Assert.Throws<InvalidOperationException>(() => keeper.AssignMailbox(MAILBOX_NAME + "_does_not_exist", SOME_HASHCODE));
+            Assert.Throws<InvalidOperationException>(() => _keeper.AssignMailbox(MailboxName + "_does_not_exist", SomeHashcode));
         }
 
         [Fact]

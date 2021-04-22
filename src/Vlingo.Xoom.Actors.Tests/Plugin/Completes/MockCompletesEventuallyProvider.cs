@@ -7,7 +7,7 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Tests.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Completes
 {
     public class MockCompletesEventuallyProvider : ICompletesEventuallyProvider
     {

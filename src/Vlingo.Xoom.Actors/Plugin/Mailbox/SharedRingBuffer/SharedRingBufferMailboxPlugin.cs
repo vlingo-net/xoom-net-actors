@@ -6,10 +6,10 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Linq;
 using System.Collections.Concurrent;
+using System.Linq;
 
-namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailboxPlugin : AbstractPlugin, IMailboxProvider
     {

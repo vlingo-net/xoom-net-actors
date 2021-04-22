@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// Router is a kind of <see cref="Actor"/> that forwards a message

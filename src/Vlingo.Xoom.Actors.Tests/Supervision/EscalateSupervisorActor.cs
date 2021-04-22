@@ -6,10 +6,10 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class EscalateSupervisorActor : Actor, ISupervisor
     {

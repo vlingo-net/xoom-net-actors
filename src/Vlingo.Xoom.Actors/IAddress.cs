@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public interface IAddress : IComparable<IAddress>
     {

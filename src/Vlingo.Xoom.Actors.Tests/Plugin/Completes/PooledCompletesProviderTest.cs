@@ -5,13 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
-using Vlingo.Actors.Plugin;
-using Vlingo.Actors.Plugin.Completes;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin.Completes;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Completes
 {
     public class PooledCompletesProviderTest : ActorsTest
     {

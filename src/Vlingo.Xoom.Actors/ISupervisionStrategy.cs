@@ -5,9 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using static Vlingo.Actors.SupervisionStrategyConstants;
+using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public interface ISupervisionStrategy
     {

@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ActorLifecycleTest : ActorsTest
     {
@@ -41,10 +41,7 @@ namespace Vlingo.Actors.Tests
             private readonly AtomicBoolean _receivedAfterStop = new AtomicBoolean(false);
             internal readonly AccessSafely Received;
 
-            private TestResults(AccessSafely received)
-            {
-                this.Received = received;
-            }
+            private TestResults(AccessSafely received) => Received = received;
 
             public static TestResults AfterCompleting(int times)
             {
@@ -65,20 +62,11 @@ namespace Vlingo.Actors.Tests
         {
             private readonly TestResults _testResults;
 
-            public LifecycleActor(TestResults testResults)
-            {
-                this._testResults = testResults;
-            }
+            public LifecycleActor(TestResults testResults) => _testResults = testResults;
 
-            protected internal override void BeforeStart()
-            {
-                _testResults.Received.WriteUsing("receivedBeforeStart", true);
-            }
+            protected internal override void BeforeStart() => _testResults.Received.WriteUsing("receivedBeforeStart", true);
 
-            protected internal override void AfterStop()
-            {
-                _testResults.Received.WriteUsing("receivedAfterStop", true);
-            }
+            protected internal override void AfterStop() => _testResults.Received.WriteUsing("receivedAfterStop", true);
         }
     }
 }

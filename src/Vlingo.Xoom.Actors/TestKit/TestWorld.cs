@@ -10,9 +10,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading;
-using Vlingo.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 
-namespace Vlingo.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit
 {
     public class TestWorld : IDisposable
     {

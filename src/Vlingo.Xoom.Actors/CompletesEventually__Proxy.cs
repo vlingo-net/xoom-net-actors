@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class CompletesEventually__Proxy : ICompletesEventually
     {

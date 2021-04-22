@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors.Plugin.Logging
+namespace Vlingo.Xoom.Actors.Plugin.Logging
 {
     public sealed class DefaultLoggerProviderKeeper : ILoggerProviderKeeper
     {

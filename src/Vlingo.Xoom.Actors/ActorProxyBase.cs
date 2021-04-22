@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public abstract class ActorProxyBase<T>
     {
@@ -19,7 +19,7 @@ namespace Vlingo.Actors
             if (typeof(ActorProxyBase<>).IsAssignableFrom(typeof(TNew)))
             {
                 var b = (ActorProxyBase<TNew>) (object) arg!;
-                return stage.LookupOrStartThunk<TNew>(Vlingo.Actors.Definition.From(stage, b?.Definition, stage.World.DefaultLogger), b?.Address);
+                return stage.LookupOrStartThunk<TNew>(Actors.Definition.From(stage, b?.Definition, stage.World.DefaultLogger), b?.Address);
             }
 
             return arg;

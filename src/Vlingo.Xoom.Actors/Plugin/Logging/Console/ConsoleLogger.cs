@@ -9,7 +9,7 @@ using System;
 using System.Linq;
 using System.Threading;
 
-namespace Vlingo.Actors.Plugin.Logging.Console
+namespace Vlingo.Xoom.Actors.Plugin.Logging.Console
 {
     public class ConsoleLogger : ILogger
     {

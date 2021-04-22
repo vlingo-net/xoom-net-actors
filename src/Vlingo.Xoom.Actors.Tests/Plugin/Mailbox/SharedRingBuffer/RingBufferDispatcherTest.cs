@@ -7,12 +7,12 @@
 
 using System;
 using System.Threading;
-using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 {
     public class RingBufferDispatcherTest : ActorsTest
     {

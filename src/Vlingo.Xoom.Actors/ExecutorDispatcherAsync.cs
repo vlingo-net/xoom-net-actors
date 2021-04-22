@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public interface IAsyncMessage {}
     

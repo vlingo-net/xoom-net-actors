@@ -7,7 +7,7 @@
 
 using System.Globalization;
 
-namespace Vlingo.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin
 {
     public class PluginProperties
     {

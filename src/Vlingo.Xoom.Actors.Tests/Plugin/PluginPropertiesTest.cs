@@ -5,10 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin
+namespace Vlingo.Xoom.Actors.Tests.Plugin
 {
     public class PluginPropertiesTest
     {

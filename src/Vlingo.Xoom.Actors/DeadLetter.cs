@@ -5,21 +5,21 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public sealed class DeadLetter
     {
-        private readonly Actor actor;
-        private readonly string representation;
+        private readonly Actor _actor;
+        private readonly string _representation;
 
         public DeadLetter(Actor actor, string representation)
         {
-            this.actor = actor;
-            this.representation = representation;
+            _actor = actor;
+            _representation = representation;
         }
 
-        public string Representation => representation;
+        public string Representation => _representation;
 
-        public override string ToString() => $"DeadLetter[{actor}.{representation}]";
+        public override string ToString() => $"DeadLetter[{_actor}.{_representation}]";
     }
 }

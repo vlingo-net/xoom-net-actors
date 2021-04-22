@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// Transforms Task to APM pattern

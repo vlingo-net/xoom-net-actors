@@ -10,10 +10,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.TestKit
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit
 {
     public class TestMailbox : IMailbox
     {

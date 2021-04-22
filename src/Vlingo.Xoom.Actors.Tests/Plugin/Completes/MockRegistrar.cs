@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors.Tests.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Completes
 {
     public class MockRegistrar : IRegistrar
     {

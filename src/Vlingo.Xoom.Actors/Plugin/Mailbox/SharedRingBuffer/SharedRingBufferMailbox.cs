@@ -9,7 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailbox : IMailbox
     {

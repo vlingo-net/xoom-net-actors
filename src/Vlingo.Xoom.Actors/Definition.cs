@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     // TODO: possible removal/cleanup of overloaded ctors
     public sealed class Definition

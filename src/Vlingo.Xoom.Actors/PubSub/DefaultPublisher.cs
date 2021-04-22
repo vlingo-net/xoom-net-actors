@@ -5,20 +5,17 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.PubSub
+namespace Vlingo.Xoom.Actors.PubSub
 {
     public class DefaultPublisher : IPublisher
     {
-        private readonly Subscriptions subscriptions;
+        private readonly Subscriptions _subscriptions;
 
-        public DefaultPublisher()
-        {
-            subscriptions = new Subscriptions();
-        }
+        public DefaultPublisher() => _subscriptions = new Subscriptions();
 
         public virtual void Publish(Topic topic, IMessage message)
         {
-            foreach(var subscriber in subscriptions.ForTopic(topic))
+            foreach(var subscriber in _subscriptions.ForTopic(topic))
             {
                 subscriber.Receive(message);
             }
@@ -26,17 +23,17 @@ namespace Vlingo.Actors.PubSub
 
         public virtual bool Subscribe(Topic topic, ISubscriber subscriber)
         {
-            var affectedSubscriptions = subscriptions.Create(topic, subscriber);
+            var affectedSubscriptions = _subscriptions.Create(topic, subscriber);
             return affectedSubscriptions.HasAny;
         }
 
         public virtual bool Unsubscribe(Topic topic, ISubscriber subscriber)
         {
-            var affectedSubscriptions = subscriptions.Cancel(topic, subscriber);
+            var affectedSubscriptions = _subscriptions.Cancel(topic, subscriber);
             return affectedSubscriptions.HasAny;
         }
 
         public virtual void UnsubscribeAllTopics(ISubscriber subscriber)
-            => subscriptions.CancelAll(subscriber);
+            => _subscriptions.CancelAll(subscriber);
     }
 }

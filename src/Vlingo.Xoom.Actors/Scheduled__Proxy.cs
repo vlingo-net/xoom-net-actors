@@ -1,7 +1,7 @@
 using System;
-using Vlingo.Actors;
+using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Common
+namespace Vlingo.Xoom.Actors
 {
     public class Scheduled__Proxy<T> : IScheduled<T>
     {

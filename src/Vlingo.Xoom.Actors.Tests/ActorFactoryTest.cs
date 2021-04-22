@@ -7,10 +7,10 @@
 
 using System;
 using System.Threading;
-using Vlingo.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ActorFactoryTest : ActorsTest
     {

@@ -8,7 +8,7 @@
 using System;
 using Vlingo.Xoom.UUID;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class GuidAddress : IAddress
     {

@@ -9,13 +9,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using Vlingo.Actors.Plugin.Completes;
-using Vlingo.Actors.Plugin.Logging;
-using Vlingo.Actors.Plugin.Mailbox;
+using Vlingo.Xoom.Actors.Plugin.Completes;
+using Vlingo.Xoom.Actors.Plugin.Logging;
+using Vlingo.Xoom.Actors.Plugin.Mailbox;
 using Vlingo.Xoom.Common;
 using Vlingo.Xoom.Common.Compiler;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// The <c>World</c> of the actor runtime through which all Stage and Actor instances are created and run.

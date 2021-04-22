@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 {
     public class ManyToOneConcurrentArrayQueueDispatcher : IRunnable, IDispatcher
     {

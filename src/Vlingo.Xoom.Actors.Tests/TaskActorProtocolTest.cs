@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class TaskActorProtocolTest : ActorsTest
     {

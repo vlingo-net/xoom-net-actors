@@ -8,7 +8,7 @@
 using System;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
 {
     public class ExecutorDispatcher : IDispatcher
     {

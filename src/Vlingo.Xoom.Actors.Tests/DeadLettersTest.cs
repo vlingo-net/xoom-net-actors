@@ -7,11 +7,11 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
-using static Vlingo.Actors.Tests.DeadLettersTest;
+using static Vlingo.Xoom.Actors.Tests.DeadLettersTest;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class DeadLettersTest : ActorsTest
     {

@@ -6,9 +6,9 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using Xunit;
-using StopAllSupervisorResult = Vlingo.Actors.Tests.Supervision.StopAllSupervisorActor.StopAllSupervisorResult;
+using StopAllSupervisorResult = Vlingo.Xoom.Actors.Tests.Supervision.StopAllSupervisorActor.StopAllSupervisorResult;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class SupervisionStrategyTest : ActorsTest
     {

@@ -8,10 +8,10 @@
 using System;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
-    /// Supports providing a latent <see cref="ICompletes{T}"/> outcome by way of <see cref="ICompletesEventually"/>.
+    /// Supports providing a latent <see cref="ICompletes{TResult}"/> outcome by way of <see cref="ICompletesEventually"/>.
     /// Used by <c>StateObjectQueryActor</c> to provide answers from queries that complete asynchronously
     /// to the original message delivery.
     /// </summary>

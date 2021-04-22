@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using Xunit.Abstractions;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class Converter : TextWriter
     {

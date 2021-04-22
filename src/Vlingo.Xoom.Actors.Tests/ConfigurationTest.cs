@@ -5,17 +5,17 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin.Completes;
-using Vlingo.Actors.Plugin.Eviction;
-using Vlingo.Actors.Plugin.Logging.Console;
-using Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
-using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
-using Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer;
-using Vlingo.Actors.Plugin.Supervision;
-using Vlingo.Actors.Tests.Supervision;
+using Vlingo.Xoom.Actors.Plugin.Completes;
+using Vlingo.Xoom.Actors.Plugin.Eviction;
+using Vlingo.Xoom.Actors.Plugin.Logging.Console;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer;
+using Vlingo.Xoom.Actors.Plugin.Supervision;
+using Vlingo.Xoom.Actors.Tests.Supervision;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ConfigurationTest
     {

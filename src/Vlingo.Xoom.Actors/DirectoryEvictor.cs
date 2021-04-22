@@ -7,10 +7,10 @@
 
 using System.Diagnostics;
 using System.Linq;
-using Vlingo.Actors.Plugin.Eviction;
+using Vlingo.Xoom.Actors.Plugin.Eviction;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     internal class DirectoryEvictor : Actor, IScheduled<object>
     {

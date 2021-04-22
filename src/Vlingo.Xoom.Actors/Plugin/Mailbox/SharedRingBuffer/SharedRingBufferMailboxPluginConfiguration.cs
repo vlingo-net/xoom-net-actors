@@ -5,14 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class SharedRingBufferMailboxPluginConfiguration : IPluginConfiguration
     {
-        private SharedRingBufferMailboxPluginConfiguration()
-        {
-            Name = "ringMailbox";
-        }
+        private SharedRingBufferMailboxPluginConfiguration() => Name = "ringMailbox";
 
         public static SharedRingBufferMailboxPluginConfiguration Define()
             => new SharedRingBufferMailboxPluginConfiguration();

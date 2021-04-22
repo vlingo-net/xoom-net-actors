@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox
 {
     public interface ICountTaker
     {

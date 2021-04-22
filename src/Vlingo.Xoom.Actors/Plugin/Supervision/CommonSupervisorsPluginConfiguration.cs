@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision
 {
     public class CommonSupervisorsPluginConfiguration : IPluginConfiguration
     {

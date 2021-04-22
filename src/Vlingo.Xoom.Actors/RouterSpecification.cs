@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// RouterSpecification specifies the definition and protocol of
@@ -16,9 +16,9 @@ namespace Vlingo.Actors
     /// </summary>
     public class RouterSpecification<T>
     {
-        private readonly int initialPoolSize;
-        private readonly Definition routerDefinition;
-        private readonly Type routerProtocol;
+        private readonly int _initialPoolSize;
+        private readonly Definition _routerDefinition;
+        private readonly Type _routerProtocol;
 
         public RouterSpecification(int poolSize, Definition routerDefinition)
         {
@@ -27,15 +27,15 @@ namespace Vlingo.Actors
                 throw new ArgumentException("poolSize must be 1 or greater");
             }
 
-            initialPoolSize = poolSize;
-            this.routerDefinition = routerDefinition;
-            routerProtocol = typeof(T);
+            _initialPoolSize = poolSize;
+            _routerDefinition = routerDefinition;
+            _routerProtocol = typeof(T);
         }
 
-        public virtual int InitialPoolSize => initialPoolSize;
+        public virtual int InitialPoolSize => _initialPoolSize;
 
-        public virtual Definition RouterDefinition => routerDefinition;
+        public virtual Definition RouterDefinition => _routerDefinition;
 
-        public virtual Type RouterProtocol => routerProtocol;
+        public virtual Type RouterProtocol => _routerProtocol;
     }
 }

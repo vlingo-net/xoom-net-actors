@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public static class ActorFactory
     {

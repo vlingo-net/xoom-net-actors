@@ -10,14 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Vlingo.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
-using TestResults = Vlingo.Actors.Tests.WorldTest.TestResults;
-using SimpleActor = Vlingo.Actors.Tests.WorldTest.SimpleActor;
-using Vlingo.Actors.TestKit;
+using TestResults = Vlingo.Xoom.Actors.Tests.WorldTest.TestResults;
+using SimpleActor = Vlingo.Xoom.Actors.Tests.WorldTest.SimpleActor;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class StageTest : ActorsTest
     {

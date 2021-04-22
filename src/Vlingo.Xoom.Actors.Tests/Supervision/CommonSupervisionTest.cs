@@ -5,11 +5,12 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin.Logging.Console;
-using Vlingo.Actors.Plugin.Supervision;
+using Vlingo.Xoom.Actors.Plugin.Logging.Console;
+using Vlingo.Xoom.Actors.Plugin.Supervision;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class CommonSupervisionTest : ActorsTest
     {
@@ -27,7 +28,7 @@ namespace Vlingo.Actors.Tests.Supervision
                 );
 
             TestWorld.Terminate();
-            TestWorld = Actors.TestKit.TestWorld.Start($"{typeof(CommonSupervisionTest).Name}-world", configuration);
+            TestWorld = TestWorld.Start($"{typeof(CommonSupervisionTest).Name}-world", configuration);
             World = TestWorld.World;
         }
 

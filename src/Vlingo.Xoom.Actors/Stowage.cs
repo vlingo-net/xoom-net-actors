@@ -9,35 +9,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     internal class Stowage
     {
-        private Queue<IMessage>? stowedMessages;
-        private volatile bool dispersing;
-        private volatile bool stowing;
+        private Queue<IMessage>? _stowedMessages;
+        private volatile bool _dispersing;
+        private volatile bool _stowing;
 
         public Stowage()
         {
-            dispersing = false;
-            stowing = false;
+            _dispersing = false;
+            _stowing = false;
             Reset();
         }
 
         public override string ToString()
-            => $"Stowage[stowing={stowing}, dispersing={dispersing}, messages={stowedMessages}]";
+            => $"Stowage[stowing={_stowing}, dispersing={_dispersing}, messages={_stowedMessages}]";
 
-        internal int Count => stowedMessages!.Count;
+        internal int Count => _stowedMessages!.Count;
 
         internal void Dump(ILogger logger)
         {
-            foreach (var message in stowedMessages!)
+            foreach (var message in _stowedMessages!)
             {
                 logger.Debug($"STOWED: {message}");
             }
         }
 
-        internal bool HasMessages => stowedMessages!.Count > 0;
+        internal bool HasMessages => _stowedMessages!.Count > 0;
 
         internal IMessage? Head
         {
@@ -49,31 +49,31 @@ namespace Vlingo.Actors
                     return null;
                 }
 
-                return stowedMessages!.Dequeue();
+                return _stowedMessages!.Dequeue();
             }
         }
 
         internal void Reset()
         {
-            stowedMessages = new Queue<IMessage>();
-            stowing = false;
-            dispersing = false;
+            _stowedMessages = new Queue<IMessage>();
+            _stowing = false;
+            _dispersing = false;
         }
 
-        internal bool IsStowing => stowing;
+        internal bool IsStowing => _stowing;
 
         internal void StowingMode()
         {
-            stowing = true;
-            dispersing = false;
+            _stowing = true;
+            _dispersing = false;
         }
 
-        internal bool IsDispersing => dispersing;
+        internal bool IsDispersing => _dispersing;
 
         internal void DispersingMode()
         {
-            stowing = false;
-            dispersing = true;
+            _stowing = false;
+            _dispersing = true;
         }
 
         internal void Restow(Stowage other)
@@ -102,7 +102,7 @@ namespace Vlingo.Actors
                     toStow = (IMessage)Activator.CreateInstance(stowedLocalMsgType, message)!;
                 }
 
-                stowedMessages!.Enqueue(toStow);
+                _stowedMessages!.Enqueue(toStow);
             }
         }
 
@@ -114,8 +114,8 @@ namespace Vlingo.Actors
                 return newerMessage;
             }
 
-            var olderMessage = stowedMessages!.Dequeue();
-            stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)newerMessage));
+            var olderMessage = _stowedMessages!.Dequeue();
+            _stowedMessages.Enqueue(new StowedLocalMessage<T>((LocalMessage<T>)newerMessage));
             return olderMessage;
         }
     }

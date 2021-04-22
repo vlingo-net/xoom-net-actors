@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 using Vlingo.Xoom.Common.Compiler;
 using static Vlingo.Xoom.Common.Compiler.DynaNaming;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     internal static class ActorProxy
     {

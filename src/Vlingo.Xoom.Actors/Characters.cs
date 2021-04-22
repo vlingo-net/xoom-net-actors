@@ -9,34 +9,34 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class Characters<T>
     {
-        private int current;
-        private readonly T[] states;
+        private int _current;
+        private readonly T[] _states;
 
         public Characters(IList<T> states)
         {
-            this.states = states.ToArray();
-            current = 0;
+            _states = states.ToArray();
+            _current = 0;
         }
 
         public int Become(int which)
         {
-            if (which < 0 || which >= states.Length)
+            if (which < 0 || which >= _states.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(which), "Invalid state");
             }
-            if (states[which] == null)
+            if (_states[which] == null)
             {
                 throw new ArgumentOutOfRangeException($"The state {which} is null.");
             }
-            var previous = current;
-            current = which;
+            var previous = _current;
+            _current = which;
             return previous;
         }
 
-        public T Current => states[current];
+        public T Current => _states[_current];
     }
 }

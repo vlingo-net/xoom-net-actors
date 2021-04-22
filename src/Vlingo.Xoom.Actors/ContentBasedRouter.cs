@@ -7,7 +7,7 @@
 
 using System;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// ContentBasedRouter is a kind of <see cref="Router{P}"/> that considers the

@@ -5,18 +5,15 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin;
 
-namespace Vlingo.Actors.Tests.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Completes
 {
     public class MockCompletesPlugin : IPlugin
     {
-        public MockCompletesEventuallyProvider completesEventuallyProvider;
-        private readonly MockCompletesEventually.CompletesResults completesResults;
-        public MockCompletesPlugin(MockCompletesEventually.CompletesResults completesResults)
-        {
-            this.completesResults = completesResults;
-        }
+        public MockCompletesEventuallyProvider CompletesEventuallyProvider;
+        private readonly MockCompletesEventually.CompletesResults _completesResults;
+        public MockCompletesPlugin(MockCompletesEventually.CompletesResults completesResults) => _completesResults = completesResults;
 
         public string Name => null;
 
@@ -30,8 +27,8 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
 
         public void Start(IRegistrar registrar)
         {
-            completesEventuallyProvider = new MockCompletesEventuallyProvider(completesResults);
-            registrar.Register("mock-completes-eventually", completesEventuallyProvider);
+            CompletesEventuallyProvider = new MockCompletesEventuallyProvider(_completesResults);
+            registrar.Register("mock-completes-eventually", CompletesEventuallyProvider);
         }
 
         public IPlugin With(IPluginConfiguration overrideConfiguration) => null;

@@ -9,7 +9,7 @@ using System;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     public class ResumingMailbox : IMailbox
     {

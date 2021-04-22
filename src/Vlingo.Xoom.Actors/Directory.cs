@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     internal sealed class Directory
     {

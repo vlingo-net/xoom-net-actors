@@ -7,30 +7,30 @@
 
 using System;
 using System.Collections.Generic;
-using Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.TestKit;
 using Xunit;
 
-namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 {
     public class ConcurrentQueueMailboxTest : ActorsTest
     {
         private const int Total = 10_000;
 
-        private IDispatcher dispatcher;
-        private IMailbox mailbox;
+        private IDispatcher _dispatcher;
+        private IMailbox _mailbox;
 
         public ConcurrentQueueMailboxTest()
         {
-            dispatcher = new ExecutorDispatcher(1, 1.0f);
-            mailbox = new ConcurrentQueueMailbox(dispatcher, 1);
+            _dispatcher = new ExecutorDispatcher(1, 1.0f);
+            _mailbox = new ConcurrentQueueMailbox(_dispatcher, 1);
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            mailbox.Close();
-            dispatcher.Close();
+            _mailbox.Close();
+            _dispatcher.Close();
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 var countParam = i;
                 Action<ICountTaker> consumer = consumerActor => consumerActor.Take(countParam);
                 var message = new LocalMessage<ICountTaker>(actor, consumer, "Take(int)");
-                mailbox.Send(message);
+                _mailbox.Send(message);
             }
 
             for (var i = 0; i < Total; ++i)
@@ -56,19 +56,19 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         [Fact]
         public void TestThatSuspendResumes()
         {
-            const string Paused = "paused#";
-            const string Exceptional = "exceptional#";
+            const string paused = "paused#";
+            const string exceptional = "exceptional#";
 
             var dispatcher = new ExecutorDispatcher(1, 1.0f);
             var mailbox = new ConcurrentQueueMailbox(dispatcher, 1);
 
-            mailbox.SuspendExceptFor(Paused, typeof(CountTakerActor));
+            mailbox.SuspendExceptFor(paused, typeof(CountTakerActor));
 
-            mailbox.SuspendExceptFor(Exceptional, typeof(CountTakerActor));
+            mailbox.SuspendExceptFor(exceptional, typeof(CountTakerActor));
 
-            mailbox.Resume(Exceptional);
+            mailbox.Resume(exceptional);
 
-            mailbox.Resume(Paused);
+            mailbox.Resume(paused);
 
             Assert.False(mailbox.IsSuspended);
         }
@@ -87,20 +87,20 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
         private class TestResults
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
 
             public TestResults(int happenings)
             {
                 var list = new List<int>();
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(happenings)
                     .WritingWith<int>("counts", list.Add)
                     .ReadingWith<int, int>("counts", i => list[i]);
             }
 
-            public void AddCount(int count) => safely.WriteUsing("counts", count);
+            public void AddCount(int count) => _safely.WriteUsing("counts", count);
 
-            public int GetCounts(int index) => safely.ReadFrom<int, int>("counts", index);
+            public int GetCounts(int index) => _safely.ReadFrom<int, int>("counts", index);
         }
     }
 }

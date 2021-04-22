@@ -7,11 +7,11 @@
 
 using System;
 using System.Threading;
-using Vlingo.Actors.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class LocalMessageTest : ActorsTest
     {
@@ -60,36 +60,36 @@ namespace Vlingo.Actors.Tests
 
         private class SimpleTestResults
         {
-            private readonly AccessSafely deliveries;
+            private readonly AccessSafely _deliveries;
 
             public SimpleTestResults(int times)
             {
                 var count = new AtomicInteger(0);
-                deliveries = AccessSafely.AfterCompleting(times);
-                deliveries.WritingWith<int>("deliveries", _ => count.IncrementAndGet());
-                deliveries.ReadingWith("deliveries", count.Get);
+                _deliveries = AccessSafely.AfterCompleting(times);
+                _deliveries.WritingWith<int>("deliveries", _ => count.IncrementAndGet());
+                _deliveries.ReadingWith("deliveries", count.Get);
             }
 
-            internal void Increment() => deliveries.WriteUsing("deliveries", 1);
+            internal void Increment() => _deliveries.WriteUsing("deliveries", 1);
 
-            internal int GetDeliveries() => deliveries.ReadFrom<int>("deliveries");
+            internal int GetDeliveries() => _deliveries.ReadFrom<int>("deliveries");
         }
 
         private class SimpleActor : Actor, ISimple
         {
             public static readonly ThreadLocal<SimpleActor> Instance = new ThreadLocal<SimpleActor>();
 
-            private readonly SimpleTestResults testResults;
+            private readonly SimpleTestResults _testResults;
 
             public SimpleActor(SimpleTestResults testResults)
             {
-                this.testResults = testResults;
+                _testResults = testResults;
                 Instance.Value = this;
             }
 
-            public void Simple() => testResults.Increment();
+            public void Simple() => _testResults.Increment();
 
-            public void Simple2(int val) => testResults.Increment();
+            public void Simple2(int val) => _testResults.Increment();
         }
     }
 

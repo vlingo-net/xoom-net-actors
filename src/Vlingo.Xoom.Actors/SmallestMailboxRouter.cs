@@ -6,7 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 
-namespace Vlingo.Actors
+namespace Vlingo.Xoom.Actors
 {
     /// <summary>
     /// SmallestMailboxRouter

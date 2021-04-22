@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using Vlingo.Xoom.Common.Serialization;
 using Xunit;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ActorProxyBaseTest
     {
@@ -39,7 +39,7 @@ namespace Vlingo.Actors.Tests
     class ActorProxyBaseImpl : ActorProxyBase<IProto>, IProto
     {
         public ActorProxyBaseImpl(Definition definition, IAddress address)
-            : base(Actors.Definition.SerializationProxy<IProto>.From(definition), address)
+            : base(Xoom.Actors.Definition.SerializationProxy<IProto>.From(definition), address)
         {
             
         }

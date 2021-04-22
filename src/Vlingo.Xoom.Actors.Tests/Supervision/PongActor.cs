@@ -7,14 +7,14 @@
 
 using System;
 using System.Threading;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class PongActor : Actor, IPong
     {
-        public static ThreadLocal<PongActor> Instance = new ThreadLocal<PongActor>();
+        public static readonly ThreadLocal<PongActor> Instance = new ThreadLocal<PongActor>();
 
         private readonly PongTestResults _testResults;
 

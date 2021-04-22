@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Actors.Plugin.Mailbox
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox
 {
     public sealed class DefaultMailboxProviderKeeper : IMailboxProviderKeeper
     {

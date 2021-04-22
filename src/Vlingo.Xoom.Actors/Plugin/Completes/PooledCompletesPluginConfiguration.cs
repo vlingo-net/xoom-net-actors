@@ -5,14 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Plugin.Completes
 {
     public class PooledCompletesPluginConfiguration : IPluginConfiguration
     {
-        private PooledCompletesPluginConfiguration()
-        {
-            Name = "pooledCompletes";
-        }
+        private PooledCompletesPluginConfiguration() => Name = "pooledCompletes";
 
         public static PooledCompletesPluginConfiguration Define() => new PooledCompletesPluginConfiguration();
 

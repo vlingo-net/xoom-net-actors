@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
 {
     public class RingBufferDispatcher : IRunnable, IDispatcher
     {

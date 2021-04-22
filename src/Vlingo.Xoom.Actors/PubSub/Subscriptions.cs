@@ -8,16 +8,13 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Actors.PubSub
+namespace Vlingo.Xoom.Actors.PubSub
 {
     public class Subscriptions
     {
         private readonly IDictionary<Topic, ISet<ISubscriber>> index;
 
-        public Subscriptions()
-        {
-            index = new Dictionary<Topic, ISet<ISubscriber>>();
-        }
+        public Subscriptions() => index = new Dictionary<Topic, ISet<ISubscriber>>();
 
         public virtual AffectedSubscriptions Create(Topic topic, ISubscriber subscriber)
         {

@@ -5,11 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using Vlingo.Actors.Tests.Supervision;
+using Vlingo.Xoom.Actors.Tests.Supervision;
 using Xunit;
-using SuspendedSenderSupervisorResults = Vlingo.Actors.Tests.Supervision.SuspendedSenderSupervisorActor.SuspendedSenderSupervisorResults;
+using SuspendedSenderSupervisorResults = Vlingo.Xoom.Actors.Tests.Supervision.SuspendedSenderSupervisorActor.SuspendedSenderSupervisorResults;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ActorSuspendResumeTest : ActorsTest
     {

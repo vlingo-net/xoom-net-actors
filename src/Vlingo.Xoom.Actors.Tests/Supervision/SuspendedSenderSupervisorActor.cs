@@ -7,10 +7,10 @@
 
 using System;
 using System.Threading;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
-using Vlingo.Actors.TestKit;
 
-namespace Vlingo.Actors.Tests.Supervision
+namespace Vlingo.Xoom.Actors.Tests.Supervision
 {
     public class SuspendedSenderSupervisorActor : Actor, ISupervisor, IFailureControlSender
     {

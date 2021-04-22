@@ -5,11 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-using System;
 using Xunit;
-using static Vlingo.Actors.Tests.ActorFactoryTest;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class DirectoryTest : ActorsTest
     {
@@ -78,6 +76,6 @@ namespace Vlingo.Actors.Tests
             Assert.Null(directory.ActorOf(World.AddressFactory.UniqueWith("test-actor6")));
         }
 
-        private class TestInterfaceActor : Actor, ITestInterface { }
+        private class TestInterfaceActor : Actor, ActorFactoryTest.ITestInterface { }
     }
 }

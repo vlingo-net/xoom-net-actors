@@ -5,7 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin
 {
     public interface IPluginConfiguration
     {

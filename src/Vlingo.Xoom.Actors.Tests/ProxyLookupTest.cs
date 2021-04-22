@@ -9,7 +9,7 @@ using System;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Vlingo.Actors.Tests
+namespace Vlingo.Xoom.Actors.Tests
 {
     public class ProxyLookupTest : ActorsTest
     {
