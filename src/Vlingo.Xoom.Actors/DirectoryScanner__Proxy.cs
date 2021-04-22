@@ -12,8 +12,8 @@ namespace Vlingo.Actors
 {
     public class DirectoryScanner__Proxy : IDirectoryScanner
     {
-        private const string ActorOfRepresentation1 = "ActorOf<T>(Vlingo.Actors.Address)";
-        private const string ActorOfRepresentation2 = "MaybeActorOf<T>(Vlingo.Actors.Address)";
+        private const string ActorOfRepresentation1 = "ActorOf<T>(Vlingo.Xoom.Actors.Address)";
+        private const string ActorOfRepresentation2 = "MaybeActorOf<T>(Vlingo.Xoom.Actors.Address)";
 
         private readonly Actor _actor;
         private readonly IMailbox _mailbox;

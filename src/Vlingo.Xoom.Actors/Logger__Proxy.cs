@@ -28,11 +28,11 @@ namespace Vlingo.Actors
         private const string ErrorRepresentation14 = "Error(string)";
         private const string ErrorRepresentation15 = "Error(string, System.Object[])";
         private const string ErrorRepresentation16 = "Error(string, System.Exception)";
-        private const string TraceRepresentation17 = "Trace(Vlingo.Actors.Logging.LogEvent)";
-        private const string DebugRepresentation18 = "Debug(Vlingo.Actors.Logging.LogEvent)";
-        private const string InfoRepresentation19 = "Info(Vlingo.Actors.Logging.LogEvent)";
-        private const string WarnRepresentation20 = "Warn(Vlingo.Actors.Logging.LogEvent)";
-        private const string ErrorRepresentation21 = "Error(Vlingo.Actors.Logging.LogEvent)";
+        private const string TraceRepresentation17 = "Trace(Vlingo.Xoom.Actors.Logging.LogEvent)";
+        private const string DebugRepresentation18 = "Debug(Vlingo.Xoom.Actors.Logging.LogEvent)";
+        private const string InfoRepresentation19 = "Info(Vlingo.Xoom.Actors.Logging.LogEvent)";
+        private const string WarnRepresentation20 = "Warn(Vlingo.Xoom.Actors.Logging.LogEvent)";
+        private const string ErrorRepresentation21 = "Error(Vlingo.Xoom.Actors.Logging.LogEvent)";
 
         private readonly Actor _actor;
         private readonly IMailbox _mailbox;

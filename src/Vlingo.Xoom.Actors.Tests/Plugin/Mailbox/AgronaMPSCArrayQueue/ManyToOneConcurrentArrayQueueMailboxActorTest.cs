@@ -23,7 +23,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
         {
             var properties = new Properties();
             properties.SetProperty("plugin.name.testArrayQueueMailbox", "true");
-            properties.SetProperty("plugin.testArrayQueueMailbox.classname", "Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin");
+            properties.SetProperty("plugin.testArrayQueueMailbox.classname", "Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin");
             properties.SetProperty("plugin.testArrayQueueMailbox.defaultMailbox", "false");
             properties.SetProperty("plugin.testArrayQueueMailbox.size", "" + MailboxSize);
             properties.SetProperty("plugin.testArrayQueueMailbox.fixedBackoff", "2");

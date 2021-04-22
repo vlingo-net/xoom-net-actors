@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Vlingo.Actors\Vlingo.Actors.csproj" />
+    <ProjectReference Include="..\Vlingo.Xoom.Actors\Vlingo.Xoom.Actors.csproj" />
   </ItemGroup>
 
   <ItemGroup>

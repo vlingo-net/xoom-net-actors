@@ -93,7 +93,7 @@ namespace Vlingo.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
         {
             var properties = new Properties();
             properties.SetProperty("plugin.name.testRingMailbox", "true");
-            properties.SetProperty("plugin.testRingMailbox.classname", "Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer.SharedRingBufferMailboxPlugin");
+            properties.SetProperty("plugin.testRingMailbox.classname", "Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer.SharedRingBufferMailboxPlugin");
             properties.SetProperty("plugin.testRingMailbox.defaultMailbox", "false");
             properties.SetProperty("plugin.testRingMailbox.size", $"{mailboxSize}");
             properties.SetProperty("plugin.testRingMailbox.fixedBackoff", "2");

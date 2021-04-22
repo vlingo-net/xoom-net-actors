@@ -45,7 +45,7 @@ namespace Vlingo.Actors.Plugin.Supervision
             configuration.With(WithSupervisor(
                 "default",
                 "overrideSupervisor",
-                ConfiguredSupervisor.SupervisorFrom("Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverride")));
+                ConfiguredSupervisor.SupervisorFrom("Vlingo.Xoom.Actors.Plugin.Supervision.DefaultSupervisorOverride")));
         }
 
         public void BuildWith(Configuration configuration, PluginProperties properties)

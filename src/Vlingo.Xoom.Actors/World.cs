@@ -102,7 +102,7 @@ namespace Vlingo.Actors
         /// the contents of the <paramref name="configuration"/>.
         /// </summary>
         /// <param name="name">The <c>string</c> name to assign to the new <c>World</c> instance.</param>
-        /// <param name="configuration">The <see cref="Vlingo.Actors.Configuration"/> used for configuration</param>
+        /// <param name="configuration">The <see cref="Vlingo.Xoom.Actors.Configuration"/> used for configuration</param>
         /// <returns>A <c>World</c> instance.</returns>
         public static World Start(string name, Configuration configuration)
         {
@@ -116,7 +116,7 @@ namespace Vlingo.Actors
 
         /// <summary>
         /// Answers a new <c>World</c> with the given <paramref name="name"/> and that is configured with
-        /// the contents of the default <see cref="Vlingo.Actors.Configuration"/> of sensible settings.
+        /// the contents of the default <see cref="Vlingo.Xoom.Actors.Configuration"/> of sensible settings.
         /// </summary>
         /// <param name="name">The <c>string</c> name to assign to the new <c>World</c> instance.</param>
         /// <returns>A <c>World</c> instance.</returns>

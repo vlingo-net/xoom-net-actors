@@ -20,7 +20,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
         {
             var properties = new Properties();
             properties.SetProperty("plugin.name.pooledCompletes", "true");
-            properties.SetProperty("plugin.pooledCompletes.classname", "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin");
+            properties.SetProperty("plugin.pooledCompletes.classname", "Vlingo.Xoom.Actors.Plugin.Completes.PooledCompletesPlugin");
             properties.SetProperty("plugin.pooledCompletes.pool", "10");
             
             var pluginProperties = new PluginProperties("pooledCompletes", properties);
@@ -43,7 +43,7 @@ namespace Vlingo.Actors.Tests.Plugin.Completes
         {
             var properties = new Properties();
             properties.SetProperty("plugin.name.pooledCompletes", "true");
-            properties.SetProperty("plugin.pooledCompletes.classname", "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin");
+            properties.SetProperty("plugin.pooledCompletes.classname", "Vlingo.Xoom.Actors.Plugin.Completes.PooledCompletesPlugin");
             properties.SetProperty("plugin.pooledCompletes.pool", "10");
 
             var pluginProperties = new PluginProperties("pooledCompletes", properties);
