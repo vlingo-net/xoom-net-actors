@@ -12,12 +12,12 @@
       "directoryEviction": true
     },
     "pooledCompletes": {
-      "classname": "Vlingo.Actors.Plugin.Completes.PooledCompletesPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Completes.PooledCompletesPlugin",
       "pool": 10,
       "mailbox": "queueMailbox"
     },
     "ringMailbox": {
-      "classname": "Vlingo.Actors.Plugin.Mailbox.SharedRingBuffer.SharedRingBufferMailboxPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer.SharedRingBufferMailboxPlugin",
       "defaultMailbox": false,
       "size": 65535,
       "fixedBackoff": 2,
@@ -25,7 +25,7 @@
       "notifyOnSend": false
     },
     "arrayQueueMailbox": {
-      "classname": "Vlingo.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue.ManyToOneConcurrentArrayQueuePlugin",
       "defaultMailbox": false,
       "size": 65535,
       "fixedBackoff": 2,
@@ -34,33 +34,33 @@
       "notifyOnSend": false
     },
     "queueMailbox": {
-      "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
       "defaultMailbox": true,
       "numberOfDispatchersFactor": 1.5,
       "dispatcherThrottlingCount": 1
     },
     "reuseQueueMailbox": {
-      "classname": "Vlingo.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue.ConcurrentQueueMailboxPlugin",
       "defaultMailbox": false,
       "numberOfDispatchersFactor": 0.5,
       "numberOfDispatchers": 0,
       "dispatcherThrottlingCount": 1
     },
     "consoleLogger": {
-      "classname": "Vlingo.Actors.Plugin.Logging.Console.ConsoleLoggerPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Logging.Console.ConsoleLoggerPlugin",
       "name": "vlingo-net/actors",
       "defaultLogger": true
     },
     "common_supervisors": {
-      "classname": "Vlingo.Actors.Plugin.Supervision.CommonSupervisorsPlugin",
-      "//": "[stage=default name=pingSupervisor protocol=Vlingo.Actors.Supervision.Ping supervisor=Vlingo.Actors.Supervision.PingSupervisorActor][stage=default name=pongSupervisor protocol=Vlingo.Actors.Supervision.Pong supervisor=Vlingo.Actors.Supervision.PongSupervisorActor]"
+      "classname": "Vlingo.Xoom.Actors.Plugin.Supervision.CommonSupervisorsPlugin",
+      "//": "[stage=default name=pingSupervisor protocol=Vlingo.Xoom.Actors.Supervision.Ping supervisor=Vlingo.Xoom.Actors.Supervision.PingSupervisorActor][stage=default name=pongSupervisor protocol=Vlingo.Xoom.Actors.Supervision.Pong supervisor=Vlingo.Xoom.Actors.Supervision.PongSupervisorActor]"
     },
     "override_supervisor": {
-      "classname": "Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverridePlugin",
-      "types": "[stage=default name=overrideSupervisor supervisor=Vlingo.Actors.Plugin.Supervision.DefaultSupervisorOverride]"
+      "classname": "Vlingo.Xoom.Actors.Plugin.Supervision.DefaultSupervisorOverridePlugin",
+      "types": "[stage=default name=overrideSupervisor supervisor=Vlingo.Xoom.Actors.Plugin.Supervision.DefaultSupervisorOverride]"
     },
     "directoryEviction": {
-      "classname": "Vlingo.Actors.Plugin.Eviction.DirectoryEvictionPlugin",
+      "classname": "Vlingo.Xoom.Actors.Plugin.Eviction.DirectoryEvictionPlugin",
       "enabled": false,
       "lruThresholdMillis": 600000,
       "fillRatioHigh": 0.8
