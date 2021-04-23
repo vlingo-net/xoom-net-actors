@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\vlingo-64x64.png" Pack="true" PackagePath="\" />
     <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.0" />
     <None Include="vlingo-actors.json" Pack="true" PackagePath="lib\netstandard2.1" />
   </ItemGroup>
