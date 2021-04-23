@@ -165,7 +165,7 @@ namespace Vlingo.Xoom.Actors
             return actor!.ProtocolActor;
         }
 
-        public T ActorThunkFor<T>(Definition definition, IAddress? address)
+        protected T ActorThunkFor<T>(Definition definition, IAddress? address)
         {
             var actorMailbox = AllocateMailbox(definition, address, null);
             var actor =
