@@ -45,11 +45,11 @@ namespace Vlingo.Xoom.Actors
 
         public override string ToString() => $"{GetType().Name}[id={_id}, name={(string.IsNullOrEmpty(_name) ? "(none)" : _name)}]";
 
-        internal GuidAddress(Guid reservedId) : this(reservedId, null, false)
+        protected internal GuidAddress(Guid reservedId) : this(reservedId, null, false)
         {
         }
 
-        internal GuidAddress(Guid reservedId, string? name) : this(reservedId, name, false)
+        protected internal GuidAddress(Guid reservedId, string? name) : this(reservedId, name, false)
         {
         }
 
