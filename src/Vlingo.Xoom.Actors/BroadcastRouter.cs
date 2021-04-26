@@ -13,40 +13,40 @@ namespace Vlingo.Xoom.Actors
     /// <summary>
     /// BrodcastRouter
     /// </summary>
-    /// <typeparam name="P"></typeparam>
-    public abstract class BroadcastRouter<P> : Router<P>
+    /// <typeparam name="TP"></typeparam>
+    public abstract class BroadcastRouter<TP> : Router<TP>
     {
-        protected internal BroadcastRouter(RouterSpecification<P> specification) : base(specification)
+        protected internal BroadcastRouter(RouterSpecification<TP> specification) : base(specification)
         {
         }
 
         /// <summary>
         /// See <see cref="Router{P}.ComputeRouting"/>
         /// </summary>
-        protected internal override Routing<P> ComputeRouting() => Routing.With(Routees);
+        protected internal override Routing<TP> ComputeRouting() => Routing.With(Routees);
 
         /// <summary>
         /// See <see cref="Router{P}.DispatchQuery{T1, R}(Func{P, T1, ICompletes{R}}, T1)"/>
         /// </summary>
-        protected internal override ICompletes<R> DispatchQuery<T1, R>(System.Func<P, T1, ICompletes<R>> query, T1 routable1)
+        protected internal override ICompletes<R> DispatchQuery<T1, R>(Func<TP, T1, ICompletes<R>> query, T1 routable1)
             => throw new InvalidOperationException("query protocols are not supported by this router by default");
 
         /// <summary>
         /// See <see cref="Router{P}.DispatchQuery{T1, T2, R}(Func{P, T1, T2, ICompletes{R}}, T1, T2)"/>
         /// </summary>
-        protected internal override ICompletes<R> DispatchQuery<T1, T2, R>(Func<P, T1, T2, ICompletes<R>> query, T1 routable1, T2 routable2)
+        protected internal override ICompletes<R> DispatchQuery<T1, T2, R>(Func<TP, T1, T2, ICompletes<R>> query, T1 routable1, T2 routable2)
             => throw new InvalidOperationException("query protocols are not supported by this router by default");
 
         /// <summary>
         /// See <see cref="Router{P}.DispatchQuery{T1, T2, T3, R}(Func{P, T1, T2, T3, ICompletes{R}}, T1, T2, T3)"/>
         /// </summary>
-        protected internal override ICompletes<R> DispatchQuery<T1, T2, T3, R>(Func<P, T1, T2, T3, ICompletes<R>> query, T1 routable1, T2 routable2, T3 routable3)
+        protected internal override ICompletes<R> DispatchQuery<T1, T2, T3, R>(Func<TP, T1, T2, T3, ICompletes<R>> query, T1 routable1, T2 routable2, T3 routable3)
             => throw new InvalidOperationException("query protocols are not supported by this router by default");
 
         /// <summary>
         /// See <see cref="Router{P}.DispatchQuery{T1, T2, T3, T4, R}(Func{P, T1, T2, T3, T4, ICompletes{R}}, T1, T2, T3, T4)"/>
         /// </summary>
-        protected internal override ICompletes<R> DispatchQuery<T1, T2, T3, T4, R>(Func<P, T1, T2, T3, T4, ICompletes<R>> query, T1 routable1, T2 routable2, T3 routable3, T4 routable4)
+        protected internal override ICompletes<R> DispatchQuery<T1, T2, T3, T4, R>(Func<TP, T1, T2, T3, T4, ICompletes<R>> query, T1 routable1, T2 routable2, T3 routable3, T4 routable4)
             => throw new InvalidOperationException("query protocols are not supported by this router by default");
     }
 }

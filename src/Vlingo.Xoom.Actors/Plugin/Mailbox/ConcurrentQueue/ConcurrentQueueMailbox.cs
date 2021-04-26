@@ -268,7 +268,7 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
                 {
                     if(_accessible.CompareAndSet(false, true))
                     {
-                        this._overrides.Add(overrides);
+                        _overrides.Add(overrides);
                         _accessible.Set(false);
                         break;
                     }

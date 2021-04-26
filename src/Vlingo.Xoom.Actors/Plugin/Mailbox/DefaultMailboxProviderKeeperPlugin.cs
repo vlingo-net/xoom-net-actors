@@ -16,14 +16,14 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox
             IMailboxProviderKeeper keeper,
             DefaultMailboxProviderKeeperPluginConfiguration configuration)
         {
-            this._keeper = keeper;
-            this._configuration = configuration;
+            _keeper = keeper;
+            _configuration = configuration;
         }
 
         private DefaultMailboxProviderKeeperPlugin(IPluginConfiguration configuration, DefaultMailboxProviderKeeperPlugin plugin)
         {
             _keeper = plugin._keeper;
-            this._configuration = (DefaultMailboxProviderKeeperPluginConfiguration)configuration;
+            _configuration = (DefaultMailboxProviderKeeperPluginConfiguration)configuration;
         }
 
         public string Name => _configuration.Name;

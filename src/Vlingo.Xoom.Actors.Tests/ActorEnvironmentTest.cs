@@ -91,7 +91,7 @@ namespace Vlingo.Xoom.Actors.Tests
 
             try
             {
-                state.PutValue("address", base.Address);
+                state.PutValue("address", Address);
             }
             catch { }
 
@@ -109,7 +109,7 @@ namespace Vlingo.Xoom.Actors.Tests
 
             try
             {
-                state.PutValue("stage", base.Stage);
+                state.PutValue("stage", Stage);
             }
             catch { }
 

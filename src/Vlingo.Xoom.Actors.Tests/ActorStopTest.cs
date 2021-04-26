@@ -88,10 +88,7 @@ namespace Vlingo.Xoom.Actors.Tests
         {
             private readonly TestResults _results;
 
-            public ChildCreatingStoppableActor(TestResults results)
-            {
-                this._results = results;
-            }
+            public ChildCreatingStoppableActor(TestResults results) => _results = results;
 
             public void CreateChildren()
             {
