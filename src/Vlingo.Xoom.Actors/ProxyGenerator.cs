@@ -115,8 +115,9 @@ namespace Vlingo.Xoom.Actors
         }
 
         private string ClassStatement(Type protocolInterface)
-            => string.Format("public class {0} : {1}{2}\n{{",
+            => string.Format("public class {0} : {1}, {2}{3}\n{{",
                 ClassNameFor(protocolInterface, "__Proxy"),
+                typeof(IProxy).FullName,
                 TypeFullNameToString(GetSimpleTypeName(protocolInterface)),
                 GetGenericConstraints(protocolInterface));
 
@@ -140,6 +141,55 @@ namespace Vlingo.Xoom.Actors
                 .Append("  }");
 
             return builder.ToString();
+        }
+        
+        private void DefineAddress(StringBuilder builder) => 
+            builder.Append("\n  public IAddress Address => this.actor.Address;");
+
+        private void DefineEquals(string protocolInterface, StringBuilder builder)
+        {
+            builder
+                .Append("\n  public override bool Equals(object other)")
+                .Append("\n  {")
+                .Append("\n    if (this == other) return true;")
+                .Append("\n    if (other == null) return false;")
+                .Append("\n    if (other.GetType() != GetType()) return false;")
+                .Append("\n    return Address.Equals(other.FromRaw().Address);")
+                .Append("\n  }\n");
+        }
+
+        private void DefineHashCode(StringBuilder builder)
+        {
+            builder
+                .Append("\n  public override int GetHashCode()")
+                .Append("\n  {")
+                .Append("\n    return 31 + GetType().GetHashCode() + actor.Address.GetHashCode();")
+                .Append("\n  }\n");
+        }
+
+        private string DefineObjectInterface(string protocolInterface)
+        {
+            var builder = new StringBuilder();
+
+            DefineAddress(builder);
+            DefineEquals(protocolInterface, builder);
+            DefineHashCode(builder);
+            DefineToString(protocolInterface, builder);
+
+            return builder.ToString();
+        }
+
+        private void DefineToString(string protocolInterface, StringBuilder builder)
+        {
+            builder
+                .Append("\n  public override string ToString() {")
+                .Append("\n    return ")
+                .Append("\"")
+                .Append(protocolInterface)
+                .Append("[Address=\"")
+                .Append(" + this.actor.Address + ")
+                .Append("\"]\";")
+                .Append("\n  }\n");
         }
 
         private string ImportStatements()
@@ -389,6 +439,7 @@ namespace Vlingo.Xoom.Actors
                 .Append(Constructor(protocolInterface)).Append("\n")
                 .Append(PropertyDefinitions(properties)).Append("\n")
                 .Append(MethodDefinitions(protocolInterface, methods)).Append("\n")
+                .Append(DefineObjectInterface(protocolInterface.Name)).Append("\n")
                 .Append("}\n");
             if (hasNamespace)
             {

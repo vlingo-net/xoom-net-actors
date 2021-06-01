@@ -81,7 +81,7 @@ namespace Vlingo.Xoom.Actors.Tests
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(ClassWithNestedInterface.INestedInterface));
             Assert.Contains("private const string DoSomethingRepresentation1 = \"DoSomething()\";", result.Source);
-            Assert.Contains("public class NestedInterface__Proxy : Vlingo.Xoom.Actors.Tests.ClassWithNestedInterface.INestedInterface", result.Source);
+            Assert.Contains("public class NestedInterface__Proxy : Vlingo.Xoom.Actors.IProxy, Vlingo.Xoom.Actors.Tests.ClassWithNestedInterface.INestedInterface", result.Source);
             Assert.Contains($"Action<Vlingo.Xoom.Actors.Tests.ClassWithNestedInterface.INestedInterface> {_consumerName} = __ => __.DoSomething();", result.Source);
         }
 
@@ -90,7 +90,7 @@ namespace Vlingo.Xoom.Actors.Tests
         {
             var generator = ProxyGenerator.ForTest(false, World.DefaultLogger);
             var result = generator.GenerateFor(typeof(IOuterInnerClassInterface));
-            Assert.Contains("public class OuterInnerClassInterface__Proxy : Vlingo.Xoom.Actors.Tests.IOuterInnerClassInterface", result.Source);
+            Assert.Contains("public class OuterInnerClassInterface__Proxy : Vlingo.Xoom.Actors.IProxy, Vlingo.Xoom.Actors.Tests.IOuterInnerClassInterface", result.Source);
             Assert.Contains("public void DoSomethingWith(Vlingo.Xoom.Actors.Tests.OuterClass.InnerClass obj)", result.Source);
         }
 
