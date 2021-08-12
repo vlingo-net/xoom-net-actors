@@ -14,13 +14,10 @@ namespace Vlingo.Xoom.Actors.Tests
 {
     public class Converter : TextWriter
     {
-        ITestOutputHelper _output;
+        private readonly ITestOutputHelper _output;
         
-        public Converter(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-        
+        public Converter(ITestOutputHelper output) => _output = output;
+
         public override Encoding Encoding => Encoding.UTF8;
 
         public override void WriteLine(string message)
