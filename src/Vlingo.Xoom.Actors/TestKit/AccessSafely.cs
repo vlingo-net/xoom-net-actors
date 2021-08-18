@@ -205,13 +205,13 @@ namespace Vlingo.Xoom.Actors.TestKit
         /// Answer the value associated with <paramref name="name"/>.
         /// </summary>
         /// <typeparam name="T">The type of the parameter to the function.</typeparam>
-        /// <typeparam name="Tr">The type of the return value associated with the name.</typeparam>
+        /// <typeparam name="TR">The type of the return value associated with the name.</typeparam>
         /// <param name="name">The name of the value to answer.</param>
         /// <param name="parameter">The <typeparamref name="T"/> typed function parameter.</param>
         /// <returns></returns>
-        public virtual Tr ReadFrom<T, Tr>(string name, T parameter)
+        public virtual TR ReadFrom<T, TR>(string name, T parameter)
         {
-            var function = GetRequiredFunction<T, Tr>(name);
+            var function = GetRequiredFunction<T, TR>(name);
 
             _until.Completes();
 
@@ -241,8 +241,9 @@ namespace Vlingo.Xoom.Actors.TestKit
         /// <param name="name">The name of the value to answer.</param>
         /// <param name="expected">The expected value of type <typeparamref name="T"/>.</param>
         /// <param name="retries">The number of retries.</param>
-        /// <returns></returns>
-        public virtual T ReadFromExpecting<T>(string name, T expected, long retries)
+        /// <param name="throws">Indicates whether if retries didn't reach the expected values should throw or not</param>
+        /// <returns>Value of type T</returns>
+        public virtual T ReadFromExpecting<T>(string name, T expected, long retries, bool throws = true)
         {
             var supplier = GetRequiredSupplier<T>(name);
             T value = default!;
@@ -267,7 +268,12 @@ namespace Vlingo.Xoom.Actors.TestKit
                 }
             }
 
-            throw new InvalidOperationException($"Did not reach expected value: {expected}. Reached {value}");
+            if (throws)
+            {
+                throw new InvalidOperationException($"Did not reach expected value: {expected}. Reached {value}");
+            }
+
+            return value;
         }
 
         /// <summary>
@@ -290,13 +296,13 @@ namespace Vlingo.Xoom.Actors.TestKit
         /// Answer the value associated with <paramref name="name"/> immediately.
         /// </summary>
         /// <typeparam name="T">The type of the parameter to the <code>Func&lt;T, R&gt;</code>.</typeparam>
-        /// <typeparam name="R">The type of the return value associated with <paramref name="name"/>.</typeparam>
+        /// <typeparam name="TR">The type of the return value associated with <paramref name="name"/>.</typeparam>
         /// <param name="name">The name of the value to answer.</param>
         /// <param name="parameter">The T typed function parameter.</param>
         /// <returns></returns>
-        public virtual R ReadFromNow<T, R>(string name, T parameter)
+        public virtual TR ReadFromNow<T, TR>(string name, T parameter)
         {
-            var function = GetRequiredFunction<T, R>(name);
+            var function = GetRequiredFunction<T, TR>(name);
 
             lock (_lock)
             {
