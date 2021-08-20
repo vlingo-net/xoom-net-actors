@@ -32,6 +32,21 @@ namespace Vlingo.Xoom.Actors.Tests
             Assert.Equal(50, answer);
         }
         
+        [Fact]
+        public void TestThatActorAnswersToFailureEventually()
+        {
+            var access = AccessSafely.AfterCompleting(1);
+            access.WritingWith<int>("answer", answer => _value.Set(answer));
+            access.ReadingWith("answer", () => _value.Get());
+
+            _answerGiver.Divide(5, "0")
+                .AndThenConsume(answer => access.WriteUsing("answer", answer));
+
+            var answer = access.ReadFrom<int>("answer");
+
+            Assert.Equal(0, answer);
+        }
+        
         public AnswerEventuallyTest()
         {
             _world = World.StartWithDefaults("test-answer-eventually");
@@ -47,6 +62,7 @@ namespace Vlingo.Xoom.Actors.Tests
     public interface IAnswerGiver
     {
         ICompletes<int> Calculate(string text, int multiplier);
+        ICompletes<int> Divide(int dividend, string divisor);
     }
     
     public class AnswerGiverActor : Actor, IAnswerGiver
@@ -55,10 +71,11 @@ namespace Vlingo.Xoom.Actors.Tests
 
         public override void Start() => _textToInteger = ChildActorFor<ITextToInteger>(Definition.Has<TextToIntegerActor>(Definition.NoParameters));
 
-        public ICompletes<int> Calculate(string text, int multiplier)
-        {
-            return AnswerFrom(_textToInteger.ConvertFrom(text).AndThen(number => number * multiplier));
-        }
+        public ICompletes<int> Calculate(string text, int multiplier) => 
+            AnswerFrom(_textToInteger.ConvertFrom(text).AndThen(number => number * multiplier));
+
+        public ICompletes<int> Divide(int dividend, string divisor) => 
+            AnswerFrom(_textToInteger.ConvertFrom(divisor).UseFailedOutcomeOf(0).AndThen(number => dividend / number));
     }
 
     public interface ITextToInteger

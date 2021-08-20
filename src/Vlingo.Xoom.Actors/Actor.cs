@@ -161,7 +161,10 @@ namespace Vlingo.Xoom.Actors
         /// <returns><see cref="ICompletes"/> of type <typeparamref name="TR"/></returns>
         protected internal ICompletes<TR> AnswerFrom<TR>(ICompletes<TR> eventualOutcome)
         {
-            eventualOutcome.AndThenConsume(value => CompletesEventually().With(value));
+            var completes = CompletesEventually();
+            eventualOutcome
+                .OtherwiseConsume(value => completes.With(value))
+                .AndThenConsume(value => completes.With(value));
             return (ICompletes<TR>)Completes();
         }
 
