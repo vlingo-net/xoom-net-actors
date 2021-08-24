@@ -230,7 +230,19 @@ namespace Vlingo.Xoom.Actors.TestKit
         /// <param name="expected">The expected value of type <typeparamref name="T"/>.</param>
         /// <returns></returns>
         public virtual T ReadFromExpecting<T>(string name, T expected)
-            => ReadFromExpecting<T>(name, expected, long.MaxValue);
+            => ReadFromExpecting(name, expected, long.MaxValue);
+
+        /// <summary>
+        /// Answer the value associated with <paramref name="name"/> but not until
+        /// it reaches the <paramref name="expected"/> value.
+        /// </summary>
+        /// <typeparam name="T">The type of the value associated with the <paramref name="name"/>.</typeparam>
+        /// <param name="name">The name of the value to answer.</param>
+        /// <param name="expected">The expected value of type <typeparamref name="T"/>.</param>
+        /// <param name="predicate">Comparison function for comparing expected value and actual value</param>
+        /// <returns></returns>
+        public virtual T ReadFromExpecting<T>(string name, T expected, Func<T, T, bool>? predicate)
+            => ReadFromExpecting(name, expected, long.MaxValue, predicate);
 
         /// <summary>
         /// Answer the value associated with <paramref name="name"/> but not until
@@ -244,7 +256,18 @@ namespace Vlingo.Xoom.Actors.TestKit
         /// <param name="throws">Indicates whether if retries didn't reach the expected values should throw or not</param>
         /// <returns>Value of type T</returns>
         public virtual T ReadFromExpecting<T>(string name, T expected, long retries, bool throws = true)
+            => ReadFromExpecting(name, expected, retries, throws, null);
+        
+        public virtual T ReadFromExpecting<T>(string name, T expected, long retries, Func<T, T, bool>? predicate)
+            => ReadFromExpecting(name, expected, retries, true, predicate);
+        
+        public virtual T ReadFromExpecting<T>(string name, T expected, long retries, bool throws, Func<T, T, bool>? predicate)
         {
+            if (predicate == null)
+            {
+                predicate = (v1, v2) => Equals(v1, v2);
+            }
+            
             var supplier = GetRequiredSupplier<T>(name);
             T value = default!;
             using (var waiter = new AutoResetEvent(false))
@@ -254,7 +277,7 @@ namespace Vlingo.Xoom.Actors.TestKit
                     lock (_lock)
                     {
                         value = supplier.Invoke();
-                        if (Equals(expected, value))
+                        if (predicate(expected, value))
                         {
                             return value;
                         }
