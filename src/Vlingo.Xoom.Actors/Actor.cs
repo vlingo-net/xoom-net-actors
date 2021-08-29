@@ -258,6 +258,16 @@ namespace Vlingo.Xoom.Actors
 
             return CompletesImpl.ClientCompletes()!;
         }
+        
+        protected internal virtual ICompletes<TResult> Completes<TResult>()
+        {
+            if (CompletesImpl == null || CompletesImpl.InternalClientCompletes == null)
+            {
+                throw new InvalidOperationException("Completes is not available for this protocol behavior; return type must not be void.");
+            }
+
+            return (ICompletes<TResult>) CompletesImpl.ClientCompletes()!;
+        }
 
         /// <summary>
         /// Answers a <c>ICompletesEventually</c> if the behavior of the currently
