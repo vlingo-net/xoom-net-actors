@@ -55,7 +55,7 @@ namespace Vlingo.Xoom.Actors
             return Address.Equals(((PooledCompletes)other).Address);
         }
 
-        public override string ToString() => $"PooledCompletes[Id={Id} Address={Address} Outcome={Outcome}]";
+        public override string ToString() => $"PooledCompletes[Id={Id} Address={Address} Outcome={Outcome} IsStopped={IsStopped}]";
 
         public void Conclude()
         {
