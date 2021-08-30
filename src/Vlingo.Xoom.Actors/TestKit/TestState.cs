@@ -24,7 +24,7 @@ namespace Vlingo.Xoom.Actors.TestKit
         public T ValueOf<T>(string name)
         {
             _state.TryGetValue(name, out object? value);
-            return ((T) value!)!;
+            return (T) value!;
         }
     }
 }
