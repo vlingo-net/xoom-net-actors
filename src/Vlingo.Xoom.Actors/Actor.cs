@@ -123,6 +123,12 @@ namespace Vlingo.Xoom.Actors
         /// </summary>
         /// <returns>The <c>string</c> representation of this <c>Actor</c></returns>
         public override string ToString() => $"Actor[type={GetType().Name} address={Address}]";
+        
+        /// <summary>
+        /// Answers the <c>Definition</c> of this <c>Actor</c>.
+        /// </summary>
+        /// <value>Gets the <c>Definition</c> of this <c>Actor</c></value>
+        public virtual Definition Definition => LifeCycle.Definition;
 
         /// <summary>
         /// Answers the parent <c>Actor</c> of this <c>Actor</c>. (INTERNAL ONLY)
@@ -277,12 +283,6 @@ namespace Vlingo.Xoom.Actors
         /// <returns>A <c>ICompletesEventually</c> instance.</returns>
         protected internal virtual ICompletesEventually CompletesEventually()
             => LifeCycle.Environment.CompletesEventually(CompletesImpl);
-
-        /// <summary>
-        /// Answers the <c>Definition</c> of this <c>Actor</c>.
-        /// </summary>
-        /// <value>Gets the <c>Definition</c> of this <c>Actor</c></value>
-        protected internal virtual Definition Definition => LifeCycle.Definition;
 
         /// <summary>
         /// Answers the <c>Logger</c> of this <c>Actor</c>.
