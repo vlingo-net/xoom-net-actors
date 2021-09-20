@@ -367,7 +367,7 @@ namespace Vlingo.Xoom.Actors
                 new SerializationProxy<T>(
                     definition.ActorName!,
                     definition.MailboxName!,
-                    definition._parameters!,
+                    definition._parameters,
                     definition.Parent != null ? new ActorProxyStub<T>(definition.Parent) : null!,
                     definition.Type!,
                     definition.Evictable);
