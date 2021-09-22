@@ -17,6 +17,8 @@ namespace Vlingo.Xoom.Actors
 
         public long Id => _id.ToLeastSignificantBits();
         
+        public Guid ReservedId => _id;
+        
         public long IdSequence => _id.ToLeastSignificantBits();
         
         public string IdSequenceString => _id.ToLeastSignificantBits().ToString();
