@@ -49,6 +49,8 @@ namespace Vlingo.Xoom.Actors
         /// <inheritdoc cref="IRelocatable"/>
         public TS StateSnapshot<TS>() => default!; // no-op
 
+        public object StateSnapshot() => default!; // no-op
+
         /// <summary>
         /// The default implementation of <c>Start()</c>, which is a no-op. Override if needed.
         /// </summary>
@@ -158,6 +160,8 @@ namespace Vlingo.Xoom.Actors
             CompletesImpl = new ResultCompletes<object>();
         }
         
+        internal IMailbox ActorMailbox(Actor actor) => actor.LifeCycle.Environment.Mailbox;
+
         /// <summary>
         /// Answer my internal <see cref="ICompletes"/> from <c>Completes()</c> after preparing
         /// for the <paramref name="eventualOutcome"/> to be set in my <c>CompletesEventually()</c>.
