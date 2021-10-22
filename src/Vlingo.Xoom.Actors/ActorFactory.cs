@@ -14,6 +14,7 @@ namespace Vlingo.Xoom.Actors
 {
     public static class ActorFactory
     {
+        internal static Func<IAddress?, IMailbox?, IMailbox?> IdentityWrapper = (address, mailbox) => mailbox;
         internal static readonly ThreadLocal<Environment?> ThreadLocalEnvironment = new ThreadLocal<Environment?>(false);
 
         public static Type? ActorClassWithProtocol<TProtocol>(string actorClassname) where TProtocol : Actor
@@ -211,26 +212,16 @@ namespace Vlingo.Xoom.Actors
             Stage stage,
             IAddress? address,
             Definition definition,
-            IMailboxWrapper wrapper)
+            Func<IAddress?, IMailbox?, IMailbox?> wrapper)
         {
             var mailboxName = stage.World.MailboxNameFrom(definition.MailboxName);
             var mailbox = stage.World.AssignMailbox(mailboxName, address?.GetHashCode());
 
-            return wrapper.Wrap(address, mailbox);
+            return wrapper(address, mailbox)!;
         }
 
         internal static IMailbox ActorMailbox(Stage stage,
             IAddress address,
-            Definition definition) => ActorMailbox(stage, address, definition, new IdentityMailboxWrapper());
-        
-        public interface IMailboxWrapper
-        {
-            IMailbox Wrap(IAddress? address, IMailbox mailbox);
-        }
-        
-        internal class IdentityMailboxWrapper : IMailboxWrapper
-        {
-            public IMailbox Wrap(IAddress? address, IMailbox mailbox) => mailbox;
-        }
+            Definition definition) => ActorMailbox(stage, address, definition, IdentityWrapper);
     }
 }
