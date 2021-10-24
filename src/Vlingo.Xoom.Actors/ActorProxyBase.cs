@@ -9,16 +9,16 @@ using System;
 
 namespace Vlingo.Xoom.Actors
 {
-    public abstract class ActorProxyBase<T>
+    public abstract class ActorProxyBase
     {
-        public static TNew Thunk<TNew>(ActorProxyBase<T> proxy, Actor actor, TNew arg) => 
+        public static TNew Thunk<TNew>(ActorProxyBase proxy, Actor actor, TNew arg) => 
             proxy.IsDistributable ? Thunk(actor.LifeCycle.Environment.Stage, arg) : arg;
 
         public static TNew Thunk<TNew>(Stage stage, TNew arg)
         {
-            if (typeof(ActorProxyBase<>).IsAssignableFrom(typeof(TNew)))
+            if (typeof(ActorProxyBase).IsAssignableFrom(typeof(TNew)))
             {
-                var b = (ActorProxyBase<TNew>) (object) arg!;
+                var b = (ActorProxyBase) (object) arg!;
                 return stage.LookupOrStartThunk<TNew>(Actors.Definition.From(stage, b?.Definition, stage.World.DefaultLogger), b?.Address);
             }
 
@@ -29,15 +29,15 @@ namespace Vlingo.Xoom.Actors
         {
         }
         
-        public ActorProxyBase(Definition.SerializationProxy<T> definition, IAddress address)
+        public ActorProxyBase(Type? protocol, Definition.SerializationProxy definition, IAddress address)
         {
-            Protocol = typeof(T);
+            Protocol = protocol;
             Definition = definition;
             Address = address;
         }
 
         public Type? Protocol { get; }
-        public Definition.SerializationProxy<T>? Definition { get; }
+        public Definition.SerializationProxy? Definition { get; }
         public IAddress? Address { get; }
 
         public bool IsDistributable => Address?.IsDistributable ?? false;
