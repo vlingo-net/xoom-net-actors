@@ -17,7 +17,7 @@ namespace Vlingo.Xoom.Actors.Tests
         [Fact]
         public void TestWriteReadJson()
         {
-            ActorProxyBase<IProto> proxy = new ActorProxyBaseImpl(
+            ActorProxyBase proxy = new ActorProxyBaseImpl(
                 Definition.Has<Actor>(Definition.NoParameters), new TestAddress(1));
 
             var serialized = JsonSerialization.Serialized(proxy);
@@ -36,10 +36,10 @@ namespace Vlingo.Xoom.Actors.Tests
     interface IProto {}
 
     [Serializable]
-    class ActorProxyBaseImpl : ActorProxyBase<IProto>, IProto
+    class ActorProxyBaseImpl : ActorProxyBase, IProto
     {
         public ActorProxyBaseImpl(Definition definition, IAddress address)
-            : base(Xoom.Actors.Definition.SerializationProxy<IProto>.From(definition), address)
+            : base(typeof(IProto), Xoom.Actors.Definition.SerializationProxy.From(definition), address)
         {
             
         }
