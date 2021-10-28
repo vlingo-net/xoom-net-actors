@@ -7,9 +7,9 @@
 
 namespace Vlingo.Xoom.Actors
 {
-    public class ActorProxyStub<T> : ActorProxyBase<T>
+    public class ActorProxyStub : ActorProxyBase
     {
-        public ActorProxyStub(Actor actor) : base(Actors.Definition.SerializationProxy<T>.From(actor.Definition), actor.Address)
+        public ActorProxyStub(Actor actor) : base(null, Actors.Definition.SerializationProxy.From(actor.Definition), actor.Address)
         {
         }
     }
