@@ -20,18 +20,23 @@ namespace Vlingo.Xoom.Actors
         
         public static readonly List<object> NoParameters = new List<object>();
 
-        public static Definition From<T>(Stage stage, SerializationProxy<T>? proxy, ILogger logger)
+        public static Definition From(Stage stage, SerializationProxy? proxy, ILogger logger)
         {
             Actor? parent = null;
             if (proxy?.Parent != null)
             {
-                ActorProxyBase<T>.Thunk(stage, proxy.Parent);
-                parent = stage.Directory.ActorOf(proxy.Parent?.Address);
+                ActorProxyBase.Thunk(stage, proxy.Parent);
+                parent = stage.Directory.ActorOf(proxy.Parent.Address);
             }
+            
+            // thunk actor proxies params if necessary; see also Start grid message
+            var thunkParams = proxy?.Parameters
+                .Select(p => ActorProxyBase.Thunk(stage, p))
+                .ToList();
 
             return new Definition(
                 proxy?.Type,
-                proxy?.Parameters ?? Enumerable.Empty<object>(),
+                thunkParams ?? Enumerable.Empty<object>(),
                 parent,
                 proxy?.MailboxName,
                 proxy?.ActorName,
@@ -354,21 +359,21 @@ namespace Vlingo.Xoom.Actors
             return null;
         }
 
-        public class SerializationProxy<T>
+        public class SerializationProxy
         {
             public string ActorName { get; }
             public string MailboxName { get; }
             public IEnumerable<object> Parameters { get; }
-            public ActorProxyStub<T> Parent { get; }
+            public ActorProxyStub Parent { get; }
             public Type Type { get; }
             public bool Evictable { get; }
 
-            public static SerializationProxy<T> From(Definition definition) =>
-                new SerializationProxy<T>(
+            public static SerializationProxy From(Definition definition) =>
+                new SerializationProxy(
                     definition.ActorName!,
                     definition.MailboxName!,
                     definition._parameters,
-                    definition.Parent != null ? new ActorProxyStub<T>(definition.Parent) : null!,
+                    definition.Parent != null ? new ActorProxyStub(definition.Parent) : null!,
                     definition.Type!,
                     definition.Evictable);
 
@@ -376,7 +381,7 @@ namespace Vlingo.Xoom.Actors
                 string actorName,
                 string mailboxName,
                 IEnumerable<object> parameters,
-                ActorProxyStub<T> parent,
+                ActorProxyStub parent,
                 Type type,
                 bool evictable)
             {
@@ -399,7 +404,7 @@ namespace Vlingo.Xoom.Actors
                     return false;
                 }
                 
-                var that = (SerializationProxy<T>) obj;
+                var that = (SerializationProxy) obj;
 
                 return ActorName == that.ActorName
                        && MailboxName == that.MailboxName
