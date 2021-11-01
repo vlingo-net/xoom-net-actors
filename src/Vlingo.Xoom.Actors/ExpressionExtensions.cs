@@ -28,5 +28,8 @@ namespace Vlingo.Xoom.Actors
             
             return arguments;
         }
+        
+        public static Expression<Action<TActor>> ToSerializableExpression<TActor>(this Action<TActor> internalConsumer)
+            => x => internalConsumer(x);
     }
 }
