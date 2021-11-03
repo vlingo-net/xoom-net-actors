@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq.Expressions;
 using Vlingo.Xoom.Common;
 
 namespace Vlingo.Xoom.Actors
@@ -13,10 +14,12 @@ namespace Vlingo.Xoom.Actors
     public interface IMessage
     {
         Actor Actor { get; }
+        ICompletes? Completes { get; }
         void Deliver();
         Type Protocol { get; }
         string Representation { get; }
         bool IsStowed { get; }
+        LambdaExpression SerializableConsumer { get; }
         void Set<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
     }
 }
