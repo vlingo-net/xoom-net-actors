@@ -16,7 +16,6 @@ namespace Vlingo.Xoom.Actors
         private Actor? _actor;
         private ICompletes? _completes;
         private Action<TActor>? _consumer;
-        private Expression<Action<TActor>>? _serializableConsumer;
         private string? _representation;
 
         public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes? completes, string representation)
@@ -25,8 +24,10 @@ namespace Vlingo.Xoom.Actors
             _consumer = consumer;
             _representation = representation;
             _completes = completes;
+            Expression<Action<TActor>> serializableExpression = consumer.ToSerializableExpression();
+            SerializableConsumer = serializableExpression;
         }
-
+        
         public LocalMessage(Actor actor, Action<TActor> consumer, string representation)
             : this(actor, consumer, null, representation)
         {
@@ -40,9 +41,9 @@ namespace Vlingo.Xoom.Actors
         public LocalMessage()
         {
         }
-
-        public Expression<Action<TActor>>? SerializableConsumer => _serializableConsumer;
         
+        public LambdaExpression? SerializableConsumer { get; }
+
         public virtual Actor Actor => _actor!;
 
         public ICompletes? Completes => _completes;
