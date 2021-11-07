@@ -33,7 +33,7 @@ namespace Vlingo.Xoom.Actors
         /// <remarks>
         /// Uses default <see cref="Directory"/> capacity of 32x32.
         /// </remarks>
-        internal Stage(World world, IAddressFactory addressFactory, string name) : this(world, addressFactory, name, 32, 32)
+        protected internal Stage(World world, IAddressFactory addressFactory, string name) : this(world, addressFactory, name, 32, 32)
         {
         }
 
@@ -46,7 +46,7 @@ namespace Vlingo.Xoom.Actors
         /// <param name="name">the name of this <c>Stage</c></param>
         /// <param name="directoryBuckets">The number of buckets</param>
         /// <param name="directoryInitialCapacity">The initial number of elements in each bucket</param>
-        internal Stage(World world, IAddressFactory addressFactory, string name, int directoryBuckets, int directoryInitialCapacity)
+        protected internal Stage(World world, IAddressFactory addressFactory, string name, int directoryBuckets, int directoryInitialCapacity)
         {
             AddressFactory = addressFactory;
             World = world;
@@ -243,6 +243,10 @@ namespace Vlingo.Xoom.Actors
         /// <param name="address">The <c>IAddress</c> of the <c>Actor</c> to find.</param>
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
         public ICompletes<T> ActorOf<T>(IAddress address) => _directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
+        
+        protected internal Actor? ActorOf(Stage stage, IAddress address) => stage.Directory.ActorOf(address);
+
+        protected internal IEnumerable<IAddress> AllActorAddresses(Stage stage) => stage.Directory.Addresses;
         
         public IAddressFactory AddressFactory { get; }
 
@@ -608,7 +612,7 @@ namespace Vlingo.Xoom.Actors
         
         protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
         
-        protected ActorFactory.IMailboxWrapper MailboxWrapper() => new ActorFactory.IdentityMailboxWrapper();
+        protected virtual Func<IAddress?, IMailbox?, IMailbox?> MailboxWrapper() => ActorFactory.IdentityWrapper;
         
         /// <summary>
         /// Answers a Mailbox for an Actor. If maybeMailbox is allocated answer it; otherwise
