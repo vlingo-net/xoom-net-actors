@@ -19,7 +19,7 @@ namespace Vlingo.Xoom.Actors
         Type Protocol { get; }
         string Representation { get; }
         bool IsStowed { get; }
-        LambdaExpression SerializableConsumer { get; }
+        LambdaExpression? SerializableConsumer { get; }
         void Set<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
     }
 }
