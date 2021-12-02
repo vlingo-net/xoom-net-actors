@@ -75,7 +75,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.SharedRingBuffer
 
             var startTime = DateTime.UtcNow;
 
-            for (int count = 1; count <= ThroughputMaxCount; ++count)
+            for (var count = 1; count <= ThroughputMaxCount; ++count)
             {
                 countTaker.Take(count);
             }
