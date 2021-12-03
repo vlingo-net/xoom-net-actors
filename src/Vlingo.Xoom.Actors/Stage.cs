@@ -165,7 +165,7 @@ namespace Vlingo.Xoom.Actors
             return actor!.ProtocolActor;
         }
 
-        protected T ActorThunkFor<T>(Definition definition, IAddress? address)
+        protected virtual T ActorThunkFor<T>(Definition definition, IAddress? address)
         {
             var actorMailbox = AllocateMailbox(definition, address, null);
             var actor =
@@ -440,7 +440,7 @@ namespace Vlingo.Xoom.Actors
         /// <param name="maybeSupervisor"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        internal ActorProtocolActor<T>? ActorProtocolFor<T>(
+        internal virtual ActorProtocolActor<T>? ActorProtocolFor<T>(
             Definition definition,
             Actor? parent,
             IAddress? maybeAddress,
@@ -636,7 +636,7 @@ namespace Vlingo.Xoom.Actors
         /// <param name="maybeSupervisor"></param>
         /// <param name="logger"></param>
         /// <returns></returns>
-        private ActorProtocolActor<object>[]? ActorProtocolFor(
+        internal virtual ActorProtocolActor<object>[]? ActorProtocolFor(
             Type[] protocols,
             Definition definition,
             Actor? parent,
