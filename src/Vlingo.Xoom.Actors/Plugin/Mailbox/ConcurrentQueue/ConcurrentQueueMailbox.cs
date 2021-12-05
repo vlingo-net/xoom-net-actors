@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
@@ -132,10 +133,11 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
             }
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
-        {
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
             throw new NotSupportedException("Not a preallocated mailbox.");
-        }
+
+        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+            throw new NotSupportedException("Not a preallocated mailbox.");
 
         private class SuspendedDeliveryOverrides
         {

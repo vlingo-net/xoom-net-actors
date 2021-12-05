@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
@@ -47,10 +48,11 @@ namespace Vlingo.Xoom.Actors
         {
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
-        {
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
             throw new InvalidOperationException("Not a preallocated mailbox.");
-        }
+
+        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+            throw new InvalidOperationException("Not a preallocated mailbox.");
 
         public void SuspendExceptFor(string name, params Type[] overrides)
         {

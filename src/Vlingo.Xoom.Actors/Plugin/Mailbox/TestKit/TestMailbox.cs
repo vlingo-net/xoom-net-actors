@@ -9,6 +9,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
@@ -33,6 +34,9 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit
 
         public void Run()
             => throw new NotSupportedException("TestMailbox does not support this operation.");
+
+        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+            throw new NotSupportedException("TestMailbox does not support this operation.");
 
         public TaskScheduler TaskScheduler { get; } = null!;
         

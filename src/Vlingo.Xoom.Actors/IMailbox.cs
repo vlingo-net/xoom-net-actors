@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
@@ -102,6 +103,7 @@ namespace Vlingo.Xoom.Actors
         /// <param name="completes">The completes through which return values are communicated; null if void return.</param>
         /// <param name="representation">The string representation of this message invocation.</param>
         void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
+        void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation);
         
         /// <summary>
         /// Gets the mailbox task scheduler for executing <see cref="Task"/> based asynchronous operations.

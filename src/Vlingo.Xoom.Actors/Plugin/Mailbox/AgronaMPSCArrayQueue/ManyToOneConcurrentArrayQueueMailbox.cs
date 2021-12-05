@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
@@ -79,10 +80,11 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public IMessage Receive() => _queue.Take();
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation)
-        {
+        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
             throw new NotSupportedException("Not a preallocated mailbox.");
-        }
+
+        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+            throw new NotSupportedException("Not a preallocated mailbox.");
 
         public void SuspendExceptFor(string name, params Type[] overrides)
         {

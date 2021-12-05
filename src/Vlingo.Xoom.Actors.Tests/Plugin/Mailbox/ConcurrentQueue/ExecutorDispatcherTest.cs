@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
 using Vlingo.Xoom.Actors.TestKit;
@@ -106,7 +107,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
                 _logger = logger;
                 _queue = new ConcurrentQueue<IMessage>();
             }
-            
+
             public TaskScheduler TaskScheduler { get; }
 
             public bool IsClosed => false;
@@ -157,6 +158,9 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
             public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
                 => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
+            
+            public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+                throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
 
             public void SuspendExceptFor(string name, params Type[] overrides)
                 => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");

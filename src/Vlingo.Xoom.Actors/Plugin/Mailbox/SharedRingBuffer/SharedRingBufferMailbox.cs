@@ -6,6 +6,7 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
@@ -82,6 +83,34 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
             }
 
             _messages[ringSendIndex].Set(actor, consumer, completes, representation);
+            while (_readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
+            { }
+
+            if (_notifyOnSend)
+            {
+                _dispatcher.Execute(this);
+            }
+        }
+        
+        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation)
+        {
+            var messageIndex = _sendIndex.IncrementAndGet();
+            var ringSendIndex = (int)(messageIndex % _mailboxSize);
+            int retries = 0;
+            while (ringSendIndex == (int)(_receiveIndex.Get() % _mailboxSize))
+            {
+                if (++retries >= _mailboxSize)
+                {
+                    if (_closed.Get())
+                    {
+                        return;
+                    }
+
+                    retries = 0;
+                }
+            }
+
+            _messages[ringSendIndex].Set(actor, protocol, consumer, completes, representation);
             while (_readyIndex.CompareAndSet(messageIndex - 1, messageIndex))
             { }
 
