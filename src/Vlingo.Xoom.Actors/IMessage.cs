@@ -21,5 +21,6 @@ namespace Vlingo.Xoom.Actors
         bool IsStowed { get; }
         LambdaExpression? SerializableConsumer { get; }
         void Set<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation);
+        void Set(Actor actor, Type protocol, LambdaExpression? consumer, ICompletes? completes, string representation);
     }
 }
