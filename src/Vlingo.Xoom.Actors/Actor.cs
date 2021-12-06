@@ -38,7 +38,7 @@ namespace Vlingo.Xoom.Actors
         /// Answers the <c>Scheduler</c> for this <c>Actor</c>.
         /// </summary>
         /// <value>Gets the <c>Scheduler</c> for this <c>Actor</c>.</value>
-        public virtual Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
+        public Scheduler Scheduler => LifeCycle.Environment.Stage.Scheduler;
         
         /// <inheritdoc cref="IRelocatable"/>
         public void StateSnapshot<TS>(TS stateSnapshot)
