@@ -14,12 +14,14 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
     {
         private readonly AtomicBoolean _closed;
         private readonly ThreadPoolExecutor _executor;
+        private readonly int _maxAllowedConcurrentThreads;
 
-        internal ExecutorDispatcher(int availableThreads, float numberOfDispatchersFactor)
+        internal ExecutorDispatcher(int availableThreads, int numberOfDispatchers, float numberOfDispatchersFactor)
         {
-            var maxAllowedConcurrentThreads = (int)(availableThreads * numberOfDispatchersFactor);
+            _maxAllowedConcurrentThreads = numberOfDispatchers > 0 ? 
+                numberOfDispatchers : (int)(availableThreads * numberOfDispatchersFactor);
             _closed = new AtomicBoolean(false);
-            _executor = new ThreadPoolExecutor(maxAllowedConcurrentThreads, HandleRejection);
+            _executor = new ThreadPoolExecutor(_maxAllowedConcurrentThreads, HandleRejection);
         }
 
         public void Close()
@@ -31,6 +33,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
         public bool IsClosed => _closed.Get();
 
         public bool RequiresExecutionNotification => false;
+        
+        public int ConcurrencyCapacity => _maxAllowedConcurrentThreads;
 
         public void Execute(IMailbox mailbox)
         {

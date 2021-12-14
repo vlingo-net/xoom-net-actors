@@ -48,6 +48,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
 
         public bool IsClosed => _closed.Get();
 
+        public int ConcurrencyCapacity => 1;
+
         public void Execute(IMailbox mailbox)
         {
             _backoffTokenSource.Cancel();

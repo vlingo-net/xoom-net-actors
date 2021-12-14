@@ -12,6 +12,11 @@ namespace Vlingo.Xoom.Actors
         bool IsClosed { get; }
         void Close();
         bool RequiresExecutionNotification { get; }
+        
+        /// <summary>
+        /// Gets the total capacity for concurrent operations.
+        /// </summary>
+        int ConcurrencyCapacity { get; }
         void Execute(IMailbox mailbox);
     }
 }

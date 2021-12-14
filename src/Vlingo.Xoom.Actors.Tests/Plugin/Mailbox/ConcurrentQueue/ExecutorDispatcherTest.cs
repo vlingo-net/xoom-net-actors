@@ -25,7 +25,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
         public ExecutorDispatcherTest()
         {
-            _dispatcher = new ExecutorDispatcher(1, 1f);
+            _dispatcher = new ExecutorDispatcher(1, 0, 1f);
         }
 
         public override void Dispose()
@@ -94,6 +94,18 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
         {
             Assert.False(_dispatcher.RequiresExecutionNotification);
         }
+        
+        [Fact]
+        public void TestThatPoolSizeSet()
+        {
+            var dispatcher1 = new ExecutorDispatcher(1, 10, 0);
+            var dispatcher2 = new ExecutorDispatcher(1, 8, 20.5f);
+            var dispatcher3 = new ExecutorDispatcher(1, 5, 10.0f);
+
+            Assert.Equal(10, dispatcher1.ConcurrencyCapacity);
+            Assert.Equal(8, dispatcher2.ConcurrencyCapacity);
+            Assert.Equal(5, dispatcher3.ConcurrencyCapacity);
+        }
 
         private class TestMailbox : IMailbox
         {
@@ -113,6 +125,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             public bool IsClosed => false;
 
             public bool IsDelivering => false;
+            public int ConcurrencyCapacity => 1;
 
             public bool IsPreallocated => false;
 

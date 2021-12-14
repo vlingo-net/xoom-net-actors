@@ -46,6 +46,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public bool IsClosed => _dispatcher.IsClosed;
 
+        public int ConcurrencyCapacity => _dispatcher.ConcurrencyCapacity;
+
         public void Resume(string name)
         {
             if (_suspendedDeliveryOverrides.Get()!.Pop(name))

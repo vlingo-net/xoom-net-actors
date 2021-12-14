@@ -48,6 +48,7 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit
         public bool IsClosed { get; private set; }
 
         public bool IsDelivering => throw new NotSupportedException("TestMailbox does not support this operation.");
+        public int ConcurrencyCapacity => 1;
 
         public bool IsPreallocated => false;
 

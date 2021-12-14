@@ -47,6 +47,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue
         public bool IsDelivering
             => throw new NotSupportedException("ManyToOneConcurrentArrayQueueMailbox does not support this operation.");
 
+        public int ConcurrencyCapacity => 1;
+
         public bool IsPreallocated => false;
 
         public int PendingMessages => _queue.Count;

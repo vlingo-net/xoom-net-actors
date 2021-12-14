@@ -22,7 +22,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
 
         public ConcurrentQueueMailboxTest()
         {
-            _dispatcher = new ExecutorDispatcher(1, 1.0f);
+            _dispatcher = new ExecutorDispatcher(1, 0,1.0f);
             _mailbox = new ConcurrentQueueMailbox(_dispatcher, 1);
         }
 
@@ -59,7 +59,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             const string paused = "paused#";
             const string exceptional = "exceptional#";
 
-            var dispatcher = new ExecutorDispatcher(1, 1.0f);
+            var dispatcher = new ExecutorDispatcher(1, 0, 1.0f);
             var mailbox = new ConcurrentQueueMailbox(dispatcher, 1);
 
             mailbox.SuspendExceptFor(paused, typeof(CountTakerActor));

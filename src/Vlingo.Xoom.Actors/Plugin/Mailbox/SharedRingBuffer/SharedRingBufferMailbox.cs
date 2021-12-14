@@ -54,6 +54,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
         public virtual bool IsDelivering 
             => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation.");
 
+        public int ConcurrencyCapacity => 1;
+
         public virtual bool IsPreallocated => true;
 
         public int PendingMessages => throw new NotSupportedException("SharedRingBufferMailbox does not support this operation");

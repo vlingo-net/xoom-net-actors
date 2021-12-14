@@ -37,6 +37,8 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer
         internal IMailbox Mailbox { get; }
 
         public bool RequiresExecutionNotification { get; }
+        
+        public int ConcurrencyCapacity => 1;
 
         public void Close()
         {

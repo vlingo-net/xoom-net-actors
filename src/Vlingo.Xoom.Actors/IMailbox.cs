@@ -31,6 +31,11 @@ namespace Vlingo.Xoom.Actors
         /// Answers whether or not I am delivering a message.
         /// </summary>
         bool IsDelivering { get; }
+        
+        /// <summary>
+        /// Gets the total capacity for concurrent operations.
+        /// </summary>
+        int ConcurrencyCapacity { get; }
 
         /// <summary>
         /// Recovers the previous operational mode, either active or suspended,

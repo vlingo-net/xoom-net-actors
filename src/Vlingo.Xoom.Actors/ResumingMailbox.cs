@@ -23,6 +23,7 @@ namespace Vlingo.Xoom.Actors
         public bool IsClosed => false;
 
         public bool IsDelivering => true;
+        public int ConcurrencyCapacity => 0;
 
         public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
 

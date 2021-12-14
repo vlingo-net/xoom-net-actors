@@ -26,7 +26,10 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
 
         public override void Start(IRegistrar registrar)
         {
-            _executorDispatcher = new ExecutorDispatcher(System.Environment.ProcessorCount, _configuration.NumberOfDispatchersFactor);
+            _executorDispatcher = new ExecutorDispatcher(
+                System.Environment.ProcessorCount,
+                _configuration.NumberOfDispatchers,
+                _configuration.NumberOfDispatchersFactor);
             registrar.Register(_configuration.Name, _configuration.IsDefaultMailbox, this);
         }
 
