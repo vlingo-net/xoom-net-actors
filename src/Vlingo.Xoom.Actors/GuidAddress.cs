@@ -29,7 +29,7 @@ namespace Vlingo.Xoom.Actors
 
         public string Name => string.IsNullOrEmpty(_name) ? IdString : _name!;
         
-        public virtual bool IsDistributable => true;
+        public virtual bool IsDistributable => false;
 
         public int CompareTo(IAddress? other) => Id.CompareTo(other?.Id);
 
