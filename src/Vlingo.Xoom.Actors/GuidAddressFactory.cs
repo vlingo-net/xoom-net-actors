@@ -50,11 +50,11 @@ namespace Vlingo.Xoom.Actors
 
         public virtual IAddress None() => Empty;
 
-        public IAddress Unique() => new GuidAddress(_generator.Generate());
+        public virtual IAddress Unique() => new GuidAddress(_generator.Generate());
 
-        public IAddress UniquePrefixedWith(string prefixedWith) => new GuidAddress(_generator.Generate(), prefixedWith, true);
+        public virtual IAddress UniquePrefixedWith(string prefixedWith) => new GuidAddress(_generator.Generate(), prefixedWith, true);
 
-        public IAddress UniqueWith(string? name) => new GuidAddress(_generator.Generate(name!), name);
+        public virtual IAddress UniqueWith(string? name) => new GuidAddress(_generator.Generate(name!), name);
 
         public virtual IAddress WithHighId() => WithHighId(null);
 
