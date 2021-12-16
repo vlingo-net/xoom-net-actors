@@ -19,6 +19,18 @@ namespace Vlingo.Xoom.Actors
         public ICompletes<T> ActorOf<T>(IAddress address)
             => Completes().With(InternalActorOf<T>(address));
 
+        public ICompletes<T> ActorOf<T>(IAddress address, Definition definition)
+        {
+            var typed = InternalActorOf<T>(address);
+
+            if (typed == null)
+            {
+                typed = Stage.ActorFor<T>(definition, address);
+            }
+
+            return Completes().With(typed);
+        }
+
         public ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address)
         {
             var typed = InternalActorOf<T>(address);

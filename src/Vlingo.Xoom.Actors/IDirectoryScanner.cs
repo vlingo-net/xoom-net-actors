@@ -12,6 +12,7 @@ namespace Vlingo.Xoom.Actors
     public interface IDirectoryScanner
     {
         ICompletes<T> ActorOf<T>(IAddress address);
+        ICompletes<T> ActorOf<T>(IAddress address, Definition definition);
         ICompletes<Optional<T>> MaybeActorOf<T>(IAddress address);
     }
 }

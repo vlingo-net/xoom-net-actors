@@ -244,6 +244,10 @@ namespace Vlingo.Xoom.Actors
         /// <returns>ICompletes&lt;T&gt; of the backing actor found by the address. <c>null</c> if not found.</returns>
         public ICompletes<T> ActorOf<T>(IAddress address) => _directoryScanner!.ActorOf<T>(address).AndThen(proxy => proxy);
         
+        public ICompletes<T> ActorOf<T>(IAddress address, Expression<Func<T>> factory) => ActorOf<T>(address, Definition.Has(factory));
+
+        public ICompletes<T> ActorOf<T>(IAddress address, Definition definition) => _directoryScanner!.ActorOf<T>(address, definition);
+
         protected internal Actor? ActorOf(Stage stage, IAddress address) => stage.Directory.ActorOf(address);
 
         protected internal IEnumerable<IAddress> AllActorAddresses(Stage stage) => stage.Directory.Addresses;
