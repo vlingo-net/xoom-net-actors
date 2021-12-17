@@ -100,11 +100,15 @@ namespace Vlingo.Xoom.Actors
         {
             var newExpression = factory.Body as NewExpression;
             if (newExpression == null)
+            {
                 throw new ArgumentException("The create function must be a 'new T (parameters)' expression");
+            }
 
             var expressionType = newExpression.Type;
             if (!typeof(Actor).IsAssignableFrom(expressionType))
+            {
                 throw new ArgumentException($"The type '{expressionType.FullName}' must be instance of an actor. Derive it from Actor class.");
+            }
 
             var parameters = newExpression.GetArguments();
 
