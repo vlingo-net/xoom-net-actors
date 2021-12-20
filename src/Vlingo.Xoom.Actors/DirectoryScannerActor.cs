@@ -43,7 +43,7 @@ namespace Vlingo.Xoom.Actors
             var actor = _directory.ActorOf(address);
             try
             {
-                if(actor != null)
+                if (actor != null)
                 {
                     return Stage.ActorAs<T>(actor);
                 }
