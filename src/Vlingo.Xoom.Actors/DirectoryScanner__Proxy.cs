@@ -51,7 +51,7 @@ namespace Vlingo.Xoom.Actors
         {
             if (!_actor.IsStopped)
             {
-                Action<IDirectoryScanner> consumer = x => x.ActorOf<T>(address);
+                Action<IDirectoryScanner> consumer = x => x.ActorOf<T>(address, definition);
                 var completes = new BasicCompletes<T>(_actor.Scheduler);
                 if (_mailbox.IsPreallocated)
                 {
