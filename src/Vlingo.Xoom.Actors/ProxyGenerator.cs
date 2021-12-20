@@ -529,7 +529,7 @@ namespace Vlingo.Xoom.Actors
 
             if (type.IsGenericType)
             {
-                var typeName = type.FullName ?? type.Name;
+                var typeName = type.FullName ?? (type.Namespace != null ? $"{type.Namespace}.{type.Name}" : type.Name);
                 var name = typeName.Substring(0, typeName.IndexOf('`'));
                 var genericTypeDeclaration = string.Join(", ", type.GetGenericArguments().Select(GetSimpleTypeName));
                 return $"{name}<{genericTypeDeclaration}>";
