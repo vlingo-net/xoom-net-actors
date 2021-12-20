@@ -112,7 +112,7 @@ namespace Vlingo.Xoom.Actors
             {
                 var originalProtocol = protocol;
 
-                if(protocol.IsGenericType && !protocol.IsGenericTypeDefinition)
+                if (protocol.IsGenericType && !protocol.IsGenericTypeDefinition)
                 {
                     protocol = protocol.GetGenericTypeDefinition();
                 }
