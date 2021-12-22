@@ -172,7 +172,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.ConcurrentQueue
             public void Send<T>(Actor actor, Action<T> consumer, ICompletes completes, string representation)
                 => throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
             
-            public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+            public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes completes, string representation) => 
                 throw new NotSupportedException("ExecutorDispatcherTest does not support this operation");
 
             public void SuspendExceptFor(string name, params Type[] overrides)
