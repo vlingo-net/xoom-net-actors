@@ -25,7 +25,7 @@ deploy:
     branch: master
 notifications:
   - provider: Webhook
-    url: https://webhooks.gitter.im/e/2b56d1ca84637acb9ee8
+    url: https://webhooks.gitter.im/e/37621a855e91c31ab1da
     method: POST
     on_build_success: true
     on_build_failure: true
