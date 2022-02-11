@@ -7,18 +7,19 @@
 
 using System;
 using System.IO;
+using System.Reflection;
 
 namespace Vlingo.Xoom.Actors.Plugin;
 
-public class PluginTypeLoader : IPluginTypeLoader
+public class StaticPluginTypeLoader : IPluginTypeLoader
 {
-    public Type LoadType(string name)
-    {
-        throw new NotImplementedException();
-    }
+    public Type? LoadType(string name) => Type.GetType(name);
 
     public Stream? LoadResource(string resourceName)
     {
-        throw new NotImplementedException();
+        var assembly = Assembly.GetExecutingAssembly();
+        var path = $"{resourceName.Replace("/", ".").Replace(" ", "_")}";
+        var stream = assembly.GetManifestResourceStream(path);
+        return stream;
     }
 }
