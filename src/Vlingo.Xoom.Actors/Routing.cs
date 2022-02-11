@@ -9,62 +9,61 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+/// <summary>
+/// See <see cref="Routing{P}"/>
+/// </summary>
+public static class Routing
 {
-    /// <summary>
-    /// See <see cref="Routing{P}"/>
-    /// </summary>
-    public static class Routing
+    public static Routing<T> With<T>(Routee<T>? routee)
+        => new Routing<T>(new List<Routee<T>> {
+            routee ?? throw new ArgumentNullException(nameof(routee), "Routee may not be null")
+        });
+
+    public static Routing<T> With<T>(ICollection<Routee<T>> routees)
     {
-        public static Routing<T> With<T>(Routee<T>? routee)
-            => new Routing<T>(new List<Routee<T>> {
-                routee ?? throw new ArgumentNullException(nameof(routee), "Routee may not be null")
-            });
-
-        public static Routing<T> With<T>(ICollection<Routee<T>> routees)
+        if (routees == null || routees.Count == 0)
         {
-            if (routees == null || routees.Count == 0)
-            {
-                throw new ArgumentNullException(nameof(routees), "routees may not be null or empty");
-            }
-
-            return new Routing<T>(routees);
+            throw new ArgumentNullException(nameof(routees), "routees may not be null or empty");
         }
+
+        return new Routing<T>(routees);
+    }
+}
+
+/// <summary>
+/// Routing is an ordered sequence of <see cref="Routee"/> that
+/// was computed by way of some routing strategy and whose elements
+/// will be the target of a message forwarded by a <see cref="Router"/>.
+/// </summary>
+public class Routing<P>
+{
+    private readonly ArraySegment<Routee<P>> _routees;
+
+    internal Routing() : this(null)
+    {
     }
 
-    /// <summary>
-    /// Routing is an ordered sequence of <see cref="Routee"/> that
-    /// was computed by way of some routing strategy and whose elements
-    /// will be the target of a message forwarded by a <see cref="Router"/>.
-    /// </summary>
-    public class Routing<P>
+    internal Routing(ICollection<Routee<P>>? routees)
     {
-        private readonly ArraySegment<Routee<P>> _routees;
+        var routeesCollection = routees ?? new List<Routee<P>>();
+        _routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());
+    }
 
-        internal Routing() : this(null)
+    public virtual Routee<P> First => _routees.ElementAt(0);
+
+    public virtual IReadOnlyList<Routee<P>> Routees => _routees;
+
+    public virtual bool IsEmpty => _routees.Count == 0;
+
+    public override string ToString() => $"Routing[routees={_routees}]";
+
+    public virtual void Validate()
+    {
+        if (IsEmpty)
         {
-        }
-
-        internal Routing(ICollection<Routee<P>>? routees)
-        {
-            var routeesCollection = routees ?? new List<Routee<P>>();
-            _routees = new ArraySegment<Routee<P>>(routeesCollection.ToArray());
-        }
-
-        public virtual Routee<P> First => _routees.ElementAt(0);
-
-        public virtual IReadOnlyList<Routee<P>> Routees => _routees;
-
-        public virtual bool IsEmpty => _routees.Count == 0;
-
-        public override string ToString() => $"Routing[routees={_routees}]";
-
-        public virtual void Validate()
-        {
-            if (IsEmpty)
-            {
-                throw new InvalidOperationException("routees may not be empty");
-            }
+            throw new InvalidOperationException("routees may not be empty");
         }
     }
 }

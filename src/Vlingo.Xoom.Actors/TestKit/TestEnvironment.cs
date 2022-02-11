@@ -7,20 +7,19 @@
 
 using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 
-namespace Vlingo.Xoom.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit;
+
+internal class TestEnvironment : Environment
 {
-    internal class TestEnvironment : Environment
+    public TestEnvironment() :
+        base(
+            TestWorld.Instance!.World.Stage,
+            TestWorld.Instance.World.AddressFactory.UniqueWith("test"),
+            Definition.Has<Actor>(Definition.NoParameters),
+            TestWorld.Instance.World.DefaultParent!,
+            new TestMailbox(),
+            TestWorld.Instance.World.DefaultSupervisor,
+            TestWorld.Instance.World.DefaultLogger)
     {
-        public TestEnvironment() :
-            base(
-                TestWorld.Instance!.World.Stage,
-                TestWorld.Instance.World.AddressFactory.UniqueWith("test"),
-                Definition.Has<Actor>(Definition.NoParameters),
-                TestWorld.Instance.World.DefaultParent!,
-                new TestMailbox(),
-                TestWorld.Instance.World.DefaultSupervisor,
-                TestWorld.Instance.World.DefaultLogger)
-        {
-        }
     }
 }

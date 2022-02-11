@@ -8,68 +8,67 @@
 using System;
 using System.Threading;
 
-namespace Vlingo.Xoom.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit;
+
+public class TestUntil : IDisposable
 {
-    public class TestUntil : IDisposable
+    private readonly CountdownEvent _countDownEvent;
+
+    public static TestUntil Happenings(int times) => new TestUntil(count: times);
+
+    public void CompleteNow()
     {
-        private readonly CountdownEvent _countDownEvent;
-
-        public static TestUntil Happenings(int times) => new TestUntil(count: times);
-
-        public void CompleteNow()
+        while (!_countDownEvent.IsSet)
         {
-            while (!_countDownEvent.IsSet)
-            {
-                Happened();
-            }
+            Happened();
+        }
+    }
+
+    public void Completes()
+    {
+        try
+        {
+            _countDownEvent.Wait();
+        }
+        catch (Exception)
+        {
+            // Ignore !
+        }
+    }
+
+    public bool CompletesWithin(long timeout)
+    {
+        try
+        {
+            _countDownEvent.Wait(TimeSpan.FromMilliseconds(timeout));
+            return _countDownEvent.CurrentCount == 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    public TestUntil Happened()
+    {
+        if (!_countDownEvent.IsSet)
+        {
+            _countDownEvent.Signal();
         }
 
-        public void Completes()
-        {
-            try
-            {
-                _countDownEvent.Wait();
-            }
-            catch (Exception)
-            {
-                // Ignore !
-            }
-        }
+        return this;
+    }
 
-        public bool CompletesWithin(long timeout)
-        {
-            try
-            {
-                _countDownEvent.Wait(TimeSpan.FromMilliseconds(timeout));
-                return _countDownEvent.CurrentCount == 0;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+    public int Remaining => _countDownEvent.CurrentCount;
 
-        public TestUntil Happened()
-        {
-            if (!_countDownEvent.IsSet)
-            {
-                _countDownEvent.Signal();
-            }
+    public void ResetHappeningsTo(int times) => _countDownEvent.Reset(times);
 
-            return this;
-        }
-
-        public int Remaining => _countDownEvent.CurrentCount;
-
-        public void ResetHappeningsTo(int times) => _countDownEvent.Reset(times);
-
-        public override string ToString() => $"TestUntil[count={_countDownEvent.CurrentCount}]";
+    public override string ToString() => $"TestUntil[count={_countDownEvent.CurrentCount}]";
         
-        public void Dispose() => _countDownEvent.Dispose();
+    public void Dispose() => _countDownEvent.Dispose();
 
-        private TestUntil(int count)
-        {
-            _countDownEvent = new CountdownEvent(initialCount: count);
-        }
+    private TestUntil(int count)
+    {
+        _countDownEvent = new CountdownEvent(initialCount: count);
     }
 }

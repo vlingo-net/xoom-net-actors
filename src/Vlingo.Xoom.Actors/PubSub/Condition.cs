@@ -7,17 +7,16 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.PubSub
-{
-    internal delegate bool Condition(KeyValuePair<Topic, ISet<ISubscriber>> subscription, Topic? topic, ISubscriber subscriber);
+namespace Vlingo.Xoom.Actors.PubSub;
+
+internal delegate bool Condition(KeyValuePair<Topic, ISet<ISubscriber>> subscription, Topic? topic, ISubscriber subscriber);
     
-    internal static class ConditionExtension
-    {
-        public static bool Should(
-            this Condition condition, 
-            KeyValuePair<Topic, ISet<ISubscriber>> subscription, 
-            Topic? topic, 
-            ISubscriber subscriber)
-            => condition.Invoke(subscription, topic, subscriber);
-    }
+internal static class ConditionExtension
+{
+    public static bool Should(
+        this Condition condition, 
+        KeyValuePair<Topic, ISet<ISubscriber>> subscription, 
+        Topic? topic, 
+        ISubscriber subscriber)
+        => condition.Invoke(subscription, topic, subscriber);
 }

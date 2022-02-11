@@ -5,13 +5,12 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ILoggerProviderKeeper
 {
-    public interface ILoggerProviderKeeper
-    {
-        void Close();
-        ILoggerProvider? FindDefault();
-        ILoggerProvider FindNamed(string name);
-        void Keep(string name, bool isDefault, ILoggerProvider loggerProvider);
-    }
+    void Close();
+    ILoggerProvider? FindDefault();
+    ILoggerProvider FindNamed(string name);
+    void Keep(string name, bool isDefault, ILoggerProvider loggerProvider);
 }

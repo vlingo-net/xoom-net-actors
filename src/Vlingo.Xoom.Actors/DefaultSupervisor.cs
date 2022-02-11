@@ -7,28 +7,27 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public abstract class DefaultSupervisor : Actor, ISupervisor
 {
-    public abstract class DefaultSupervisor : Actor, ISupervisor
+    internal static readonly ISupervisionStrategy DefaultSupervisionStrategy = new DefaultSupervisionStrategyImpl();
+
+    internal DefaultSupervisor() { }
+
+    public ISupervisionStrategy SupervisionStrategy => DefaultSupervisionStrategy;
+
+    public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+
+    public void Inform(Exception error, ISupervised supervised)
     {
-        internal static readonly ISupervisionStrategy DefaultSupervisionStrategy = new DefaultSupervisionStrategyImpl();
+        Logger.Error(
+            $"DefaultSupervisor: Failure of: {supervised.Address} because: {error.Message} Action: Possibly restarting.", 
+            error);
 
-        internal DefaultSupervisor() { }
-
-        public ISupervisionStrategy SupervisionStrategy => DefaultSupervisionStrategy;
-
-        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
-
-        public void Inform(Exception error, ISupervised supervised)
-        {
-            Logger.Error(
-                $"DefaultSupervisor: Failure of: {supervised.Address} because: {error.Message} Action: Possibly restarting.", 
-                error);
-
-            supervised.RestartWithin(
-                DefaultSupervisionStrategy.Period,
-                DefaultSupervisionStrategy.Intensity,
-                DefaultSupervisionStrategy.Scope);
-        }
+        supervised.RestartWithin(
+            DefaultSupervisionStrategy.Period,
+            DefaultSupervisionStrategy.Intensity,
+            DefaultSupervisionStrategy.Scope);
     }
 }

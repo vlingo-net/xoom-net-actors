@@ -5,13 +5,12 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ICompletesEventuallyProviderKeeper
 {
-    public interface ICompletesEventuallyProviderKeeper
-    {
-        ICompletesEventuallyProvider ProviderFor(string name);
-        void Close();
-        ICompletesEventuallyProvider FindDefault();
-        void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider);
-    }
+    ICompletesEventuallyProvider ProviderFor(string name);
+    void Close();
+    ICompletesEventuallyProvider FindDefault();
+    void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider);
 }

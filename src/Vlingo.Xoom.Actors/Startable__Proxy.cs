@@ -7,30 +7,29 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class Startable__Proxy : IStartable
 {
-    public class Startable__Proxy : IStartable
+    private readonly Actor actor;
+    private readonly IMailbox mailbox;
+
+    public Startable__Proxy(Actor actor, IMailbox mailbox)
     {
-        private readonly Actor actor;
-        private readonly IMailbox mailbox;
+        this.actor = actor;
+        this.mailbox = mailbox;
+    }
 
-        public Startable__Proxy(Actor actor, IMailbox mailbox)
+    public void Start()
+    {
+        Action<IStartable> consumer = x => x.Start();
+        if (mailbox.IsPreallocated)
         {
-            this.actor = actor;
-            this.mailbox = mailbox;
+            mailbox.Send(actor, consumer, null, "Start()");
         }
-
-        public void Start()
+        else
         {
-            Action<IStartable> consumer = x => x.Start();
-            if (mailbox.IsPreallocated)
-            {
-                mailbox.Send(actor, consumer, null, "Start()");
-            }
-            else
-            {
-                mailbox.Send(new LocalMessage<IStartable>(actor, consumer, "Start()"));
-            }
+            mailbox.Send(new LocalMessage<IStartable>(actor, consumer, "Start()"));
         }
     }
 }

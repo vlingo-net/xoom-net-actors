@@ -5,16 +5,15 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors.Plugin.Logging.NoOp
+namespace Vlingo.Xoom.Actors.Plugin.Logging.NoOp;
+
+public class NoOpLoggerProvider : ILoggerProvider
 {
-    public class NoOpLoggerProvider : ILoggerProvider
+    public NoOpLoggerProvider() => Logger = new NoOpLogger();
+
+    public ILogger Logger { get; }
+
+    public void Close()
     {
-        public NoOpLoggerProvider() => Logger = new NoOpLogger();
-
-        public ILogger Logger { get; }
-
-        public void Close()
-        {
-        }
     }
 }

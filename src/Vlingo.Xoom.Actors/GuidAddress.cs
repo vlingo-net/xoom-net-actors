@@ -8,57 +8,56 @@
 using System;
 using Vlingo.Xoom.UUID;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class GuidAddress : IAddress
 {
-    public class GuidAddress : IAddress
+    private readonly Guid _id;
+    private readonly string? _name;
+
+    public long Id => _id.ToLeastSignificantBits();
+        
+    public Guid ReservedId => _id;
+        
+    public long IdSequence => _id.ToLeastSignificantBits();
+        
+    public string IdSequenceString => _id.ToLeastSignificantBits().ToString();
+        
+    public string IdString => _id.ToString();
+        
+    public T IdTyped<T>(Func<string, T> typeConverter) => typeConverter(IdString);
+
+    public string Name => string.IsNullOrEmpty(_name) ? IdString : _name!;
+        
+    public virtual bool IsDistributable => false;
+
+    public int CompareTo(IAddress? other) => Id.CompareTo(other?.Id);
+
+    public override bool Equals(object? obj)
     {
-        private readonly Guid _id;
-        private readonly string? _name;
-
-        public long Id => _id.ToLeastSignificantBits();
-        
-        public Guid ReservedId => _id;
-        
-        public long IdSequence => _id.ToLeastSignificantBits();
-        
-        public string IdSequenceString => _id.ToLeastSignificantBits().ToString();
-        
-        public string IdString => _id.ToString();
-        
-        public T IdTyped<T>(Func<string, T> typeConverter) => typeConverter(IdString);
-
-        public string Name => string.IsNullOrEmpty(_name) ? IdString : _name!;
-        
-        public virtual bool IsDistributable => false;
-
-        public int CompareTo(IAddress? other) => Id.CompareTo(other?.Id);
-
-        public override bool Equals(object? obj)
+        if (obj == null || obj.GetType() != GetType())
         {
-            if (obj == null || obj.GetType() != GetType())
-            {
-                return false;
-            }
+            return false;
+        }
             
-            return _id.Equals(((GuidAddress) obj)._id);
-        }
+        return _id.Equals(((GuidAddress) obj)._id);
+    }
 
-        public override int GetHashCode() => _id.GetHashCode();
+    public override int GetHashCode() => _id.GetHashCode();
 
-        public override string ToString() => $"{GetType().Name}[id={_id}, name={(string.IsNullOrEmpty(_name) ? "(none)" : _name)}]";
+    public override string ToString() => $"{GetType().Name}[id={_id}, name={(string.IsNullOrEmpty(_name) ? "(none)" : _name)}]";
 
-        protected internal GuidAddress(Guid reservedId) : this(reservedId, null, false)
-        {
-        }
+    protected internal GuidAddress(Guid reservedId) : this(reservedId, null, false)
+    {
+    }
 
-        protected internal GuidAddress(Guid reservedId, string? name) : this(reservedId, name, false)
-        {
-        }
+    protected internal GuidAddress(Guid reservedId, string? name) : this(reservedId, name, false)
+    {
+    }
 
-        protected internal GuidAddress(Guid reservedId, string? name, bool prefixName)
-        {
-            _id = reservedId;
-            _name = name == null ? null : prefixName ? $"{name}{_id}" : name;
-        }
+    protected internal GuidAddress(Guid reservedId, string? name, bool prefixName)
+    {
+        _id = reservedId;
+        _name = name == null ? null : prefixName ? $"{name}{_id}" : name;
     }
 }

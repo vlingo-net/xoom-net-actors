@@ -8,71 +8,70 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin;
+
+public class PluginLoader
 {
-    public class PluginLoader
+    private const string PluginNamePrefix = "plugin.name.";
+
+    private readonly IDictionary<string, IPlugin> _plugins;
+
+    public PluginLoader() => _plugins = new Dictionary<string, IPlugin>();
+
+    public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties)
     {
-        private const string PluginNamePrefix = "plugin.name.";
-
-        private readonly IDictionary<string, IPlugin> _plugins;
-
-        public PluginLoader() => _plugins = new Dictionary<string, IPlugin>();
-
-        public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties)
+        if (!properties.IsEmpty)
         {
-            if (!properties.IsEmpty)
+            foreach(var enabledPlugin in FindEnabledPlugins(properties))
             {
-                foreach(var enabledPlugin in FindEnabledPlugins(properties))
-                {
-                    LoadPlugin(configuration, properties, enabledPlugin);
-                }
+                LoadPlugin(configuration, properties, enabledPlugin);
             }
-
-            return _plugins.Values;
         }
 
-        private ISet<string> FindEnabledPlugins(Properties properties)
+        return _plugins.Values;
+    }
+
+    private ISet<string> FindEnabledPlugins(Properties properties)
+    {
+        var enabledPlugins = new HashSet<string>();
+        foreach(var key in properties.Keys)
         {
-            var enabledPlugins = new HashSet<string>();
-            foreach(var key in properties.Keys)
+            if (key.StartsWith(PluginNamePrefix))
             {
-                if (key.StartsWith(PluginNamePrefix))
+                if (bool.TryParse(properties.GetProperty(key), out bool _))
                 {
-                    if (bool.TryParse(properties.GetProperty(key), out bool _))
-                    {
-                        enabledPlugins.Add(key);
-                    }
+                    enabledPlugins.Add(key);
                 }
             }
-
-            return enabledPlugins;
         }
 
-        private void LoadPlugin(Configuration configuration, Properties properties, string enabledPlugin)
-        {
-            var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
-            var classNameKey = $"plugin.{pluginName}.classname";
-            var className = properties.GetProperty(classNameKey) ?? throw new ArgumentException("properties.GetProperty(classNameKey)");
-            var pluginUniqueName = $"{pluginName}:{className}";
+        return enabledPlugins;
+    }
+
+    private void LoadPlugin(Configuration configuration, Properties properties, string enabledPlugin)
+    {
+        var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
+        var classNameKey = $"plugin.{pluginName}.classname";
+        var className = properties.GetProperty(classNameKey) ?? throw new ArgumentException("properties.GetProperty(classNameKey)");
+        var pluginUniqueName = $"{pluginName}:{className}";
             
-            try
+        try
+        {
+            if (!_plugins.TryGetValue(pluginUniqueName, out _))
             {
-                if (!_plugins.TryGetValue(pluginUniqueName, out _))
+                if (!_plugins.TryGetValue(className, out var plugin))
                 {
-                    if (!_plugins.TryGetValue(className, out var plugin))
-                    {
-                        var pluginClass = Type.GetType(className, true, true);
-                        plugin = (IPlugin)Activator.CreateInstance(pluginClass!, pluginName)!;
-                        _plugins[pluginUniqueName] = plugin;
-                    }   
-                }
+                    var pluginClass = Type.GetType(className, true, true);
+                    plugin = (IPlugin)Activator.CreateInstance(pluginClass!, pluginName)!;
+                    _plugins[pluginUniqueName] = plugin;
+                }   
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                Console.WriteLine(ex.StackTrace);
-                throw new ArgumentException($"Could not load plugin {className}");
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+            throw new ArgumentException($"Could not load plugin {className}");
         }
     }
 }

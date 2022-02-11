@@ -8,62 +8,61 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision;
+
+public class CommonSupervisorsPluginConfiguration : IPluginConfiguration
 {
-    public class CommonSupervisorsPluginConfiguration : IPluginConfiguration
+    private CommonSupervisorsPluginConfiguration()
     {
-        private CommonSupervisorsPluginConfiguration()
+        Supervisors = new List<ConfiguredSupervisor>();
+    }
+
+    public static CommonSupervisorsPluginConfiguration Define() => new CommonSupervisorsPluginConfiguration();
+
+    public CommonSupervisorsPluginConfiguration WithSupervisor(
+        string stageName,
+        string supervisorName,
+        Type supervisedProtocol,
+        Type supervisorClass)
+    {
+        Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisedProtocol, supervisorClass));
+        return this;
+    }
+
+    public int Count => Supervisors.Count;
+
+    public string SupervisorName(int index) => Supervisors[index].SupervisorName;
+
+    public string StageName(int index) => Supervisors[index].StageName;
+
+    public Type? SupervisedProtocol(int index) => Supervisors[index].SupervisedProtocol;
+
+    public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
+
+    public string Name => SupervisorName(0);
+
+    internal IList<ConfiguredSupervisor> Supervisors { get; }
+
+    public void Build(Configuration configuration)
+    {
+    }
+
+    public void BuildWith(Configuration configuration, PluginProperties properties)
+    {
+        foreach (var values in DefinitionValues.AllDefinitionValues(properties))
         {
-            Supervisors = new List<ConfiguredSupervisor>();
-        }
+            var supervisor = new ConfiguredSupervisor(
+                values.StageName,
+                values.Name,
+                values.Protocol,
+                values.Supervisor);
 
-        public static CommonSupervisorsPluginConfiguration Define() => new CommonSupervisorsPluginConfiguration();
-
-        public CommonSupervisorsPluginConfiguration WithSupervisor(
-            string stageName,
-            string supervisorName,
-            Type supervisedProtocol,
-            Type supervisorClass)
-        {
-            Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisedProtocol, supervisorClass));
-            return this;
-        }
-
-        public int Count => Supervisors.Count;
-
-        public string SupervisorName(int index) => Supervisors[index].SupervisorName;
-
-        public string StageName(int index) => Supervisors[index].StageName;
-
-        public Type? SupervisedProtocol(int index) => Supervisors[index].SupervisedProtocol;
-
-        public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
-
-        public string Name => SupervisorName(0);
-
-        internal IList<ConfiguredSupervisor> Supervisors { get; }
-
-        public void Build(Configuration configuration)
-        {
-        }
-
-        public void BuildWith(Configuration configuration, PluginProperties properties)
-        {
-            foreach (var values in DefinitionValues.AllDefinitionValues(properties))
+            if (Supervisors.Contains(supervisor))
             {
-                var supervisor = new ConfiguredSupervisor(
-                    values.StageName,
-                    values.Name,
-                    values.Protocol,
-                    values.Supervisor);
-
-                if (Supervisors.Contains(supervisor))
-                {
-                    Supervisors.Remove(supervisor);
-                }
-                Supervisors.Add(supervisor);
+                Supervisors.Remove(supervisor);
             }
-            configuration.With(this);
+            Supervisors.Add(supervisor);
         }
+        configuration.With(this);
     }
 }

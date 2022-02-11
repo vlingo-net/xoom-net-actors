@@ -7,16 +7,15 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.PubSub
-{
-    internal delegate bool Operation(ISet<ISubscriber> existingSubscriber, ISubscriber givenSubscriber);
+namespace Vlingo.Xoom.Actors.PubSub;
 
-    internal static class OperationExtension
-    {
-        public static bool Perform(
-            this Operation operation, 
-            ISet<ISubscriber> existingSubscriber, 
-            ISubscriber givenSubscriber)
-            => operation.Invoke(existingSubscriber, givenSubscriber);
-    }
+internal delegate bool Operation(ISet<ISubscriber> existingSubscriber, ISubscriber givenSubscriber);
+
+internal static class OperationExtension
+{
+    public static bool Perform(
+        this Operation operation, 
+        ISet<ISubscriber> existingSubscriber, 
+        ISubscriber givenSubscriber)
+        => operation.Invoke(existingSubscriber, givenSubscriber);
 }

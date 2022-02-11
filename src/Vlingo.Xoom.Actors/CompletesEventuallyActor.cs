@@ -7,21 +7,20 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class CompletesEventuallyActor : Actor, ICompletesEventually
 {
-    public class CompletesEventuallyActor : Actor, ICompletesEventually
+    public virtual void With(object? outcome)
     {
-        public virtual void With(object? outcome)
+        try
         {
-            try
-            {
-                var pooled = (PooledCompletes)outcome!;
-                pooled.ClientCompletes!.With(pooled.Outcome!);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"The eventually completed outcome '{outcome}' failed in the client because: {ex.Message}", ex);
-            }
+            var pooled = (PooledCompletes)outcome!;
+            pooled.ClientCompletes!.With(pooled.Outcome!);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error($"The eventually completed outcome '{outcome}' failed in the client because: {ex.Message}", ex);
         }
     }
 }

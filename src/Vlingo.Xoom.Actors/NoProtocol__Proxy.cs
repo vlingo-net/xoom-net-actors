@@ -5,12 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class NoProtocol__Proxy : INoProtocol
 {
-    public class NoProtocol__Proxy : INoProtocol
+    public NoProtocol__Proxy(Actor actor, IMailbox mailbox)
     {
-        public NoProtocol__Proxy(Actor actor, IMailbox mailbox)
-        {
-        }
     }
 }

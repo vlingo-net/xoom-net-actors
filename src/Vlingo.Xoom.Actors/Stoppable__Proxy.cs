@@ -7,59 +7,58 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class Stoppable__Proxy : IStoppable
 {
-    public class Stoppable__Proxy : IStoppable
+    private readonly Actor _actor;
+    private readonly IMailbox _mailbox;
+
+    public Stoppable__Proxy(Actor actor, IMailbox mailbox)
     {
-        private readonly Actor _actor;
-        private readonly IMailbox _mailbox;
+        _actor = actor;
+        _mailbox = mailbox;
+    }
 
-        public Stoppable__Proxy(Actor actor, IMailbox mailbox)
+    public bool IsStopped => _actor.IsStopped;
+
+    public void Conclude()
+    {
+        if (!_actor.IsStopped)
         {
-            _actor = actor;
-            _mailbox = mailbox;
-        }
-
-        public bool IsStopped => _actor.IsStopped;
-
-        public void Conclude()
-        {
-            if (!_actor.IsStopped)
+            Action<IStoppable> consumer = x => x.Conclude();
+            if (_mailbox.IsPreallocated)
             {
-                Action<IStoppable> consumer = x => x.Conclude();
-                if (_mailbox.IsPreallocated)
-                {
-                    _mailbox.Send(_actor, consumer, null, "Conclude()");
-                }
-                else
-                {
-                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Conclude()"));
-                }
+                _mailbox.Send(_actor, consumer, null, "Conclude()");
             }
             else
             {
-                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Conclude()"));
+                _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Conclude()"));
             }
         }
-
-        public void Stop()
+        else
         {
-            if (!_actor.IsStopped)
+            _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Conclude()"));
+        }
+    }
+
+    public void Stop()
+    {
+        if (!_actor.IsStopped)
+        {
+            Action<IStoppable> consumer = x => x.Stop();
+            if (_mailbox.IsPreallocated)
             {
-                Action<IStoppable> consumer = x => x.Stop();
-                if (_mailbox.IsPreallocated)
-                {
-                    _mailbox.Send(_actor, consumer, null, "Stop()");
-                }
-                else
-                {
-                    _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Stop()"));
-                }
+                _mailbox.Send(_actor, consumer, null, "Stop()");
             }
             else
             {
-                _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Stop()"));
+                _mailbox.Send(new LocalMessage<IStoppable>(_actor, consumer, "Stop()"));
             }
+        }
+        else
+        {
+            _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Stop()"));
         }
     }
 }

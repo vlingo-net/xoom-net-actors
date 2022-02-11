@@ -5,46 +5,45 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Plugin.Completes;
+
+public class PooledCompletesPluginConfiguration : IPluginConfiguration
 {
-    public class PooledCompletesPluginConfiguration : IPluginConfiguration
+    private PooledCompletesPluginConfiguration() => Name = "pooledCompletes";
+
+    public static PooledCompletesPluginConfiguration Define() => new PooledCompletesPluginConfiguration();
+
+    public PooledCompletesPluginConfiguration WithMailbox(string mailbox)
     {
-        private PooledCompletesPluginConfiguration() => Name = "pooledCompletes";
+        Mailbox = mailbox;
+        return this;
+    }
 
-        public static PooledCompletesPluginConfiguration Define() => new PooledCompletesPluginConfiguration();
+    public PooledCompletesPluginConfiguration WithPoolSize(int poolSize)
+    {
+        PoolSize = poolSize;
+        return this;
+    }
 
-        public PooledCompletesPluginConfiguration WithMailbox(string mailbox)
-        {
-            Mailbox = mailbox;
-            return this;
-        }
+    public string? Mailbox { get; private set; }
 
-        public PooledCompletesPluginConfiguration WithPoolSize(int poolSize)
-        {
-            PoolSize = poolSize;
-            return this;
-        }
+    public int PoolSize { get; private set; }
 
-        public string? Mailbox { get; private set; }
+    public string Name { get; private set; }
 
-        public int PoolSize { get; private set; }
-
-        public string Name { get; private set; }
-
-        public void Build(Configuration configuration)
-        {
-            configuration.With(
-                WithMailbox("queueMailbox")
+    public void Build(Configuration configuration)
+    {
+        configuration.With(
+            WithMailbox("queueMailbox")
                 .WithPoolSize(10)
-            );
-        }
+        );
+    }
 
-        public void BuildWith(Configuration configuration, PluginProperties properties)
-        {
-            Name = properties.Name;
-            Mailbox = properties.GetString("mailbox", null);
-            PoolSize = properties.GetInteger("pool", 10);
-            configuration.With(this);
-        }
+    public void BuildWith(Configuration configuration, PluginProperties properties)
+    {
+        Name = properties.Name;
+        Mailbox = properties.GetString("mailbox", null);
+        PoolSize = properties.GetInteger("pool", 10);
+        configuration.With(this);
     }
 }

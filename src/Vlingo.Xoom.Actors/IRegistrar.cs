@@ -7,18 +7,17 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface IRegistrar
 {
-    public interface IRegistrar
-    {
-        void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider);
-        void Register(string name, bool isDefault, ILoggerProvider loggerProvider);
-        void Register(string name, bool isDefault, IMailboxProvider mailboxProvider);
-        void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass);
-        void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass);
-        void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper);
-        void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper);
-        void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper);
-        World World { get; }
-    }
+    void Register(string name, ICompletesEventuallyProvider completesEventuallyProvider);
+    void Register(string name, bool isDefault, ILoggerProvider loggerProvider);
+    void Register(string name, bool isDefault, IMailboxProvider mailboxProvider);
+    void RegisterCommonSupervisor(string stageName, string name, Type? supervisedProtocol, Type? supervisorClass);
+    void RegisterDefaultSupervisor(string stageName, string name, Type? supervisorClass);
+    void RegisterCompletesEventuallyProviderKeeper(ICompletesEventuallyProviderKeeper keeper);
+    void RegisterLoggerProviderKeeper(ILoggerProviderKeeper keeper);
+    void RegisterMailboxProviderKeeper(IMailboxProviderKeeper keeper);
+    World World { get; }
 }

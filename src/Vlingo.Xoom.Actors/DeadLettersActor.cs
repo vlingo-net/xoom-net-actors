@@ -8,44 +8,43 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class DeadLettersActor : Actor, IDeadLetters
 {
-    public sealed class DeadLettersActor : Actor, IDeadLetters
+    private readonly IList<IDeadLettersListener> _listeners;
+
+    public DeadLettersActor() => _listeners = new List<IDeadLettersListener>();
+
+    public void FailedDelivery(DeadLetter deadLetter)
     {
-        private readonly IList<IDeadLettersListener> _listeners;
+        Logger.Debug(deadLetter.ToString());
 
-        public DeadLettersActor() => _listeners = new List<IDeadLettersListener>();
-
-        public void FailedDelivery(DeadLetter deadLetter)
+        foreach (var listener in _listeners)
         {
-            Logger.Debug(deadLetter.ToString());
-
-            foreach (var listener in _listeners)
+            try
             {
-                try
-                {
-                    listener.Handle(deadLetter);
-                }
-                catch (Exception ex)
-                {
-                    // ignore, but log
-                    Logger.Warn($"DeadLetters listener failed to handle: {deadLetter}", ex);
-                }
+                listener.Handle(deadLetter);
+            }
+            catch (Exception ex)
+            {
+                // ignore, but log
+                Logger.Warn($"DeadLetters listener failed to handle: {deadLetter}", ex);
             }
         }
+    }
 
-        public void RegisterListener(IDeadLettersListener listener) => _listeners.Add(listener);
+    public void RegisterListener(IDeadLettersListener listener) => _listeners.Add(listener);
 
-        protected internal override void BeforeStart()
-        {
-            base.BeforeStart();
-            Stage.World.SetDeadLetters(SelfAs<IDeadLetters>());
-        }
+    protected internal override void BeforeStart()
+    {
+        base.BeforeStart();
+        Stage.World.SetDeadLetters(SelfAs<IDeadLetters>());
+    }
 
-        protected internal override void AfterStop()
-        {
-            Stage.World.SetDeadLetters(null);
-            base.AfterStop();
-        }
+    protected internal override void AfterStop()
+    {
+        Stage.World.SetDeadLetters(null);
+        base.AfterStop();
     }
 }

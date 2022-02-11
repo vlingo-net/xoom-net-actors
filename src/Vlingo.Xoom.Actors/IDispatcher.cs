@@ -5,18 +5,17 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface IDispatcher
 {
-    public interface IDispatcher
-    {
-        bool IsClosed { get; }
-        void Close();
-        bool RequiresExecutionNotification { get; }
+    bool IsClosed { get; }
+    void Close();
+    bool RequiresExecutionNotification { get; }
         
-        /// <summary>
-        /// Gets the total capacity for concurrent operations.
-        /// </summary>
-        int ConcurrencyCapacity { get; }
-        void Execute(IMailbox mailbox);
-    }
+    /// <summary>
+    /// Gets the total capacity for concurrent operations.
+    /// </summary>
+    int ConcurrencyCapacity { get; }
+    void Execute(IMailbox mailbox);
 }

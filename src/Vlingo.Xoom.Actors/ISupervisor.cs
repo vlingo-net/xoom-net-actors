@@ -7,12 +7,11 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ISupervisor
 {
-    public interface ISupervisor
-    {
-        void Inform(Exception error, ISupervised supervised);
-        ISupervisionStrategy SupervisionStrategy { get; }
-        ISupervisor Supervisor { get; }
-    }
+    void Inform(Exception error, ISupervised supervised);
+    ISupervisionStrategy SupervisionStrategy { get; }
+    ISupervisor Supervisor { get; }
 }

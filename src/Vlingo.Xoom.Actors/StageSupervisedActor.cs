@@ -9,87 +9,86 @@ using System;
 using System.Collections.Generic;
 using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class StageSupervisedActor<T> : ISupervised
 {
-    public class StageSupervisedActor<T> : ISupervised
+    private readonly Actor _actor;
+
+    protected internal StageSupervisedActor(Actor actor, Exception error)
     {
-        private readonly Actor _actor;
+        _actor = actor;
+        Error = error;
+    }
 
-        protected internal StageSupervisedActor(Actor actor, Exception error)
+    public virtual IAddress Address => _actor.Address;
+
+    public virtual void Escalate() => Supervisor.Supervisor.Inform(Error, this);
+
+    public virtual void RestartWithin(long period, int intensity, Scope scope)
+    {
+        if (FailureThresholdReached(period, intensity))
         {
-            _actor = actor;
-            Error = error;
+            Stop(scope);
         }
-
-        public virtual IAddress Address => _actor.Address;
-
-        public virtual void Escalate() => Supervisor.Supervisor.Inform(Error, this);
-
-        public virtual void RestartWithin(long period, int intensity, Scope scope)
+        else
         {
-            if (FailureThresholdReached(period, intensity))
+            if (scope == Scope.One)
             {
-                Stop(scope);
+                RestartWithin(_actor, period, intensity);
             }
             else
             {
-                if (scope == Scope.One)
+                foreach (var actor in SelfWithSiblings())
                 {
-                    RestartWithin(_actor, period, intensity);
-                }
-                else
-                {
-                    foreach (var actor in SelfWithSiblings())
-                    {
-                        RestartWithin(actor, period, intensity);
-                    }
+                    RestartWithin(actor, period, intensity);
                 }
             }
         }
+    }
 
-        public virtual void Resume()
+    public virtual void Resume()
+    {
+        _actor.LifeCycle.BeforeResume<T>(_actor, Error);
+        _actor.LifeCycle.Resume();
+    }
+
+    public virtual void Stop(Scope scope)
+    {
+        if(scope == Scope.One)
         {
-            _actor.LifeCycle.BeforeResume<T>(_actor, Error);
-            _actor.LifeCycle.Resume();
+            _actor.Stop();
         }
-
-        public virtual void Stop(Scope scope)
+        else
         {
-            if(scope == Scope.One)
+            foreach(var actor in SelfWithSiblings())
             {
-                _actor.Stop();
-            }
-            else
-            {
-                foreach(var actor in SelfWithSiblings())
-                {
-                    actor.Stop();
-                }
+                actor.Stop();
             }
         }
+    }
 
-        public virtual void Suspend() => _actor.LifeCycle.Suspend();
+    public virtual void Suspend() => _actor.LifeCycle.Suspend();
 
-        public virtual ISupervisor Supervisor => _actor.LifeCycle.Supervisor<T>();
+    public virtual ISupervisor Supervisor => _actor.LifeCycle.Supervisor<T>();
 
-        public virtual Exception Error { get; }
+    public virtual Exception Error { get; }
 
-        private IEnumerable<Actor> SelfWithSiblings()
-            => EnvironmentOf(EnvironmentOf(_actor).Parent!).Children.Values;
+    private IEnumerable<Actor> SelfWithSiblings()
+        => EnvironmentOf(EnvironmentOf(_actor).Parent!).Children.Values;
 
-        private static Environment EnvironmentOf(Actor actor) => actor.LifeCycle.Environment;
+    private static Environment EnvironmentOf(Actor actor) => actor.LifeCycle.Environment;
 
-        private bool FailureThresholdReached(long period, int intensity)
-            => EnvironmentOf(_actor).FailureMark.FailedWithExcessiveFailures(period, intensity);
+    private bool FailureThresholdReached(long period, int intensity)
+        => EnvironmentOf(_actor).FailureMark.FailedWithExcessiveFailures(period, intensity);
 
-        private void RestartWithin(Actor actor, long period, int intensity)
-        {
-            actor.LifeCycle.BeforeRestart<T>(actor, Error);
-            // TODO: Actually restart actor here? I am not
-            // yet convinced that it is necessary or practical.
-            // Please convince me.
-            actor.LifeCycle.AfterRestart(actor, Error);
-            Resume();
-        }
+    private void RestartWithin(Actor actor, long period, int intensity)
+    {
+        actor.LifeCycle.BeforeRestart<T>(actor, Error);
+        // TODO: Actually restart actor here? I am not
+        // yet convinced that it is necessary or practical.
+        // Please convince me.
+        actor.LifeCycle.AfterRestart(actor, Error);
+        Resume();
     }
 }

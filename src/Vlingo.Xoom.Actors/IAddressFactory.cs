@@ -5,20 +5,19 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface IAddressFactory
 {
-    public interface IAddressFactory
-    {
-        IAddress FindableBy<T>(T id);
-        IAddress From(long reservedId, string name);
-        IAddress From(string idString);
-        IAddress From(string idString, string name);
-        IAddress None();
-        IAddress Unique();
-        IAddress UniquePrefixedWith(string prefixedWith);
-        IAddress UniqueWith(string? name);
-        IAddress WithHighId();
-        IAddress WithHighId(string name);
-        long TestNextIdValue();
-    }
+    IAddress FindableBy<T>(T id);
+    IAddress From(long reservedId, string name);
+    IAddress From(string idString);
+    IAddress From(string idString, string name);
+    IAddress None();
+    IAddress Unique();
+    IAddress UniquePrefixedWith(string prefixedWith);
+    IAddress UniqueWith(string? name);
+    IAddress WithHighId();
+    IAddress WithHighId(string name);
+    long TestNextIdValue();
 }

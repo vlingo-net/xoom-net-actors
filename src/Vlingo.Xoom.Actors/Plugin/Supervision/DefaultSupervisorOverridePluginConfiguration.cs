@@ -8,58 +8,57 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision;
+
+public class DefaultSupervisorOverridePluginConfiguration : IPluginConfiguration
 {
-    public class DefaultSupervisorOverridePluginConfiguration : IPluginConfiguration
+    private DefaultSupervisorOverridePluginConfiguration()
     {
-        private DefaultSupervisorOverridePluginConfiguration()
+        Supervisors = new List<ConfiguredSupervisor>();
+    }
+
+    public static DefaultSupervisorOverridePluginConfiguration Define() => new DefaultSupervisorOverridePluginConfiguration();
+
+    public DefaultSupervisorOverridePluginConfiguration WithSupervisor(
+        string stageName,
+        string supervisorName,
+        Type? supervisorClass)
+    {
+        Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisorClass));
+        return this;
+    }
+
+    public int Count => Supervisors.Count;
+
+    public string SupervisorName(int index) => Supervisors[index].SupervisorName;
+
+    public string StageName(int index) => Supervisors[index].StageName;
+
+    public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
+
+    internal IList<ConfiguredSupervisor> Supervisors { get; }
+
+    public string Name => SupervisorName(0);
+
+    public void Build(Configuration configuration)
+    {
+        configuration.With(WithSupervisor(
+            "default",
+            "overrideSupervisor",
+            ConfiguredSupervisor.SupervisorFrom("Vlingo.Xoom.Actors.Plugin.Supervision.DefaultSupervisorOverride")));
+    }
+
+    public void BuildWith(Configuration configuration, PluginProperties properties)
+    {
+        foreach (var values in DefinitionValues.AllDefinitionValues(properties))
         {
-            Supervisors = new List<ConfiguredSupervisor>();
+            var supervisor = new ConfiguredSupervisor(
+                values.StageName,
+                values.Name,
+                values.Supervisor);
+
+            Supervisors.Add(supervisor);
         }
-
-        public static DefaultSupervisorOverridePluginConfiguration Define() => new DefaultSupervisorOverridePluginConfiguration();
-
-        public DefaultSupervisorOverridePluginConfiguration WithSupervisor(
-            string stageName,
-            string supervisorName,
-            Type? supervisorClass)
-        {
-            Supervisors.Add(new ConfiguredSupervisor(stageName, supervisorName, supervisorClass));
-            return this;
-        }
-
-        public int Count => Supervisors.Count;
-
-        public string SupervisorName(int index) => Supervisors[index].SupervisorName;
-
-        public string StageName(int index) => Supervisors[index].StageName;
-
-        public Type? SupervisorClass(int index) => Supervisors[index].SupervisorClass;
-
-        internal IList<ConfiguredSupervisor> Supervisors { get; }
-
-        public string Name => SupervisorName(0);
-
-        public void Build(Configuration configuration)
-        {
-            configuration.With(WithSupervisor(
-                "default",
-                "overrideSupervisor",
-                ConfiguredSupervisor.SupervisorFrom("Vlingo.Xoom.Actors.Plugin.Supervision.DefaultSupervisorOverride")));
-        }
-
-        public void BuildWith(Configuration configuration, PluginProperties properties)
-        {
-            foreach (var values in DefinitionValues.AllDefinitionValues(properties))
-            {
-                var supervisor = new ConfiguredSupervisor(
-                    values.StageName,
-                    values.Name,
-                    values.Supervisor);
-
-                Supervisors.Add(supervisor);
-            }
-            configuration.With(this);
-        }
+        configuration.With(this);
     }
 }

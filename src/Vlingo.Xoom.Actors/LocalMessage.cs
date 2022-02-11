@@ -9,130 +9,129 @@ using System;
 using System.Linq.Expressions;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class LocalMessage<TActor> : IMessage
 {
-    public class LocalMessage<TActor> : IMessage
+    private Actor? _actor;
+    private ICompletes? _completes;
+    private Action<TActor>? _consumer;
+    private LambdaExpression? _serializableConsumer;
+    private string? _representation;
+
+    public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes? completes, string representation)
     {
-        private Actor? _actor;
-        private ICompletes? _completes;
-        private Action<TActor>? _consumer;
-        private LambdaExpression? _serializableConsumer;
-        private string? _representation;
-
-        public LocalMessage(Actor actor, Action<TActor> consumer, ICompletes? completes, string representation)
-        {
-            _actor = actor;
-            _consumer = consumer;
-            _representation = representation;
-            _completes = completes;
-        }
+        _actor = actor;
+        _consumer = consumer;
+        _representation = representation;
+        _completes = completes;
+    }
         
-        public LocalMessage(Actor actor, Action<TActor> consumer, string representation)
-            : this(actor, consumer, null, representation)
-        {
-        }
+    public LocalMessage(Actor actor, Action<TActor> consumer, string representation)
+        : this(actor, consumer, null, representation)
+    {
+    }
 
-        public LocalMessage(LocalMessage<TActor> message)
-            : this(message._actor!, message._consumer!, message._completes, message._representation!)
-        {
-        }
+    public LocalMessage(LocalMessage<TActor> message)
+        : this(message._actor!, message._consumer!, message._completes, message._representation!)
+    {
+    }
 
-        public LocalMessage()
-        {
-        }
+    public LocalMessage()
+    {
+    }
         
-        public LambdaExpression? SerializableConsumer
+    public LambdaExpression? SerializableConsumer
+    {
+        get
         {
-            get
+            if (_serializableConsumer != null)
             {
-                if (_serializableConsumer != null)
-                {
-                    return _serializableConsumer;
-                }
+                return _serializableConsumer;
+            }
                 
-                return _consumer?.ToSerializableExpression();
-            }
-            set => _serializableConsumer = value;
+            return _consumer?.ToSerializableExpression();
         }
+        set => _serializableConsumer = value;
+    }
 
-        public virtual Actor Actor => _actor!;
+    public virtual Actor Actor => _actor!;
 
-        public ICompletes? Completes => _completes;
+    public ICompletes? Completes => _completes;
 
-        public virtual void Deliver() => InternalDeliver();
+    public virtual void Deliver() => InternalDeliver();
 
-        public Type Protocol => typeof(TActor);
+    public Type Protocol => typeof(TActor);
 
-        public virtual bool IsStowed => false;
+    public virtual bool IsStowed => false;
 
-        public virtual string Representation => _representation!;
+    public virtual string Representation => _representation!;
 
-        public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes? completes, string representation)
+    public void Set<TConsumer>(Actor actor, Action<TConsumer> consumer, ICompletes? completes, string representation)
+    {
+        _actor = actor;
+        _consumer = x => consumer.Invoke((x == null ? default : (TConsumer)(object)x)!);
+        _representation = representation;
+        _completes = completes;
+    }
+
+    public void Set(Actor actor, Type protocol, LambdaExpression? consumer, ICompletes? completes, string representation)
+    {
+        _actor = actor;
+        _consumer = (Action<TActor>) consumer!.Compile(); // TODO: Maybe not needed
+        SerializableConsumer = consumer;
+        _representation = representation;
+        _completes = completes;
+    }
+
+    public override string ToString() => $"LocalMessage[{_representation}]";
+
+    private void DeadLetter()
+    {
+        var deadLetter = new DeadLetter(_actor!, _representation!);
+        var deadLetters = _actor!.DeadLetters;
+        if (deadLetters != null)
         {
-            _actor = actor;
-            _consumer = x => consumer.Invoke((x == null ? default : (TConsumer)(object)x)!);
-            _representation = representation;
-            _completes = completes;
+            deadLetters.FailedDelivery(deadLetter);
         }
-
-        public void Set(Actor actor, Type protocol, LambdaExpression? consumer, ICompletes? completes, string representation)
+        else
         {
-            _actor = actor;
-            _consumer = (Action<TActor>) consumer!.Compile(); // TODO: Maybe not needed
-            SerializableConsumer = consumer;
-            _representation = representation;
-            _completes = completes;
+            _actor.Logger.Warn($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
         }
+    }
 
-        public override string ToString() => $"LocalMessage[{_representation}]";
-
-        private void DeadLetter()
+    private void InternalDeliver()
+    {
+        if (_actor!.IsStopped)
         {
-            var deadLetter = new DeadLetter(_actor!, _representation!);
-            var deadLetters = _actor!.DeadLetters;
-            if (deadLetters != null)
-            {
-                deadLetters.FailedDelivery(deadLetter);
-            }
-            else
-            {
-                _actor.Logger.Warn($"vlingo-dotnet/actors: MISSING DEAD LETTERS FOR: {deadLetter}");
-            }
+            DeadLetter();
         }
-
-        private void InternalDeliver()
+        else
         {
-            if (_actor!.IsStopped)
+            try
             {
-                DeadLetter();
-            }
-            else
-            {
-                try
+                _actor.CompletesImpl.Reset(_completes);
+                _consumer!.Invoke((TActor)(object)_actor);
+                _actor.LifeCycle.Evictable.ReceivedMessage();
+                if (_actor.CompletesImpl.HasInternalOutcomeSet)
                 {
-                    _actor.CompletesImpl.Reset(_completes);
-                    _consumer!.Invoke((TActor)(object)_actor);
-                    _actor.LifeCycle.Evictable.ReceivedMessage();
-                    if (_actor.CompletesImpl.HasInternalOutcomeSet)
-                    {
-                        // USE THE FOLLOWING. this forces the same ce actor to be used for
-                        // all completes outcomes such that completes outcomes cannot be
-                        // delivered to the client out of order from the original ordered causes.
-                        _actor.LifeCycle.Environment.CompletesEventually(_actor.CompletesImpl).With(_actor.CompletesImpl.InternalOutcome!);
+                    // USE THE FOLLOWING. this forces the same ce actor to be used for
+                    // all completes outcomes such that completes outcomes cannot be
+                    // delivered to the client out of order from the original ordered causes.
+                    _actor.LifeCycle.Environment.CompletesEventually(_actor.CompletesImpl).With(_actor.CompletesImpl.InternalOutcome!);
 
-                        // DON'T USE THE FOLLOWING. it selects ce actors in round-robin order which
-                        // can easily cause clients to see outcomes of messages delivered later to
-                        // an actor before outcomes of messages delivered earlier to the same actor
+                    // DON'T USE THE FOLLOWING. it selects ce actors in round-robin order which
+                    // can easily cause clients to see outcomes of messages delivered later to
+                    // an actor before outcomes of messages delivered earlier to the same actor
 
-                        // actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.InternalOutcome);
-                    }
+                    // actor.LifeCycle.Environment.Stage.World.CompletesFor(completes).With(actor.completes.InternalOutcome);
                 }
-                catch (Exception ex)
-                {
-                    // Logging here duplicates logging provided by supervisor.
-                    // _actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {_actor} sending: {_representation}", ex);
-                    _actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(_actor, ex));
-                }
+            }
+            catch (Exception ex)
+            {
+                // Logging here duplicates logging provided by supervisor.
+                // _actor.Logger.Error($"Message#Deliver(): Exception: {ex.Message} for Actor: {_actor} sending: {_representation}", ex);
+                _actor.Stage.HandleFailureOf(new StageSupervisedActor<TActor>(_actor, ex));
             }
         }
     }

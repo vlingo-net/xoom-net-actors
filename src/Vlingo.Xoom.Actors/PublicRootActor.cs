@@ -8,47 +8,46 @@
 using System;
 using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class PublicRootActor : Actor, ISupervisor
 {
-    public sealed class PublicRootActor : Actor, ISupervisor
+    public PublicRootActor()
     {
-        public PublicRootActor()
-        {
-            SupervisionStrategy = new PublicRootActorSupervisionStrategy();
-            Supervisor = SelfAs<ISupervisor>();
-        }
+        SupervisionStrategy = new PublicRootActorSupervisionStrategy();
+        Supervisor = SelfAs<ISupervisor>();
+    }
 
-        public ISupervisionStrategy SupervisionStrategy { get; }
+    public ISupervisionStrategy SupervisionStrategy { get; }
 
-        public ISupervisor Supervisor { get; }
+    public ISupervisor Supervisor { get; }
 
-        public void Inform(Exception error, ISupervised supervised)
-        {
-            Logger.Error($"PublicRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Restarting.", error);
-            supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
-        }
+    public void Inform(Exception error, ISupervised supervised)
+    {
+        Logger.Error($"PublicRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Restarting.", error);
+        supervised.RestartWithin(SupervisionStrategy.Period, SupervisionStrategy.Intensity, SupervisionStrategy.Scope);
+    }
 
-        protected internal override void BeforeStart()
-        {
-            base.BeforeStart();
-            Stage.World.SetDefaultParent(this);
-            Stage.World.SetPublicRoot(SelfAs<IStoppable>());
-        }
+    protected internal override void BeforeStart()
+    {
+        base.BeforeStart();
+        Stage.World.SetDefaultParent(this);
+        Stage.World.SetPublicRoot(SelfAs<IStoppable>());
+    }
 
-        protected internal override void AfterStop()
-        {
-            Stage.World.SetDefaultParent(null);
-            Stage.World.SetPublicRoot(null);
-            base.AfterStop();
-        }
+    protected internal override void AfterStop()
+    {
+        Stage.World.SetDefaultParent(null);
+        Stage.World.SetPublicRoot(null);
+        base.AfterStop();
+    }
 
-        private class PublicRootActorSupervisionStrategy : ISupervisionStrategy
-        {
-            public int Intensity => ForeverIntensity;
+    private class PublicRootActorSupervisionStrategy : ISupervisionStrategy
+    {
+        public int Intensity => ForeverIntensity;
 
-            public long Period => ForeverPeriod;
+        public long Period => ForeverPeriod;
 
-            public Scope Scope => Scope.One;
-        }
+        public Scope Scope => Scope.One;
     }
 }

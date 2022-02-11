@@ -8,20 +8,19 @@
 using System;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class StowedLocalMessage<T> : LocalMessage<T>
 {
-    public class StowedLocalMessage<T> : LocalMessage<T>
+    public StowedLocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
+        : base(actor, consumer, completes, representation)
     {
-        public StowedLocalMessage(Actor actor, Action<T> consumer, ICompletes<object> completes, string representation)
-            : base(actor, consumer, completes, representation)
-        {
-        }
-
-        public StowedLocalMessage(LocalMessage<T> message)
-            : base(message)
-        {
-        }
-
-        public override bool IsStowed => true;
     }
+
+    public StowedLocalMessage(LocalMessage<T> message)
+        : base(message)
+    {
+    }
+
+    public override bool IsStowed => true;
 }

@@ -7,16 +7,15 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.PubSub
+namespace Vlingo.Xoom.Actors.PubSub;
+
+public class AffectedSubscriptions
 {
-    public class AffectedSubscriptions
-    {
-        private readonly IDictionary<Topic, ISubscriber> _registry;
+    private readonly IDictionary<Topic, ISubscriber> _registry;
 
-        public AffectedSubscriptions() => _registry = new Dictionary<Topic, ISubscriber>();
+    public AffectedSubscriptions() => _registry = new Dictionary<Topic, ISubscriber>();
 
-        public virtual void Add(Topic topic, ISubscriber subscriber) => _registry[topic] = subscriber;
+    public virtual void Add(Topic topic, ISubscriber subscriber) => _registry[topic] = subscriber;
 
-        public virtual bool HasAny => _registry.Count > 0;
-    }
+    public virtual bool HasAny => _registry.Count > 0;
 }

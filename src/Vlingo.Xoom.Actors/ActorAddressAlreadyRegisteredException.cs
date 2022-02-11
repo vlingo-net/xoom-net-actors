@@ -7,17 +7,16 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+internal class ActorAddressAlreadyRegisteredException : Exception
 {
-    internal class ActorAddressAlreadyRegisteredException : Exception
+    public ActorAddressAlreadyRegisteredException(Actor actor, IAddress address) : this(actor.GetType(), address)
     {
-        public ActorAddressAlreadyRegisteredException(Actor actor, IAddress address) : this(actor.GetType(), address)
-        {
-        }
+    }
         
-        public ActorAddressAlreadyRegisteredException(Type? type, IAddress address)
-            : base($"Failed to register Actor of type {type?.FullName}. Address is already registered: {address}")
-        {
-        }
+    public ActorAddressAlreadyRegisteredException(Type? type, IAddress address)
+        : base($"Failed to register Actor of type {type?.FullName}. Address is already registered: {address}")
+    {
     }
 }

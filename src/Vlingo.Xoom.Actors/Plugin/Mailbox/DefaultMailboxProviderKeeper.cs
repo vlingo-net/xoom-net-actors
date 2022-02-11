@@ -8,71 +8,70 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.Plugin.Mailbox
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox;
+
+public sealed class DefaultMailboxProviderKeeper : IMailboxProviderKeeper
 {
-    public sealed class DefaultMailboxProviderKeeper : IMailboxProviderKeeper
+    private readonly IDictionary<string, MailboxProviderInfo> _mailboxProviderInfos;
+    private MailboxProviderInfo? _defaultProvider;
+
+    public DefaultMailboxProviderKeeper()
     {
-        private readonly IDictionary<string, MailboxProviderInfo> _mailboxProviderInfos;
-        private MailboxProviderInfo? _defaultProvider;
+        _mailboxProviderInfos = new Dictionary<string, MailboxProviderInfo>();
+        _defaultProvider = null;
+    }
 
-        public DefaultMailboxProviderKeeper()
+    public IMailbox AssignMailbox(string name, int? hashCode)
+    {
+        if (!_mailboxProviderInfos.ContainsKey(name))
         {
-            _mailboxProviderInfos = new Dictionary<string, MailboxProviderInfo>();
-            _defaultProvider = null;
+            throw new InvalidOperationException($"No registered MailboxProvider named: {name}");
         }
 
-        public IMailbox AssignMailbox(string name, int? hashCode)
-        {
-            if (!_mailboxProviderInfos.ContainsKey(name))
-            {
-                throw new InvalidOperationException($"No registered MailboxProvider named: {name}");
-            }
+        return _mailboxProviderInfos[name].MailboxProvider.ProvideMailboxFor(hashCode);
+    }
 
-            return _mailboxProviderInfos[name].MailboxProvider.ProvideMailboxFor(hashCode);
+    public void Close()
+    {
+        foreach(var info in _mailboxProviderInfos.Values)
+        {
+            info.MailboxProvider.Close();
+        }
+    }
+
+    public string FindDefault()
+    {
+        if (_defaultProvider == null)
+        {
+            throw new InvalidOperationException("No registered default MailboxProvider.");
         }
 
-        public void Close()
+        return _defaultProvider.Name;
+    }
+
+    public bool IsValidMailboxName(string candidateMailboxName)
+        => _mailboxProviderInfos.ContainsKey(candidateMailboxName);
+
+    public void Keep(string name, bool isDefault, IMailboxProvider mailboxProvider)
+    {
+        var info = new MailboxProviderInfo(name, mailboxProvider);
+        _mailboxProviderInfos[name] = info;
+
+        if (_defaultProvider == null || isDefault)
         {
-            foreach(var info in _mailboxProviderInfos.Values)
-            {
-                info.MailboxProvider.Close();
-            }
+            _defaultProvider = info;
         }
+    }
 
-        public string FindDefault()
+    private sealed class MailboxProviderInfo
+    {
+        public readonly IMailboxProvider MailboxProvider;
+        public readonly string Name;
+
+        public MailboxProviderInfo(string name, IMailboxProvider mailboxProvider)
         {
-            if (_defaultProvider == null)
-            {
-                throw new InvalidOperationException("No registered default MailboxProvider.");
-            }
-
-            return _defaultProvider.Name;
-        }
-
-        public bool IsValidMailboxName(string candidateMailboxName)
-            => _mailboxProviderInfos.ContainsKey(candidateMailboxName);
-
-        public void Keep(string name, bool isDefault, IMailboxProvider mailboxProvider)
-        {
-            var info = new MailboxProviderInfo(name, mailboxProvider);
-            _mailboxProviderInfos[name] = info;
-
-            if (_defaultProvider == null || isDefault)
-            {
-                _defaultProvider = info;
-            }
-        }
-
-        private sealed class MailboxProviderInfo
-        {
-            public readonly IMailboxProvider MailboxProvider;
-            public readonly string Name;
-
-            public MailboxProviderInfo(string name, IMailboxProvider mailboxProvider)
-            {
-                Name = name;
-                MailboxProvider = mailboxProvider;
-            }
+            Name = name;
+            MailboxProvider = mailboxProvider;
         }
     }
 }

@@ -7,96 +7,95 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors.Plugin.Logging.NoOp
+namespace Vlingo.Xoom.Actors.Plugin.Logging.NoOp;
+
+public class NoOpLogger : ILogger
 {
-    public class NoOpLogger : ILogger
+    public bool IsEnabled => false;
+
+    public string Name => "no-op";
+
+    public void Close()
     {
-        public bool IsEnabled => false;
+    }
 
-        public string Name => "no-op";
+    public void Debug(string message)
+    {
+    }
 
-        public void Close()
-        {
-        }
+    public void Debug(string message, params object[] args)
+    {
+    }
 
-        public void Debug(string message)
-        {
-        }
+    public void Debug(string message, Exception exception)
+    {
+    }
 
-        public void Debug(string message, params object[] args)
-        {
-        }
+    public void Error(string message)
+    {
+    }
 
-        public void Debug(string message, Exception exception)
-        {
-        }
+    public void Error(string message, params object[] args)
+    {
+    }
 
-        public void Error(string message)
-        {
-        }
+    public void Error(string message, Exception exception)
+    {
+    }
 
-        public void Error(string message, params object[] args)
-        {
-        }
+    public void Trace(LogEvent logEvent)
+    {
+    }
 
-        public void Error(string message, Exception exception)
-        {
-        }
+    public void Debug(LogEvent logEvent)
+    {
+    }
 
-        public void Trace(LogEvent logEvent)
-        {
-        }
+    public void Info(LogEvent logEvent)
+    {
+    }
 
-        public void Debug(LogEvent logEvent)
-        {
-        }
+    public void Warn(LogEvent logEvent)
+    {
+    }
 
-        public void Info(LogEvent logEvent)
-        {
-        }
+    public void Error(LogEvent logEvent)
+    {
+    }
 
-        public void Warn(LogEvent logEvent)
-        {
-        }
+    public void Info(string message)
+    {
+    }
 
-        public void Error(LogEvent logEvent)
-        {
-        }
+    public void Info(string message, params object[] args)
+    {
+    }
 
-        public void Info(string message)
-        {
-        }
+    public void Info(string message, Exception exception)
+    {
+    }
 
-        public void Info(string message, params object[] args)
-        {
-        }
+    public void Trace(string message)
+    {
+    }
 
-        public void Info(string message, Exception exception)
-        {
-        }
+    public void Trace(string message, params object[] args)
+    {
+    }
 
-        public void Trace(string message)
-        {
-        }
+    public void Trace(string message, Exception exception)
+    {
+    }
 
-        public void Trace(string message, params object[] args)
-        {
-        }
+    public void Warn(string message)
+    {
+    }
 
-        public void Trace(string message, Exception exception)
-        {
-        }
+    public void Warn(string message, params object[] args)
+    {
+    }
 
-        public void Warn(string message)
-        {
-        }
-
-        public void Warn(string message, params object[] args)
-        {
-        }
-
-        public void Warn(string message, Exception exception)
-        {
-        }
+    public void Warn(string message, Exception exception)
+    {
     }
 }

@@ -8,102 +8,101 @@
 using System;
 using Vlingo.Xoom.Common.Compiler;
 
-namespace Vlingo.Xoom.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision;
+
+internal class ConfiguredSupervisor
 {
-    internal class ConfiguredSupervisor
+    private static readonly Lazy<DynaClassLoader> ClassLoaderSingleton = new Lazy<DynaClassLoader>(
+        () => new DynaClassLoader(), true);
+
+    private static DynaClassLoader ClassLoader => ClassLoaderSingleton.Value;
+
+    internal static Type? ProtocolFrom(string supervisedProtocol)
     {
-        private static readonly Lazy<DynaClassLoader> ClassLoaderSingleton = new Lazy<DynaClassLoader>(
-            () => new DynaClassLoader(), true);
-
-        private static DynaClassLoader ClassLoader => ClassLoaderSingleton.Value;
-
-        internal static Type? ProtocolFrom(string supervisedProtocol)
+        try
         {
-            try
+            return ClassLoader.LoadClass(supervisedProtocol);
+        }
+        catch (Exception)
+        {
+            throw new InvalidOperationException($"Cannot load class for: {supervisedProtocol}");
+        }
+    }
+
+    internal static Type? SupervisorFrom(string supervisorClassname)
+    {
+        try
+        {
+            var type = ClassLoader.LoadClass(supervisorClassname);
+            if (typeof(Actor).IsAssignableFrom(type))
             {
-                return ClassLoader.LoadClass(supervisedProtocol);
+                return type;
             }
-            catch (Exception)
-            {
-                throw new InvalidOperationException($"Cannot load class for: {supervisedProtocol}");
-            }
+            throw new InvalidOperationException();
         }
-
-        internal static Type? SupervisorFrom(string supervisorClassname)
+        catch (Exception)
         {
-            try
-            {
-                var type = ClassLoader.LoadClass(supervisorClassname);
-                if (typeof(Actor).IsAssignableFrom(type))
-                {
-                    return type;
-                }
-                throw new InvalidOperationException();
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException($"Cannot load class for: {supervisorClassname}");
-            }
+            throw new InvalidOperationException($"Cannot load class for: {supervisorClassname}");
         }
+    }
 
-        internal string StageName { get; }
+    internal string StageName { get; }
 
-        internal string SupervisorName { get; }
+    internal string SupervisorName { get; }
 
-        internal Type? SupervisorClass { get; }
+    internal Type? SupervisorClass { get; }
 
-        internal Type? SupervisedProtocol { get; }
+    internal Type? SupervisedProtocol { get; }
 
-        public override int GetHashCode()
-            => 31 * StageName.GetHashCode() + SupervisorName.GetHashCode();
+    public override int GetHashCode()
+        => 31 * StageName.GetHashCode() + SupervisorName.GetHashCode();
 
-        public override bool Equals(object? other)
+    public override bool Equals(object? other)
+    {
+        if (other == null || other.GetType() != GetType())
         {
-            if (other == null || other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            var otherSupervisor = (ConfiguredSupervisor)other;
-
-            return StageName.Equals(otherSupervisor.StageName) &&
-                   SupervisorName.Equals(otherSupervisor.SupervisorName) &&
-                   (SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null ||
-                   SupervisedProtocol != null && otherSupervisor.SupervisedProtocol != null &&
-                   SupervisedProtocol == otherSupervisor.SupervisedProtocol) &&
-                   SupervisorClass == otherSupervisor.SupervisorClass;
+            return false;
         }
 
-        internal ConfiguredSupervisor(string stageName, string supervisorName, Type supervisedProtocol, Type supervisorClass)
-        {
-            StageName = stageName;
-            SupervisorName = supervisorName;
-            SupervisedProtocol = supervisedProtocol;
-            SupervisorClass = supervisorClass;
-        }
+        var otherSupervisor = (ConfiguredSupervisor)other;
 
-        internal ConfiguredSupervisor(string stageName, string supervisorName, string supervisedProtocol, string supervisorClassname)
-        {
-            StageName = stageName;
-            SupervisorName = supervisorName;
-            SupervisedProtocol = ProtocolFrom(supervisedProtocol);
-            SupervisorClass = SupervisorFrom(supervisorClassname);
-        }
+        return StageName.Equals(otherSupervisor.StageName) &&
+               SupervisorName.Equals(otherSupervisor.SupervisorName) &&
+               (SupervisedProtocol == null && otherSupervisor.SupervisedProtocol == null ||
+                SupervisedProtocol != null && otherSupervisor.SupervisedProtocol != null &&
+                SupervisedProtocol == otherSupervisor.SupervisedProtocol) &&
+               SupervisorClass == otherSupervisor.SupervisorClass;
+    }
 
-        internal ConfiguredSupervisor(string stageName, string supervisorName, Type? supervisorClass)
-        {
-            StageName = stageName;
-            SupervisorName = supervisorName;
-            SupervisedProtocol = null;
-            SupervisorClass = supervisorClass;
-        }
+    internal ConfiguredSupervisor(string stageName, string supervisorName, Type supervisedProtocol, Type supervisorClass)
+    {
+        StageName = stageName;
+        SupervisorName = supervisorName;
+        SupervisedProtocol = supervisedProtocol;
+        SupervisorClass = supervisorClass;
+    }
 
-        internal ConfiguredSupervisor(string stageName, string supervisorName, string supervisorClassname)
-        {
-            StageName = stageName;
-            SupervisorName = supervisorName;
-            SupervisedProtocol = null;
-            SupervisorClass = SupervisorFrom(supervisorClassname);
-        }
+    internal ConfiguredSupervisor(string stageName, string supervisorName, string supervisedProtocol, string supervisorClassname)
+    {
+        StageName = stageName;
+        SupervisorName = supervisorName;
+        SupervisedProtocol = ProtocolFrom(supervisedProtocol);
+        SupervisorClass = SupervisorFrom(supervisorClassname);
+    }
+
+    internal ConfiguredSupervisor(string stageName, string supervisorName, Type? supervisorClass)
+    {
+        StageName = stageName;
+        SupervisorName = supervisorName;
+        SupervisedProtocol = null;
+        SupervisorClass = supervisorClass;
+    }
+
+    internal ConfiguredSupervisor(string stageName, string supervisorName, string supervisorClassname)
+    {
+        StageName = stageName;
+        SupervisorName = supervisorName;
+        SupervisedProtocol = null;
+        SupervisorClass = SupervisorFrom(supervisorClassname);
     }
 }

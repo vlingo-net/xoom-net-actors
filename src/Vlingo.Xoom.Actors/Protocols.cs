@@ -5,81 +5,80 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class Protocols
 {
-    public class Protocols
+    private readonly object[] _protocolActors;
+
+    public T Get<T>(int index) => (T)_protocolActors[index];
+
+    internal Protocols(object[] protocolActors) => _protocolActors = protocolActors;
+
+    public static Two<A, B> Two<A, B>(Protocols protocols) => new Two<A, B>(protocols);
+
+    public static  Three<A, B, C> Three<A, B, C>(Protocols protocols) => new Three<A, B, C>(protocols);
+
+    public static Four<A, B, C, D> Four<A, B, C, D>(Protocols protocols) => new Four<A, B, C, D>(protocols);
+
+    public static Five<A, B, C, D, E> Five<A, B, C, D, E>(Protocols protocols) => new Five<A, B, C, D, E>(protocols);
+}
+public class Two<A, B>
+{
+    public A _1;
+    public B _2;
+
+    public Two(Protocols protocols)
     {
-        private readonly object[] _protocolActors;
-
-        public T Get<T>(int index) => (T)_protocolActors[index];
-
-        internal Protocols(object[] protocolActors) => _protocolActors = protocolActors;
-
-        public static Two<A, B> Two<A, B>(Protocols protocols) => new Two<A, B>(protocols);
-
-        public static  Three<A, B, C> Three<A, B, C>(Protocols protocols) => new Three<A, B, C>(protocols);
-
-        public static Four<A, B, C, D> Four<A, B, C, D>(Protocols protocols) => new Four<A, B, C, D>(protocols);
-
-        public static Five<A, B, C, D, E> Five<A, B, C, D, E>(Protocols protocols) => new Five<A, B, C, D, E>(protocols);
+        _1 = protocols.Get<A>(0);
+        _2 = protocols.Get<B>(1);
     }
-    public class Two<A, B>
-    {
-        public A _1;
-        public B _2;
+}
 
-        public Two(Protocols protocols)
-        {
-            _1 = protocols.Get<A>(0);
-            _2 = protocols.Get<B>(1);
-        }
+public class Three<A, B, C>
+{
+    public A _1;
+    public B _2;
+    public C _3;
+
+    public Three(Protocols protocols)
+    {
+        _1 = protocols.Get<A>(0);
+        _2 = protocols.Get<B>(1);
+        _3 = protocols.Get<C>(2);
     }
+}
 
-    public class Three<A, B, C>
+public class Four<A, B, C, D>
+{
+    public A _1;
+    public B _2;
+    public C _3;
+    public D _4;
+
+    public Four(Protocols protocols)
     {
-        public A _1;
-        public B _2;
-        public C _3;
-
-        public Three(Protocols protocols)
-        {
-            _1 = protocols.Get<A>(0);
-            _2 = protocols.Get<B>(1);
-            _3 = protocols.Get<C>(2);
-        }
+        _1 = protocols.Get<A>(0);
+        _2 = protocols.Get<B>(1);
+        _3 = protocols.Get<C>(2);
+        _4 = protocols.Get<D>(3);
     }
+}
 
-    public class Four<A, B, C, D>
+public class Five<A, B, C, D, E>
+{
+    public A _1;
+    public B _2;
+    public C _3;
+    public D _4;
+    public E _5;
+
+    public Five(Protocols protocols)
     {
-        public A _1;
-        public B _2;
-        public C _3;
-        public D _4;
-
-        public Four(Protocols protocols)
-        {
-            _1 = protocols.Get<A>(0);
-            _2 = protocols.Get<B>(1);
-            _3 = protocols.Get<C>(2);
-            _4 = protocols.Get<D>(3);
-        }
-    }
-
-    public class Five<A, B, C, D, E>
-    {
-        public A _1;
-        public B _2;
-        public C _3;
-        public D _4;
-        public E _5;
-
-        public Five(Protocols protocols)
-        {
-            _1 = protocols.Get<A>(0);
-            _2 = protocols.Get<B>(1);
-            _3 = protocols.Get<C>(2);
-            _4 = protocols.Get<D>(3);
-            _5 = protocols.Get<E>(4);
-        }
+        _1 = protocols.Get<A>(0);
+        _2 = protocols.Get<B>(1);
+        _3 = protocols.Get<C>(2);
+        _4 = protocols.Get<D>(3);
+        _5 = protocols.Get<E>(4);
     }
 }

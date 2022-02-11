@@ -7,59 +7,58 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class FailureMark
 {
-    public sealed class FailureMark
+    private long _startOfPeriod;
+    private int _timedIntensity;
+
+    public FailureMark() => Reset();
+
+    internal bool FailedWithExcessiveFailures(long period, int intensity)
     {
-        private long _startOfPeriod;
-        private int _timedIntensity;
-
-        public FailureMark() => Reset();
-
-        internal bool FailedWithExcessiveFailures(long period, int intensity)
+        if (intensity == SupervisionStrategyConstants.ForeverIntensity)
         {
-            if (intensity == SupervisionStrategyConstants.ForeverIntensity)
-            {
-                return false;
-            }
-
-            if (intensity == 1)
-            {
-                return true;
-            }
-
-            var currentTime = DateTimeHelper.CurrentTimeMillis();
-
-            if (_startOfPeriod == 0)
-            {
-                _startOfPeriod = currentTime;
-                _timedIntensity = 1;
-            }
-            else
-            {
-                ++_timedIntensity;
-            }
-
-            var periodExceeded = _startOfPeriod - currentTime >= period;
-
-            if (_timedIntensity > intensity && !periodExceeded)
-            {
-                return true;
-            }
-
-            if (periodExceeded)
-            {
-                Reset();
-                return FailedWithExcessiveFailures(period, intensity);
-            }
-
             return false;
         }
 
-        private void Reset()
+        if (intensity == 1)
         {
-            _startOfPeriod = 0;
-            _timedIntensity = 0;
+            return true;
         }
+
+        var currentTime = DateTimeHelper.CurrentTimeMillis();
+
+        if (_startOfPeriod == 0)
+        {
+            _startOfPeriod = currentTime;
+            _timedIntensity = 1;
+        }
+        else
+        {
+            ++_timedIntensity;
+        }
+
+        var periodExceeded = _startOfPeriod - currentTime >= period;
+
+        if (_timedIntensity > intensity && !periodExceeded)
+        {
+            return true;
+        }
+
+        if (periodExceeded)
+        {
+            Reset();
+            return FailedWithExcessiveFailures(period, intensity);
+        }
+
+        return false;
+    }
+
+    private void Reset()
+    {
+        _startOfPeriod = 0;
+        _timedIntensity = 0;
     }
 }

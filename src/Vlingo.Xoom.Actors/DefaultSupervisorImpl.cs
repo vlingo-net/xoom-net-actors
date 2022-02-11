@@ -7,18 +7,17 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+internal sealed class DefaultSupervisorImpl : ISupervisor
 {
-    internal sealed class DefaultSupervisorImpl : ISupervisor
+    public ISupervisionStrategy SupervisionStrategy => DefaultSupervisor.DefaultSupervisionStrategy;
+
+    public ISupervisor Supervisor => new DefaultSupervisorImpl();
+
+    public void Inform(Exception error, ISupervised supervised)
     {
-        public ISupervisionStrategy SupervisionStrategy => DefaultSupervisor.DefaultSupervisionStrategy;
-
-        public ISupervisor Supervisor => new DefaultSupervisorImpl();
-
-        public void Inform(Exception error, ISupervised supervised)
-        {
-            var strategy = DefaultSupervisor.DefaultSupervisionStrategy;
-            supervised.RestartWithin(strategy.Period, strategy.Intensity, strategy.Scope);
-        }
+        var strategy = DefaultSupervisor.DefaultSupervisionStrategy;
+        supervised.RestartWithin(strategy.Period, strategy.Intensity, strategy.Scope);
     }
 }

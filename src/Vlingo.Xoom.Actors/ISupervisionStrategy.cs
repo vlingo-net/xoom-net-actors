@@ -7,12 +7,11 @@
 
 using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ISupervisionStrategy
 {
-    public interface ISupervisionStrategy
-    {
-        int Intensity { get; }
-        long Period { get; }
-        Scope Scope { get; }
-    }
+    int Intensity { get; }
+    long Period { get; }
+    Scope Scope { get; }
 }

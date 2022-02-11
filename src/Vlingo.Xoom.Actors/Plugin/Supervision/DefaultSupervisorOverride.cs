@@ -7,32 +7,31 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision;
+
+public sealed class DefaultSupervisorOverride : Actor, ISupervisor
 {
-    public sealed class DefaultSupervisorOverride : Actor, ISupervisor
+    public ISupervisionStrategy SupervisionStrategy { get; } = new DefaultSupervisorOvverideSupervisionStrategy();
+
+    public ISupervisor Supervisor { get; private set; }
+
+    public DefaultSupervisorOverride()
     {
-        public ISupervisionStrategy SupervisionStrategy { get; } = new DefaultSupervisorOvverideSupervisionStrategy();
+        Supervisor = ParentAs<ISupervisor>();
+    }
 
-        public ISupervisor Supervisor { get; private set; }
+    public void Inform(Exception error, ISupervised supervised)
+    {
+        Logger.Error($"DefaultSupervisorOverride: Failure of: {supervised.Address} because: {error.Message} Action: Resuming.", error);
+        supervised.Resume();
+    }
 
-        public DefaultSupervisorOverride()
-        {
-            Supervisor = ParentAs<ISupervisor>();
-        }
+    private class DefaultSupervisorOvverideSupervisionStrategy : ISupervisionStrategy
+    {
+        public int Intensity => SupervisionStrategyConstants.ForeverIntensity;
 
-        public void Inform(Exception error, ISupervised supervised)
-        {
-            Logger.Error($"DefaultSupervisorOverride: Failure of: {supervised.Address} because: {error.Message} Action: Resuming.", error);
-            supervised.Resume();
-        }
+        public long Period => SupervisionStrategyConstants.ForeverPeriod;
 
-        private class DefaultSupervisorOvverideSupervisionStrategy : ISupervisionStrategy
-        {
-            public int Intensity => SupervisionStrategyConstants.ForeverIntensity;
-
-            public long Period => SupervisionStrategyConstants.ForeverPeriod;
-
-            public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
-        }
+        public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
     }
 }

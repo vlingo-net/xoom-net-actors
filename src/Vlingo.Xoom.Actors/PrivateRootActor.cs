@@ -7,61 +7,60 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class PrivateRootActor : Actor, ISupervisor
 {
-    public sealed class PrivateRootActor : Actor, ISupervisor
+    public ISupervisionStrategy SupervisionStrategy { get; }
+
+    public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+
+    public PrivateRootActor()
     {
-        public ISupervisionStrategy SupervisionStrategy { get; }
+        SupervisionStrategy = new PrivateRootActorSupervisionStrategy();
+    }
 
-        public ISupervisor Supervisor { get; } = new DefaultSupervisorImpl();
+    protected internal override void BeforeStart()
+    {
+        base.BeforeStart();
 
-        public PrivateRootActor()
-        {
-            SupervisionStrategy = new PrivateRootActorSupervisionStrategy();
-        }
+        Stage.World.SetPrivateRoot(SelfAs<IStoppable>());
 
-        protected internal override void BeforeStart()
-        {
-            base.BeforeStart();
+        Stage.ActorProtocolFor<INoProtocol>(
+            Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
+            this,
+            Stage.World.AddressFactory.From(World.PublicRootId, World.PublicRootName),
+            null,
+            null,
+            Logger);
 
-            Stage.World.SetPrivateRoot(SelfAs<IStoppable>());
+        Stage.ActorProtocolFor<IDeadLetters>(
+            Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
+            this,
+            Stage.World.AddressFactory.From(World.DeadLettersId, World.DeadLettersName),
+            null,
+            null,
+            Logger);
+    }
 
-            Stage.ActorProtocolFor<INoProtocol>(
-                Definition.Has<PublicRootActor>(Definition.NoParameters, World.PublicRootName),
-                this,
-                Stage.World.AddressFactory.From(World.PublicRootId, World.PublicRootName),
-                null,
-                null,
-                Logger);
+    protected internal override void AfterStop()
+    {
+        Stage.World.SetPrivateRoot(null);
+        base.AfterStop();
+    }
 
-            Stage.ActorProtocolFor<IDeadLetters>(
-                Definition.Has<DeadLettersActor>(Definition.NoParameters, World.DeadLettersName),
-                this,
-                Stage.World.AddressFactory.From(World.DeadLettersId, World.DeadLettersName),
-                null,
-                null,
-                Logger);
-        }
+    public void Inform(Exception error, ISupervised supervised)
+    {
+        Logger.Error($"PrivateRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Stopping.", error);
+        supervised.Stop(SupervisionStrategy.Scope);
+    }
 
-        protected internal override void AfterStop()
-        {
-            Stage.World.SetPrivateRoot(null);
-            base.AfterStop();
-        }
+    private class PrivateRootActorSupervisionStrategy : ISupervisionStrategy
+    {
+        public int Intensity => 0;
 
-        public void Inform(Exception error, ISupervised supervised)
-        {
-            Logger.Error($"PrivateRootActor: Failure of: {supervised.Address} because: {error.Message} Action: Stopping.", error);
-            supervised.Stop(SupervisionStrategy.Scope);
-        }
+        public long Period => 0;
 
-        private class PrivateRootActorSupervisionStrategy : ISupervisionStrategy
-        {
-            public int Intensity => 0;
-
-            public long Period => 0;
-
-            public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
-        }
+        public SupervisionStrategyConstants.Scope Scope => SupervisionStrategyConstants.Scope.One;
     }
 }

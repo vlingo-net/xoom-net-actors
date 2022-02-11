@@ -7,46 +7,45 @@
 
 using System.Globalization;
 
-namespace Vlingo.Xoom.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin;
+
+public class PluginProperties
 {
-    public class PluginProperties
+    private readonly Properties _properties;
+
+    public PluginProperties(string name, Properties properties)
     {
-        private readonly Properties _properties;
-
-        public PluginProperties(string name, Properties properties)
-        {
-            Name = name;
-            _properties = properties;
-        }
-
-        public string Name { get; }
-
-        public bool GetBoolean(string key, bool defaultValue)
-        {
-            var value = GetString(key, defaultValue.ToString());
-            return value == null ? defaultValue : bool.Parse(value);
-        }
-
-        public float GetFloat(string key, float defaultValue)
-        {
-            var value = GetString(key, defaultValue.ToString(CultureInfo.InvariantCulture));
-            return value == null ? defaultValue : float.Parse(value, CultureInfo.InvariantCulture);
-        }
-
-        public int GetInteger(string key, int defaultValue)
-        {
-            var value = GetString(key, defaultValue.ToString());
-            return value == null ? defaultValue : int.Parse(value);
-        }
-        
-        public long GetLong(string key, long defaultValue)
-        {
-            var value = GetString(key, defaultValue.ToString());
-            return value == null ? defaultValue : long.Parse(value);
-        }
-
-        public string? GetString(string key, string? defaultValue) => _properties.GetProperty(Key(key), defaultValue);
-
-        private string Key(string key) => $"plugin.{Name}.{key}";
+        Name = name;
+        _properties = properties;
     }
+
+    public string Name { get; }
+
+    public bool GetBoolean(string key, bool defaultValue)
+    {
+        var value = GetString(key, defaultValue.ToString());
+        return value == null ? defaultValue : bool.Parse(value);
+    }
+
+    public float GetFloat(string key, float defaultValue)
+    {
+        var value = GetString(key, defaultValue.ToString(CultureInfo.InvariantCulture));
+        return value == null ? defaultValue : float.Parse(value, CultureInfo.InvariantCulture);
+    }
+
+    public int GetInteger(string key, int defaultValue)
+    {
+        var value = GetString(key, defaultValue.ToString());
+        return value == null ? defaultValue : int.Parse(value);
+    }
+        
+    public long GetLong(string key, long defaultValue)
+    {
+        var value = GetString(key, defaultValue.ToString());
+        return value == null ? defaultValue : long.Parse(value);
+    }
+
+    public string? GetString(string key, string? defaultValue) => _properties.GetProperty(Key(key), defaultValue);
+
+    private string Key(string key) => $"plugin.{Name}.{key}";
 }

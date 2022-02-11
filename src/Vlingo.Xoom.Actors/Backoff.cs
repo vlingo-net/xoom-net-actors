@@ -9,62 +9,61 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class Backoff
 {
-    public sealed class Backoff
+    private const long BackoffCap = 4096;
+    private const long BackoffReset = 0L;
+    private const long BackoffStart = 1L;
+
+    private long _backoff;
+    private readonly bool _isFixed;
+
+    public Backoff()
     {
-        private const long BackoffCap = 4096;
-        private const long BackoffReset = 0L;
-        private const long BackoffStart = 1L;
+        _backoff = BackoffReset;
+        _isFixed = false;
+    }
 
-        private long _backoff;
-        private readonly bool _isFixed;
+    public Backoff(long fixedBackoff)
+    {
+        _backoff = fixedBackoff;
+        _isFixed = true;
+    }
 
-        public Backoff()
+    public async Task Now(CancellationToken token)
+    {
+        if (!_isFixed)
         {
-            _backoff = BackoffReset;
-            _isFixed = false;
-        }
-
-        public Backoff(long fixedBackoff)
-        {
-            _backoff = fixedBackoff;
-            _isFixed = true;
-        }
-
-        public async Task Now(CancellationToken token)
-        {
-            if (!_isFixed)
+            if (_backoff == BackoffReset)
             {
-                if (_backoff == BackoffReset)
-                {
-                    _backoff = BackoffStart;
-                }
-                else if (_backoff < BackoffCap)
-                {
-                    _backoff = _backoff * 2;
-                }
+                _backoff = BackoffStart;
             }
-            await YieldFor(_backoff, token);
-        }
-
-        public async Task Now()
-        {
-            await Now(CancellationToken.None);
-        }
-
-        public void Reset() => _backoff = BackoffReset;
-
-        private async Task YieldFor(long aMillis, CancellationToken token)
-        {
-            try
+            else if (_backoff < BackoffCap)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(aMillis), token);
+                _backoff = _backoff * 2;
             }
-            catch (OperationCanceledException)
-            {
-                // TODO: should ne logged
-            }
+        }
+        await YieldFor(_backoff, token);
+    }
+
+    public async Task Now()
+    {
+        await Now(CancellationToken.None);
+    }
+
+    public void Reset() => _backoff = BackoffReset;
+
+    private async Task YieldFor(long aMillis, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(aMillis), token);
+        }
+        catch (OperationCanceledException)
+        {
+            // TODO: should ne logged
         }
     }
 }

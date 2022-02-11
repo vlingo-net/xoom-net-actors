@@ -8,17 +8,16 @@
 using System;
 using static Vlingo.Xoom.Actors.SupervisionStrategyConstants;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ISupervised
 {
-    public interface ISupervised
-    {
-        IAddress Address { get; }
-        void Escalate();
-        void RestartWithin(long period, int intensity, Scope scope);
-        void Resume();
-        void Stop(Scope scope);
-        ISupervisor Supervisor { get; }
-        void Suspend();
-        Exception Error { get; }
-    }
+    IAddress Address { get; }
+    void Escalate();
+    void RestartWithin(long period, int intensity, Scope scope);
+    void Resume();
+    void Stop(Scope scope);
+    ISupervisor Supervisor { get; }
+    void Suspend();
+    Exception Error { get; }
 }

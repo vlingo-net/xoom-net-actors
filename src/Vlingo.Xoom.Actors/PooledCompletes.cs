@@ -7,58 +7,57 @@
 
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class PooledCompletes : ICompletesEventually
 {
-    public class PooledCompletes : ICompletesEventually
+    public long Id { get; }
+
+    public ICompletes? ClientCompletes { get; }
+
+    public ICompletesEventually CompletesEventually { get; }
+
+    public PooledCompletes(
+        long id,
+        ICompletes? clientCompletes,
+        ICompletesEventually completesEventually)
     {
-        public long Id { get; }
+        Id = id;
+        ClientCompletes = clientCompletes;
+        CompletesEventually = completesEventually;
+    }
 
-        public ICompletes? ClientCompletes { get; }
+    public virtual object? Outcome { get; private set; }
 
-        public ICompletesEventually CompletesEventually { get; }
+    public virtual void With(object? outcome)
+    {
+        Outcome = outcome;
+        CompletesEventually.With(this);
+    }
 
-        public PooledCompletes(
-            long id,
-            ICompletes? clientCompletes,
-            ICompletesEventually completesEventually)
+    public virtual bool IsStopped => CompletesEventually.IsStopped;
+
+    public virtual IAddress Address => CompletesEventually.Address;
+
+    public virtual void Stop()
+    {
+    }
+
+    public override int GetHashCode() => 31 * Address.GetHashCode();
+
+    public override bool Equals(object? other)
+    {
+        if (other == null || other.GetType() != GetType())
         {
-            Id = id;
-            ClientCompletes = clientCompletes;
-            CompletesEventually = completesEventually;
+            return false;
         }
 
-        public virtual object? Outcome { get; private set; }
+        return Address.Equals(((PooledCompletes)other).Address);
+    }
 
-        public virtual void With(object? outcome)
-        {
-            Outcome = outcome;
-            CompletesEventually.With(this);
-        }
+    public override string ToString() => $"PooledCompletes[Id={Id} Address={Address} Outcome={Outcome} IsStopped={IsStopped}]";
 
-        public virtual bool IsStopped => CompletesEventually.IsStopped;
-
-        public virtual IAddress Address => CompletesEventually.Address;
-
-        public virtual void Stop()
-        {
-        }
-
-        public override int GetHashCode() => 31 * Address.GetHashCode();
-
-        public override bool Equals(object? other)
-        {
-            if (other == null || other.GetType() != GetType())
-            {
-                return false;
-            }
-
-            return Address.Equals(((PooledCompletes)other).Address);
-        }
-
-        public override string ToString() => $"PooledCompletes[Id={Id} Address={Address} Outcome={Outcome} IsStopped={IsStopped}]";
-
-        public void Conclude()
-        {
-        }
+    public void Conclude()
+    {
     }
 }

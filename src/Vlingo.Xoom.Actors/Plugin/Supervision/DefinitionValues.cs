@@ -8,82 +8,81 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.Plugin.Supervision
+namespace Vlingo.Xoom.Actors.Plugin.Supervision;
+
+internal class DefinitionValues
 {
-    internal class DefinitionValues
-    {
-        private const string STAGE = "stage=";
-        private const string NAME = "name=";
-        private const string PROTOCOL = "protocol=";
-        private const string SUPERVISOR = "supervisor=";
+    private const string STAGE = "stage=";
+    private const string NAME = "name=";
+    private const string PROTOCOL = "protocol=";
+    private const string SUPERVISOR = "supervisor=";
   
-        internal string Name { get; private set; }
-        internal string Protocol { get; private set; }
-        internal string StageName { get; private set; }
-        internal string Supervisor { get; private set; }
+    internal string Name { get; private set; }
+    internal string Protocol { get; private set; }
+    internal string StageName { get; private set; }
+    internal string Supervisor { get; private set; }
 
-        internal static IList<DefinitionValues> AllDefinitionValues(PluginProperties properties)
+    internal static IList<DefinitionValues> AllDefinitionValues(PluginProperties properties)
+    {
+        var settings = new List<DefinitionValues>();
+
+        var types = properties.GetString("types", "");
+
+        var nextDefinition = 0;
+        var hasNext = true;
+        while (hasNext)
         {
-            var settings = new List<DefinitionValues>();
-
-            var types = properties.GetString("types", "");
-
-            var nextDefinition = 0;
-            var hasNext = true;
-            while (hasNext)
+            if (types != null)
             {
-                if (types != null)
-                {
-                    var open = types.IndexOf("[", nextDefinition, StringComparison.Ordinal);
-                    var close = types.IndexOf("]", open + 1, StringComparison.Ordinal);
-                    var len = close - open - 1;
+                var open = types.IndexOf("[", nextDefinition, StringComparison.Ordinal);
+                var close = types.IndexOf("]", open + 1, StringComparison.Ordinal);
+                var len = close - open - 1;
 
-                    if (open >= 0 && close >= 0)
-                    {
-                        var definition = types.Substring(open + 1, len);
-                        settings.Add(new DefinitionValues(definition));
-                        nextDefinition = close + 1;
-                    }
-                    else
-                    {
-                        hasNext = false;
-                    }
+                if (open >= 0 && close >= 0)
+                {
+                    var definition = types.Substring(open + 1, len);
+                    settings.Add(new DefinitionValues(definition));
+                    nextDefinition = close + 1;
+                }
+                else
+                {
+                    hasNext = false;
                 }
             }
-
-            return settings;
         }
 
-        internal DefinitionValues(string definition)
+        return settings;
+    }
+
+    internal DefinitionValues(string definition)
+    {
+        StageName = StageFrom(definition);
+        Name = NameFrom(definition);
+        Protocol = ProtocolFrom(definition);
+        Supervisor = SupervisorFrom(definition);
+    }
+
+    private string NameFrom(string definition) => PartFor(definition, NAME);
+
+    private string ProtocolFrom(string definition) => PartFor(definition, PROTOCOL);
+
+    private string StageFrom(string definition) => PartFor(definition, STAGE);
+
+    private string SupervisorFrom(string definition) => PartFor(definition, SUPERVISOR);
+
+    private string PartFor(string definition, string partName)
+    {
+        var start = definition.IndexOf(partName, StringComparison.Ordinal);
+
+        if (start == -1)
         {
-            StageName = StageFrom(definition);
-            Name = NameFrom(definition);
-            Protocol = ProtocolFrom(definition);
-            Supervisor = SupervisorFrom(definition);
+            return "";
         }
 
-        private string NameFrom(string definition) => PartFor(definition, NAME);
-
-        private string ProtocolFrom(string definition) => PartFor(definition, PROTOCOL);
-
-        private string StageFrom(string definition) => PartFor(definition, STAGE);
-
-        private string SupervisorFrom(string definition) => PartFor(definition, SUPERVISOR);
-
-        private string PartFor(string definition, string partName)
-        {
-            var start = definition.IndexOf(partName, StringComparison.Ordinal);
-
-            if (start == -1)
-            {
-                return "";
-            }
-
-            var startName = start + partName.Length;
-            var end = definition.IndexOf(" ", startName, StringComparison.Ordinal);
-            var actualEnd = end >= 0 ? end : definition.Length;
-            var part = definition.Substring(startName, actualEnd - startName);
-            return part;
-        }
+        var startName = start + partName.Length;
+        var end = definition.IndexOf(" ", startName, StringComparison.Ordinal);
+        var actualEnd = end >= 0 ? end : definition.Length;
+        var part = definition.Substring(startName, actualEnd - startName);
+        return part;
     }
 }

@@ -7,16 +7,15 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface IAddress : IComparable<IAddress>
 {
-    public interface IAddress : IComparable<IAddress>
-    {
-        long Id { get; }
-        long IdSequence { get; }
-        string IdSequenceString { get; }
-        string IdString { get; }
-        T IdTyped<T>(Func<string, T> typeConverter);
-        string Name { get; }
-        bool IsDistributable { get; }
-    }
+    long Id { get; }
+    long IdSequence { get; }
+    string IdSequenceString { get; }
+    string IdString { get; }
+    T IdTyped<T>(Func<string, T> typeConverter);
+    string Name { get; }
+    bool IsDistributable { get; }
 }

@@ -5,22 +5,21 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+/// <summary>
+/// Defines the interface for all <see cref="Actor"/> proxies. The Actor's <see cref="IAddress"/> is
+/// available as well as <code>Equals()</code>, <code>GetHashCode()</code>, and <code>ToString()</code>.
+/// </summary>
+public interface IProxy
 {
     /// <summary>
-    /// Defines the interface for all <see cref="Actor"/> proxies. The Actor's <see cref="IAddress"/> is
-    /// available as well as <code>Equals()</code>, <code>GetHashCode()</code>, and <code>ToString()</code>.
+    /// Gets the underlying <see cref="Actor"/> <see cref="IAddress"/>
     /// </summary>
-    public interface IProxy
-    {
-        /// <summary>
-        /// Gets the underlying <see cref="Actor"/> <see cref="IAddress"/>
-        /// </summary>
-        IAddress Address { get; }
-    }
+    IAddress Address { get; }
+}
     
-    public static class ProxyExtensions
-    {
-        public static IProxy FromRaw(this object proxy) => (IProxy) proxy;
-    }
+public static class ProxyExtensions
+{
+    public static IProxy FromRaw(this object proxy) => (IProxy) proxy;
 }

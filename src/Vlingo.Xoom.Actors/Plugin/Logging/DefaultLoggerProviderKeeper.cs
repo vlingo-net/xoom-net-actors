@@ -9,74 +9,73 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Vlingo.Xoom.Actors.Plugin.Logging
+namespace Vlingo.Xoom.Actors.Plugin.Logging;
+
+public sealed class DefaultLoggerProviderKeeper : ILoggerProviderKeeper
 {
-    public sealed class DefaultLoggerProviderKeeper : ILoggerProviderKeeper
+    private readonly IDictionary<string, LoggerProviderInfo> _loggerProviderInfos;
+
+    public DefaultLoggerProviderKeeper() => _loggerProviderInfos = new Dictionary<string, LoggerProviderInfo>();
+
+    public void Close()
     {
-        private readonly IDictionary<string, LoggerProviderInfo> _loggerProviderInfos;
-
-        public DefaultLoggerProviderKeeper() => _loggerProviderInfos = new Dictionary<string, LoggerProviderInfo>();
-
-        public void Close()
+        foreach (var info in _loggerProviderInfos.Values)
         {
-            foreach (var info in _loggerProviderInfos.Values)
-            {
-                info.LoggerProvider.Close();
-            }
+            info.LoggerProvider.Close();
+        }
+    }
+
+    public ILoggerProvider? FindDefault()
+        => _loggerProviderInfos.Values
+            .Where(info => info.IsDefault)
+            .Select(info => info.LoggerProvider)
+            .FirstOrDefault();
+
+    public ILoggerProvider FindNamed(string name)
+    {
+        if (_loggerProviderInfos.ContainsKey(name))
+        {
+            return _loggerProviderInfos[name].LoggerProvider;
         }
 
-        public ILoggerProvider? FindDefault()
-            => _loggerProviderInfos.Values
-                .Where(info => info.IsDefault)
-                .Select(info => info.LoggerProvider)
-                .FirstOrDefault();
+        throw new InvalidOperationException($"No registered LoggerProvider named: {name}");
+    }
 
-        public ILoggerProvider FindNamed(string name)
+    public void Keep(string name, bool isDefault, ILoggerProvider loggerProvider)
+    {
+        if (_loggerProviderInfos.Count == 0 || FindDefault() == null)
         {
-            if (_loggerProviderInfos.ContainsKey(name))
-            {
-                return _loggerProviderInfos[name].LoggerProvider;
-            }
-
-            throw new InvalidOperationException($"No registered LoggerProvider named: {name}");
+            isDefault = true;
         }
 
-        public void Keep(string name, bool isDefault, ILoggerProvider loggerProvider)
+        if (isDefault)
         {
-            if (_loggerProviderInfos.Count == 0 || FindDefault() == null)
-            {
-                isDefault = true;
-            }
-
-            if (isDefault)
-            {
-                UndefaultCurrentDefault();
-            }
-
-            _loggerProviderInfos[name] = new LoggerProviderInfo(name, loggerProvider, isDefault);
+            UndefaultCurrentDefault();
         }
 
-        private void UndefaultCurrentDefault()
-        {
-            var defaultItems = _loggerProviderInfos.Where(x => x.Value.IsDefault).ToList();
-            defaultItems
-                .ForEach(item =>
-                {
-                    _loggerProviderInfos[item.Key] = new LoggerProviderInfo(item.Value.Name, item.Value.LoggerProvider, false);
-                });
-        }
+        _loggerProviderInfos[name] = new LoggerProviderInfo(name, loggerProvider, isDefault);
+    }
 
-        private class LoggerProviderInfo
-        {
-            public readonly bool IsDefault;
-            public readonly ILoggerProvider LoggerProvider;
-            public readonly string Name;
-            public LoggerProviderInfo(string name, ILoggerProvider loggerProvider, bool isDefault)
+    private void UndefaultCurrentDefault()
+    {
+        var defaultItems = _loggerProviderInfos.Where(x => x.Value.IsDefault).ToList();
+        defaultItems
+            .ForEach(item =>
             {
-                Name = name;
-                LoggerProvider = loggerProvider;
-                IsDefault = isDefault;
-            }
+                _loggerProviderInfos[item.Key] = new LoggerProviderInfo(item.Value.Name, item.Value.LoggerProvider, false);
+            });
+    }
+
+    private class LoggerProviderInfo
+    {
+        public readonly bool IsDefault;
+        public readonly ILoggerProvider LoggerProvider;
+        public readonly string Name;
+        public LoggerProviderInfo(string name, ILoggerProvider loggerProvider, bool isDefault)
+        {
+            Name = name;
+            LoggerProvider = loggerProvider;
+            IsDefault = isDefault;
         }
     }
 }

@@ -10,42 +10,41 @@ using System.Linq;
 using Vlingo.Xoom.Actors.Plugin.Eviction;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
-{
-    internal class DirectoryEvictor : Actor, IScheduled<object>
-    {
-        private readonly DirectoryEvictionConfiguration _config;
-        private readonly Directory _directory;
-        
-        public DirectoryEvictor(Directory directory) : this(new DirectoryEvictionConfiguration(), directory)
-        {
-        }
+namespace Vlingo.Xoom.Actors;
 
-        public DirectoryEvictor(DirectoryEvictionConfiguration config, Directory directory)
-        {
-            _config = config;
-            _directory = directory;
-            Logger.Debug("Created with config: {}", config);
-        }
+internal class DirectoryEvictor : Actor, IScheduled<object>
+{
+    private readonly DirectoryEvictionConfiguration _config;
+    private readonly Directory _directory;
         
-        public void IntervalSignal(IScheduled<object> scheduled, object data)
+    public DirectoryEvictor(Directory directory) : this(new DirectoryEvictionConfiguration(), directory)
+    {
+    }
+
+    public DirectoryEvictor(DirectoryEvictionConfiguration config, Directory directory)
+    {
+        _config = config;
+        _directory = directory;
+        Logger.Debug("Created with config: {}", config);
+    }
+        
+    public void IntervalSignal(IScheduled<object> scheduled, object data)
+    {
+        Logger.Debug("Started eviction routine");
+        var currentProcess = Process.GetCurrentProcess();
+        var fillRatio = currentProcess.PrivateMemorySize64 / (float) currentProcess.WorkingSet64;
+        if (fillRatio >= _config.FillRatioHigh)
         {
-            Logger.Debug("Started eviction routine");
-            var currentProcess = Process.GetCurrentProcess();
-            var fillRatio = currentProcess.PrivateMemorySize64 / (float) currentProcess.WorkingSet64;
-            if (fillRatio >= _config.FillRatioHigh)
-            {
-                Logger.Debug($"Memory fill ratio {fillRatio} exceeding watermark ({_config.FillRatioHigh})");
-                var evicted = _directory.EvictionCandidates(_config.LruThresholdMillis)
-                    .Where(actor => actor.LifeCycle.Evictable.Stop(_config.LruThresholdMillis))
-                    .Select(actor => actor.Address)
-                    .ToArray();
-                Logger.Debug($"Evicted {evicted.Length} actors :: {evicted}");
-            }
-            else 
-            {
-                Logger.Debug($"Memory fill ratio {fillRatio} was below watermark ({_config.FillRatioHigh})");
-            }
+            Logger.Debug($"Memory fill ratio {fillRatio} exceeding watermark ({_config.FillRatioHigh})");
+            var evicted = _directory.EvictionCandidates(_config.LruThresholdMillis)
+                .Where(actor => actor.LifeCycle.Evictable.Stop(_config.LruThresholdMillis))
+                .Select(actor => actor.Address)
+                .ToArray();
+            Logger.Debug($"Evicted {evicted.Length} actors :: {evicted}");
+        }
+        else 
+        {
+            Logger.Debug($"Memory fill ratio {fillRatio} was below watermark ({_config.FillRatioHigh})");
         }
     }
 }

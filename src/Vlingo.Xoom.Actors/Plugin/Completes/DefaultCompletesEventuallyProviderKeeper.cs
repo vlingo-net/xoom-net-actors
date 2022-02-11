@@ -7,47 +7,46 @@
 
 using System;
 
-namespace Vlingo.Xoom.Actors.Plugin.Completes
+namespace Vlingo.Xoom.Actors.Plugin.Completes;
+
+public sealed class DefaultCompletesEventuallyProviderKeeper : ICompletesEventuallyProviderKeeper
 {
-    public sealed class DefaultCompletesEventuallyProviderKeeper : ICompletesEventuallyProviderKeeper
+    private CompletesEventuallyProviderInfo? _completesEventuallyProviderInfo;
+
+    public void Close() => _completesEventuallyProviderInfo?.CompletesEventuallyProvider.Close();
+
+    public ICompletesEventuallyProvider FindDefault()
     {
-        private CompletesEventuallyProviderInfo? _completesEventuallyProviderInfo;
-
-        public void Close() => _completesEventuallyProviderInfo?.CompletesEventuallyProvider.Close();
-
-        public ICompletesEventuallyProvider FindDefault()
+        if (_completesEventuallyProviderInfo == null)
         {
-            if (_completesEventuallyProviderInfo == null)
-            {
-                throw new InvalidOperationException("No registered default CompletesEventuallyProvider.");
-            }
-
-            return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
+            throw new InvalidOperationException("No registered default CompletesEventuallyProvider.");
         }
 
-        public void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider) => _completesEventuallyProviderInfo = new CompletesEventuallyProviderInfo(name, completesEventuallyProvider, true);
+        return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
+    }
 
-        public ICompletesEventuallyProvider ProviderFor(string name)
+    public void Keep(string name, ICompletesEventuallyProvider completesEventuallyProvider) => _completesEventuallyProviderInfo = new CompletesEventuallyProviderInfo(name, completesEventuallyProvider, true);
+
+    public ICompletesEventuallyProvider ProviderFor(string name)
+    {
+        if (_completesEventuallyProviderInfo == null)
         {
-            if (_completesEventuallyProviderInfo == null)
-            {
-                throw new InvalidOperationException($"No registered CompletesEventuallyProvider named: {name}");
-            }
-
-            return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
+            throw new InvalidOperationException($"No registered CompletesEventuallyProvider named: {name}");
         }
 
-        private class CompletesEventuallyProviderInfo
+        return _completesEventuallyProviderInfo.CompletesEventuallyProvider;
+    }
+
+    private class CompletesEventuallyProviderInfo
+    {
+        public bool IsDefault;
+        public readonly ICompletesEventuallyProvider CompletesEventuallyProvider;
+        public string Name;
+        public CompletesEventuallyProviderInfo(string name, ICompletesEventuallyProvider completesEventuallyProvider, bool isDefault)
         {
-            public bool IsDefault;
-            public readonly ICompletesEventuallyProvider CompletesEventuallyProvider;
-            public string Name;
-            public CompletesEventuallyProviderInfo(string name, ICompletesEventuallyProvider completesEventuallyProvider, bool isDefault)
-            {
-                Name = name;
-                CompletesEventuallyProvider = completesEventuallyProvider;
-                IsDefault = isDefault;
-            }
+            Name = name;
+            CompletesEventuallyProvider = completesEventuallyProvider;
+            IsDefault = isDefault;
         }
     }
 }

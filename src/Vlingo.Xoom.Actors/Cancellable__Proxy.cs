@@ -8,37 +8,36 @@
 using System;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class Cancellable__Proxy : ICancellable
 {
-    public class Cancellable__Proxy : ICancellable
+    private readonly Actor _actor;
+    private readonly IMailbox _mailbox;
+
+    public Cancellable__Proxy(Actor actor, IMailbox mailbox)
     {
-        private readonly Actor _actor;
-        private readonly IMailbox _mailbox;
-
-        public Cancellable__Proxy(Actor actor, IMailbox mailbox)
+        _actor = actor;
+        _mailbox = mailbox;
+    }
+    public bool Cancel()
+    {
+        if (!_actor.IsStopped)
         {
-            _actor = actor;
-            _mailbox = mailbox;
-        }
-        public bool Cancel()
-        {
-            if (!_actor.IsStopped)
+            Action<ICancellable> consumer = x => x.Cancel();
+            if (_mailbox.IsPreallocated)
             {
-                Action<ICancellable> consumer = x => x.Cancel();
-                if (_mailbox.IsPreallocated)
-                {
-                    _mailbox.Send(_actor, consumer, null, "Cancel()");
-                }
-                else
-                {
-                    _mailbox.Send(new LocalMessage<ICancellable>(_actor, consumer, "Cancel()"));
-                }
-                
-                return true;
+                _mailbox.Send(_actor, consumer, null, "Cancel()");
             }
-
-            _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Cancel()"));
-            return false;
+            else
+            {
+                _mailbox.Send(new LocalMessage<ICancellable>(_actor, consumer, "Cancel()"));
+            }
+                
+            return true;
         }
+
+        _actor.DeadLetters?.FailedDelivery(new DeadLetter(_actor, "Cancel()"));
+        return false;
     }
 }

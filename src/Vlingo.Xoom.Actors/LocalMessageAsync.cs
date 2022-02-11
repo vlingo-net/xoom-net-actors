@@ -7,19 +7,18 @@
 
 using System.Threading.Tasks;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class LocalMessageAsync : LocalMessage<IAsyncMessage>
 {
-    public class LocalMessageAsync : LocalMessage<IAsyncMessage>
+    private readonly ExecutorDispatcherAsync _executor;
+    private readonly Task _task;
+
+    public LocalMessageAsync(ExecutorDispatcherAsync executor, Task task)
     {
-        private readonly ExecutorDispatcherAsync _executor;
-        private readonly Task _task;
-
-        public LocalMessageAsync(ExecutorDispatcherAsync executor, Task task)
-        {
-            _executor = executor;
-            _task = task;
-        }
-
-        public override void Deliver() => _executor.ExecuteTask(_task);
+        _executor = executor;
+        _task = task;
     }
+
+    public override void Deliver() => _executor.ExecuteTask(_task);
 }

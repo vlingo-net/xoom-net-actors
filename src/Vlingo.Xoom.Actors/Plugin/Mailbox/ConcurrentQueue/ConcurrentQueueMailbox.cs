@@ -13,289 +13,288 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue
+namespace Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+
+public class ConcurrentQueueMailbox : IMailbox
 {
-    public class ConcurrentQueueMailbox : IMailbox
+    private readonly AtomicBoolean _delivering;
+    private readonly IDispatcher _dispatcher;
+    private readonly AtomicReference<ExecutorDispatcherAsync> _dispatcherAsync;
+    private readonly AtomicReference<SuspendedDeliveryOverrides> _suspendedDeliveryOverrides;
+    private readonly ConcurrentQueue<IMessage> _queue;
+    private readonly byte _throttlingCount;
+
+    internal ConcurrentQueueMailbox(IDispatcher dispatcher, int throttlingCount)
     {
-        private readonly AtomicBoolean _delivering;
-        private readonly IDispatcher _dispatcher;
-        private readonly AtomicReference<ExecutorDispatcherAsync> _dispatcherAsync;
-        private readonly AtomicReference<SuspendedDeliveryOverrides> _suspendedDeliveryOverrides;
-        private readonly ConcurrentQueue<IMessage> _queue;
-        private readonly byte _throttlingCount;
+        _dispatcher = dispatcher;
+        _dispatcherAsync = new AtomicReference<ExecutorDispatcherAsync>(new ExecutorDispatcherAsync(this));
+        _delivering = new AtomicBoolean(false);
+        _suspendedDeliveryOverrides = new AtomicReference<SuspendedDeliveryOverrides>(new SuspendedDeliveryOverrides());
+        _queue = new ConcurrentQueue<IMessage>();
+        _throttlingCount = (byte)throttlingCount;
+    }
 
-        internal ConcurrentQueueMailbox(IDispatcher dispatcher, int throttlingCount)
+    public TaskScheduler TaskScheduler => _dispatcherAsync.Get()!;
+
+    public void Close()
+    {
+        while (_queue.TryDequeue(out _))
         {
-            _dispatcher = dispatcher;
-            _dispatcherAsync = new AtomicReference<ExecutorDispatcherAsync>(new ExecutorDispatcherAsync(this));
-            _delivering = new AtomicBoolean(false);
-            _suspendedDeliveryOverrides = new AtomicReference<SuspendedDeliveryOverrides>(new SuspendedDeliveryOverrides());
-            _queue = new ConcurrentQueue<IMessage>();
-            _throttlingCount = (byte)throttlingCount;
+            // do nothing
         }
+    }
 
-        public TaskScheduler TaskScheduler => _dispatcherAsync.Get()!;
+    public bool IsClosed => _dispatcher.IsClosed;
 
-        public void Close()
+    public int ConcurrencyCapacity => _dispatcher.ConcurrencyCapacity;
+
+    public void Resume(string name)
+    {
+        if (_suspendedDeliveryOverrides.Get()!.Pop(name))
         {
-            while (_queue.TryDequeue(out _))
-            {
-                // do nothing
-            }
+            _dispatcher.Execute(this);
         }
+    }
 
-        public bool IsClosed => _dispatcher.IsClosed;
-
-        public int ConcurrencyCapacity => _dispatcher.ConcurrencyCapacity;
-
-        public void Resume(string name)
+    public void Send(IMessage message)
+    {
+        if (IsSuspended)
         {
-            if (_suspendedDeliveryOverrides.Get()!.Pop(name))
+            if (_suspendedDeliveryOverrides.Get()!.MatchesTop(message.Protocol))
             {
-                _dispatcher.Execute(this);
-            }
-        }
-
-        public void Send(IMessage message)
-        {
-            if (IsSuspended)
-            {
-                if (_suspendedDeliveryOverrides.Get()!.MatchesTop(message.Protocol))
-                {
-                    _dispatcher.Execute(new ResumingMailbox(message));
-                    if (!_queue.IsEmpty)
-                    {
-                        _dispatcher.Execute(this);
-                    }
-                    return;
-                }
-                _queue.Enqueue(message);
-            }
-            else
-            {
-                _queue.Enqueue(message);
-                if (!IsDelivering)
-                {
-                    _dispatcher.Execute(this);
-                }
-            }
-        }
-
-        public void SuspendExceptFor(string name, params Type[] overrides)
-            => _suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
-
-        public bool IsSuspendedFor(string name) => !_suspendedDeliveryOverrides.Get()!.Find(name).Any();
-
-        public bool IsSuspended => !_suspendedDeliveryOverrides.Get()!.IsEmpty;
-
-        public IMessage? Receive()
-        {
-            if(_queue.TryDequeue(out var result))
-            {
-                return result;
-            }
-
-            return null;
-        }
-
-        public bool IsDelivering => _delivering.Get();
-
-        public bool IsPreallocated => false;
-
-        public int PendingMessages => _queue.Count;
-
-        public void Run()
-        {
-            if(_delivering.CompareAndSet(false, true))
-            {
-                var total = _throttlingCount;
-                for(var count = 0; count < total; ++count)
-                {
-                    if (IsSuspended)
-                    {
-                        break;
-                    }
-
-                    var message = Receive();
-
-                    if (message != null)
-                    {
-                        message.Deliver();
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-                _delivering.Set(false);
+                _dispatcher.Execute(new ResumingMailbox(message));
                 if (!_queue.IsEmpty)
                 {
                     _dispatcher.Execute(this);
                 }
+                return;
+            }
+            _queue.Enqueue(message);
+        }
+        else
+        {
+            _queue.Enqueue(message);
+            if (!IsDelivering)
+            {
+                _dispatcher.Execute(this);
+            }
+        }
+    }
+
+    public void SuspendExceptFor(string name, params Type[] overrides)
+        => _suspendedDeliveryOverrides.Get()!.Push(new Overrides(name, overrides));
+
+    public bool IsSuspendedFor(string name) => !_suspendedDeliveryOverrides.Get()!.Find(name).Any();
+
+    public bool IsSuspended => !_suspendedDeliveryOverrides.Get()!.IsEmpty;
+
+    public IMessage? Receive()
+    {
+        if(_queue.TryDequeue(out var result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+
+    public bool IsDelivering => _delivering.Get();
+
+    public bool IsPreallocated => false;
+
+    public int PendingMessages => _queue.Count;
+
+    public void Run()
+    {
+        if(_delivering.CompareAndSet(false, true))
+        {
+            var total = _throttlingCount;
+            for(var count = 0; count < total; ++count)
+            {
+                if (IsSuspended)
+                {
+                    break;
+                }
+
+                var message = Receive();
+
+                if (message != null)
+                {
+                    message.Deliver();
+                }
+                else
+                {
+                    break;
+                }
+            }
+            _delivering.Set(false);
+            if (!_queue.IsEmpty)
+            {
+                _dispatcher.Execute(this);
+            }
+        }
+    }
+
+    public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
+        throw new NotSupportedException("Not a preallocated mailbox.");
+
+    public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+        throw new NotSupportedException("Not a preallocated mailbox.");
+
+    private class SuspendedDeliveryOverrides
+    {
+        private readonly AtomicBoolean _accessible;
+        private readonly IList<Overrides> _overrides;
+
+        internal SuspendedDeliveryOverrides()
+        {
+            _accessible = new AtomicBoolean(false);
+            _overrides = new List<Overrides>();
+        }
+
+        internal bool IsEmpty => _overrides.Count == 0;
+
+        internal bool MatchesTop(Type messageType)
+        {
+            var overrides = Peek();
+
+            if (overrides != null)
+            {
+                return overrides.Types.Contains(messageType);
+            }
+
+            return false;
+        }
+
+        internal Overrides? Peek()
+        {
+            var retries = 0;
+            while (true)
+            {
+                if(_accessible.CompareAndSet(false, true))
+                {
+                    Overrides? temp = null;
+                    if (!IsEmpty)
+                    {
+                        temp = _overrides[0];
+                    }
+                    _accessible.Set(false);
+                    return temp;
+                }
+
+                if(++retries > 100_000_000)
+                {
+                    return null;
+                }
             }
         }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
-            throw new NotSupportedException("Not a preallocated mailbox.");
-
-        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
-            throw new NotSupportedException("Not a preallocated mailbox.");
-
-        private class SuspendedDeliveryOverrides
+        internal IEnumerable<Overrides> Find(string name)
         {
-            private readonly AtomicBoolean _accessible;
-            private readonly IList<Overrides> _overrides;
-
-            internal SuspendedDeliveryOverrides()
+            var retries = 0;
+            while (true)
             {
-                _accessible = new AtomicBoolean(false);
-                _overrides = new List<Overrides>();
-            }
-
-            internal bool IsEmpty => _overrides.Count == 0;
-
-            internal bool MatchesTop(Type messageType)
-            {
-                var overrides = Peek();
-
-                if (overrides != null)
+                if (_accessible.CompareAndSet(false, true))
                 {
-                    return overrides.Types.Contains(messageType);
+                    var overridesNamed = _overrides.Where(o => o.Name == name);
+                    _accessible.Set(false);
+                    return overridesNamed;
                 }
 
-                return false;
-            }
-
-            internal Overrides? Peek()
-            {
-                var retries = 0;
-                while (true)
+                if (++retries > 100_000_000)
                 {
-                    if(_accessible.CompareAndSet(false, true))
+                    Console.WriteLine(new Exception().StackTrace);
+                    return Enumerable.Empty<Overrides>();
+                }
+            }
+        }
+
+        public bool Pop(string name)
+        {
+            var popped = false;
+            var retries = 0;
+            while (true)
+            {
+                if(_accessible.CompareAndSet(false, true))
+                {
+                    var elements = _overrides.Count;
+                    for(var index=0; index < elements; ++index)
                     {
-                        Overrides? temp = null;
-                        if (!IsEmpty)
+                        if (name.Equals(_overrides[index].Name))
                         {
-                            temp = _overrides[0];
-                        }
-                        _accessible.Set(false);
-                        return temp;
-                    }
-
-                    if(++retries > 100_000_000)
-                    {
-                        return null;
-                    }
-                }
-            }
-
-            internal IEnumerable<Overrides> Find(string name)
-            {
-                var retries = 0;
-                while (true)
-                {
-                    if (_accessible.CompareAndSet(false, true))
-                    {
-                        var overridesNamed = _overrides.Where(o => o.Name == name);
-                        _accessible.Set(false);
-                        return overridesNamed;
-                    }
-
-                    if (++retries > 100_000_000)
-                    {
-                        Console.WriteLine(new Exception().StackTrace);
-                        return Enumerable.Empty<Overrides>();
-                    }
-                }
-            }
-
-            public bool Pop(string name)
-            {
-                var popped = false;
-                var retries = 0;
-                while (true)
-                {
-                    if(_accessible.CompareAndSet(false, true))
-                    {
-                        var elements = _overrides.Count;
-                        for(var index=0; index < elements; ++index)
-                        {
-                            if (name.Equals(_overrides[index].Name))
+                            if(index == 0)
                             {
-                                if(index == 0)
-                                {
-                                    _overrides.RemoveAt(index);
-                                    popped = true;
-                                    --elements;
+                                _overrides.RemoveAt(index);
+                                popped = true;
+                                --elements;
 
-                                    while(index < elements)
+                                while(index < elements)
+                                {
+                                    if (_overrides[index].Obsolete)
                                     {
-                                        if (_overrides[index].Obsolete)
-                                        {
-                                            _overrides.RemoveAt(index);
-                                            --elements;
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
+                                        _overrides.RemoveAt(index);
+                                        --elements;
+                                    }
+                                    else
+                                    {
+                                        break;
                                     }
                                 }
-                                else
-                                {
-                                    _overrides[index].Obsolete = true;
-                                }
-
-                                _accessible.Set(false);
-                                break;
                             }
+                            else
+                            {
+                                _overrides[index].Obsolete = true;
+                            }
+
+                            _accessible.Set(false);
+                            break;
                         }
-
-                        break;
                     }
 
-                    if(++retries > 100_000_000)
-                    {
-                        return false;
-                    }
+                    break;
                 }
 
-                return popped;
-            }
-
-            public void Push(Overrides overrides)
-            {
-                var retries = 0;
-
-                while (true)
+                if(++retries > 100_000_000)
                 {
-                    if(_accessible.CompareAndSet(false, true))
-                    {
-                        _overrides.Add(overrides);
-                        _accessible.Set(false);
-                        break;
-                    }
+                    return false;
+                }
+            }
 
-                    if(++retries > 100_000_000)
-                    {
-                        return;
-                    }
+            return popped;
+        }
+
+        public void Push(Overrides overrides)
+        {
+            var retries = 0;
+
+            while (true)
+            {
+                if(_accessible.CompareAndSet(false, true))
+                {
+                    _overrides.Add(overrides);
+                    _accessible.Set(false);
+                    break;
+                }
+
+                if(++retries > 100_000_000)
+                {
+                    return;
                 }
             }
         }
+    }
 
-        private class Overrides
+    private class Overrides
+    {
+        public Overrides(string name, Type[] types)
         {
-            public Overrides(string name, Type[] types)
-            {
-                Name = name;
-                Types = types;
-                Obsolete = false;
-            }
-
-            public string Name { get; }
-            public Type[] Types { get; }
-            public bool Obsolete { get; set; }
+            Name = name;
+            Types = types;
+            Obsolete = false;
         }
+
+        public string Name { get; }
+        public Type[] Types { get; }
+        public bool Obsolete { get; set; }
     }
 }

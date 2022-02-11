@@ -5,11 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+internal interface IAddressable
 {
-    internal interface IAddressable
-    {
-        IAddress Address { get; }
-        LifeCycle LifeCycle { get; }
-    }
+    IAddress Address { get; }
+    LifeCycle LifeCycle { get; }
 }

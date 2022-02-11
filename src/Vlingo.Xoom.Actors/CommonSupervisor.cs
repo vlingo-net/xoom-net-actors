@@ -5,9 +5,8 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+internal abstract class CommonSupervisor : DefaultSupervisor
 {
-    internal abstract class CommonSupervisor : DefaultSupervisor
-    {
-    }
 }

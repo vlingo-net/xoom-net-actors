@@ -9,116 +9,115 @@ using System;
 using System.Text;
 using System.Threading;
 
-namespace Vlingo.Xoom.Actors.Plugin.Logging
+namespace Vlingo.Xoom.Actors.Plugin.Logging;
+
+public class LogEvent
 {
-    public class LogEvent
+    public Type Source { get; }
+
+    public string Message { get; }
+    public object[]? Args { get; }
+    public Exception? Exception { get; }
+
+    //MDC fields
+    public int SourceThread { get; }
+    public DateTimeOffset EventOccuredOn { get; }
+    public IAddress? SourceActorAddress { get; }
+
+    public LogEvent(Type source, int sourceThread, DateTimeOffset eventOccuredOn, string message, object[]? args, Exception? exception, IAddress? sourceActorAddress)
     {
-        public Type Source { get; }
+        Source = source;
+        Message = message;
+        Args = args;
+        Exception = exception;
+        SourceThread = sourceThread;
+        EventOccuredOn = eventOccuredOn;
+        SourceActorAddress = sourceActorAddress;
+    }
 
-        public string Message { get; }
-        public object[]? Args { get; }
-        public Exception? Exception { get; }
+    public override string ToString()
+    {
+        var sb = new StringBuilder();
+        sb.Append($"Source: {Source}\n")
+            .Append($"Message: {Message}\n")
+            .Append($"SourceThread: {SourceThread}\n")
+            .Append($"OccuredOn: {EventOccuredOn:MM/dd/yyyy hh:mm:ss.fff}\n");
 
-        //MDC fields
-        public int SourceThread { get; }
-        public DateTimeOffset EventOccuredOn { get; }
-        public IAddress? SourceActorAddress { get; }
-
-        public LogEvent(Type source, int sourceThread, DateTimeOffset eventOccuredOn, string message, object[]? args, Exception? exception, IAddress? sourceActorAddress)
+        if (SourceActorAddress != null)
         {
-            Source = source;
-            Message = message;
-            Args = args;
-            Exception = exception;
-            SourceThread = sourceThread;
-            EventOccuredOn = eventOccuredOn;
-            SourceActorAddress = sourceActorAddress;
+            sb.Append($"Address: {SourceActorAddress}\n");
         }
 
-        public override string ToString()
+        if (Args != null && Args.Length > 0)
         {
-            var sb = new StringBuilder();
-            sb.Append($"Source: {Source}\n")
-                .Append($"Message: {Message}\n")
-                .Append($"SourceThread: {SourceThread}\n")
-                .Append($"OccuredOn: {EventOccuredOn:MM/dd/yyyy hh:mm:ss.fff}\n");
-
-            if (SourceActorAddress != null)
+            sb.Append($"Args: ");
+            foreach (var arg in Args)
             {
-                sb.Append($"Address: {SourceActorAddress}\n");
+                sb.Append($"{arg}, ");
             }
 
-            if (Args != null && Args.Length > 0)
-            {
-                sb.Append($"Args: ");
-                foreach (var arg in Args)
-                {
-                    sb.Append($"{arg}, ");
-                }
+            sb.Append("\n");
+        }
 
-                sb.Append("\n");
-            }
-
-            if (Exception != null)
-            {
-                sb.Append($"Exception: {Exception.Message}\n")
-                    .Append($"StackTrace: {Exception.StackTrace}\n");
+        if (Exception != null)
+        {
+            sb.Append($"Exception: {Exception.Message}\n")
+                .Append($"StackTrace: {Exception.StackTrace}\n");
                 
-                if (Exception.InnerException != null)
-                {
-                    sb.Append($"InnerException: {Exception.InnerException.Message}\n")
-                        .Append($"StackTrace: {Exception.InnerException.StackTrace}\n");
-                }
+            if (Exception.InnerException != null)
+            {
+                sb.Append($"InnerException: {Exception.InnerException.Message}\n")
+                    .Append($"StackTrace: {Exception.InnerException.StackTrace}\n");
             }
-
-            return sb.ToString();
         }
 
-        public class Builder
+        return sb.ToString();
+    }
+
+    public class Builder
+    {
+        private readonly Type _source;
+        private readonly string _message;
+        private readonly int _sourceThread;
+        private readonly DateTimeOffset _eventOccuredOn;
+        private object[]? _args;
+        private Exception? _exception;
+        private IAddress? _sourceActorAddress;
+
+        public Builder(Type source, string message, int sourceThread, DateTimeOffset eventOccuredOn)
         {
-            private readonly Type _source;
-            private readonly string _message;
-            private readonly int _sourceThread;
-            private readonly DateTimeOffset _eventOccuredOn;
-            private object[]? _args;
-            private Exception? _exception;
-            private IAddress? _sourceActorAddress;
-
-            public Builder(Type source, string message, int sourceThread, DateTimeOffset eventOccuredOn)
-            {
-                _source = source;
-                _message = message;
-                _sourceThread = sourceThread;
-                _eventOccuredOn = eventOccuredOn;
-            }
-
-            public Builder(Type source, string message)
-            {
-                _source = source;
-                _message = message;
-                _sourceThread = Thread.CurrentThread.ManagedThreadId;
-                _eventOccuredOn = DateTimeOffset.Now;
-            }
-
-            public Builder WithArgs(params object[] args)
-            {
-                _args = args;
-                return this;
-            }
-
-            public Builder WithException(Exception exception)
-            {
-                _exception = exception;
-                return this;
-            }
-
-            public Builder WithSourceActorAddress(IAddress? sourceActorAddress)
-            {
-                _sourceActorAddress = sourceActorAddress;
-                return this;
-            }
-
-            public LogEvent Build() => new LogEvent(_source, _sourceThread, _eventOccuredOn, _message, _args, _exception, _sourceActorAddress);
+            _source = source;
+            _message = message;
+            _sourceThread = sourceThread;
+            _eventOccuredOn = eventOccuredOn;
         }
+
+        public Builder(Type source, string message)
+        {
+            _source = source;
+            _message = message;
+            _sourceThread = Thread.CurrentThread.ManagedThreadId;
+            _eventOccuredOn = DateTimeOffset.Now;
+        }
+
+        public Builder WithArgs(params object[] args)
+        {
+            _args = args;
+            return this;
+        }
+
+        public Builder WithException(Exception exception)
+        {
+            _exception = exception;
+            return this;
+        }
+
+        public Builder WithSourceActorAddress(IAddress? sourceActorAddress)
+        {
+            _sourceActorAddress = sourceActorAddress;
+            return this;
+        }
+
+        public LogEvent Build() => new LogEvent(_source, _sourceThread, _eventOccuredOn, _message, _args, _exception, _sourceActorAddress);
     }
 }

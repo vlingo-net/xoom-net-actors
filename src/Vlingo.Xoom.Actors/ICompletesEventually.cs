@@ -5,11 +5,10 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ICompletesEventually : IStoppable
 {
-    public interface ICompletesEventually : IStoppable
-    {
-        IAddress Address { get; }
-        void With(object? outcome);
-    }
+    IAddress Address { get; }
+    void With(object? outcome);
 }

@@ -5,12 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface IMailboxProvider
 {
-    public interface IMailboxProvider
-    {
-        void Close();
-        IMailbox ProvideMailboxFor(int? hashCode);
-        IMailbox ProvideMailboxFor(int? hashCode, IDispatcher dispatcher);
-    }
+    void Close();
+    IMailbox ProvideMailboxFor(int? hashCode);
+    IMailbox ProvideMailboxFor(int? hashCode, IDispatcher dispatcher);
 }

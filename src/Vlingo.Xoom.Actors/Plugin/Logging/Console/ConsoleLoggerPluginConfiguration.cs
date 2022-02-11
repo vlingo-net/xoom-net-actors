@@ -5,45 +5,44 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors.Plugin.Logging.Console
+namespace Vlingo.Xoom.Actors.Plugin.Logging.Console;
+
+public class ConsoleLoggerPluginConfiguration : IPluginConfiguration
 {
-    public class ConsoleLoggerPluginConfiguration : IPluginConfiguration
+    private ConsoleLoggerPluginConfiguration()
     {
-        private ConsoleLoggerPluginConfiguration()
-        {
-            Name = "consoleLogger";
-        }
+        Name = "consoleLogger";
+    }
 
-        public static ConsoleLoggerPluginConfiguration Define() => new ConsoleLoggerPluginConfiguration();
+    public static ConsoleLoggerPluginConfiguration Define() => new ConsoleLoggerPluginConfiguration();
 
-        public ConsoleLoggerPluginConfiguration WithDefaultLogger()
-        {
-            IsDefaultLogger = true;
-            return this;
-        }
+    public ConsoleLoggerPluginConfiguration WithDefaultLogger()
+    {
+        IsDefaultLogger = true;
+        return this;
+    }
 
-        public ConsoleLoggerPluginConfiguration WithName(string name)
-        {
-            Name = name;
-            return this;
-        }
+    public ConsoleLoggerPluginConfiguration WithName(string name)
+    {
+        Name = name;
+        return this;
+    }
 
-        public bool IsDefaultLogger { get; private set; }
+    public bool IsDefaultLogger { get; private set; }
 
-        public string Name { get; private set; }
+    public string Name { get; private set; }
 
-        public void Build(Configuration configuration)
-        {
-            configuration.With(
-                WithDefaultLogger()
+    public void Build(Configuration configuration)
+    {
+        configuration.With(
+            WithDefaultLogger()
                 .WithName("vlingo-net/actors")
-            );
-        }
+        );
+    }
 
-        public void BuildWith(Configuration configuration, PluginProperties properties)
-        {
-            Name = properties.Name;
-            IsDefaultLogger = properties.GetBoolean("defaultLogger", true);
-        }
+    public void BuildWith(Configuration configuration, PluginProperties properties)
+    {
+        Name = properties.Name;
+        IsDefaultLogger = properties.GetBoolean("defaultLogger", true);
     }
 }

@@ -5,15 +5,14 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors.Plugin
+namespace Vlingo.Xoom.Actors.Plugin;
+
+public interface IPlugin
 {
-    public interface IPlugin
-    {
-        void Close();
-        string Name { get; }
-        int Pass { get; }
-        IPluginConfiguration Configuration { get; }
-        void Start(IRegistrar registrar);
-        IPlugin With(IPluginConfiguration? overrideConfiguration);
-    }
+    void Close();
+    string Name { get; }
+    int Pass { get; }
+    IPluginConfiguration Configuration { get; }
+    void Start(IRegistrar registrar);
+    IPlugin With(IPluginConfiguration? overrideConfiguration);
 }

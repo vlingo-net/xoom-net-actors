@@ -7,24 +7,23 @@
 
 using System.Collections.Generic;
 
-namespace Vlingo.Xoom.Actors.TestKit
+namespace Vlingo.Xoom.Actors.TestKit;
+
+public class TestState
 {
-    public class TestState
+    private readonly IDictionary<string, object> _state;
+
+    public TestState() => _state = new Dictionary<string, object>();
+
+    public TestState PutValue(string name, object value)
     {
-        private readonly IDictionary<string, object> _state;
+        _state[name] = value;
+        return this;
+    }
 
-        public TestState() => _state = new Dictionary<string, object>();
-
-        public TestState PutValue(string name, object value)
-        {
-            _state[name] = value;
-            return this;
-        }
-
-        public T ValueOf<T>(string name)
-        {
-            _state.TryGetValue(name, out object? value);
-            return (T) value!;
-        }
+    public T ValueOf<T>(string name)
+    {
+        _state.TryGetValue(name, out object? value);
+        return (T) value!;
     }
 }

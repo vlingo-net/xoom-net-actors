@@ -5,15 +5,14 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
-{
-    public static class SupervisionStrategyConstants
-    {
-        public enum Scope { All, One };
-        public const int DefaultIntensity = 1;
-        public const int ForeverIntensity = -1;
-        public const long DefaultPeriod = 5000;
-        public const long ForeverPeriod = long.MaxValue;
+namespace Vlingo.Xoom.Actors;
 
-    }
+public static class SupervisionStrategyConstants
+{
+    public enum Scope { All, One };
+    public const int DefaultIntensity = 1;
+    public const int ForeverIntensity = -1;
+    public const long DefaultPeriod = 5000;
+    public const long ForeverPeriod = long.MaxValue;
+
 }

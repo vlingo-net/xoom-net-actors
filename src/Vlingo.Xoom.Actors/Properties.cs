@@ -9,41 +9,40 @@ using System;
 using System.IO;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public sealed class Properties: ConfigurationProperties
 {
-    public sealed class Properties: ConfigurationProperties
+    private static Func<Properties> Factory = () =>
     {
-        private static Func<Properties> Factory = () =>
-        {
-            var props = new Properties();
-            props.Load(new FileInfo("vlingo-actors.json"));
-            return props;
-        };
+        var props = new Properties();
+        props.Load(new FileInfo("vlingo-actors.json"));
+        return props;
+    };
 
-        private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, true);
+    private static Lazy<Properties> SingleInstance => new Lazy<Properties>(Factory, true);
 
-        public static Properties Instance => SingleInstance.Value;
+    public static Properties Instance => SingleInstance.Value;
 
-        public static long GetLong(string key, long defaultValue) => Get(key, long.Parse!, defaultValue);
+    public static long GetLong(string key, long defaultValue) => Get(key, long.Parse!, defaultValue);
         
-        public static float GetFloat(string key, float defaultValue) => Get(key, float.Parse!, defaultValue);
+    public static float GetFloat(string key, float defaultValue) => Get(key, float.Parse!, defaultValue);
 
-        private static T Get<T>(string key, Func<string?, T> parse, T defaultValue)
+    private static T Get<T>(string key, Func<string?, T> parse, T defaultValue)
+    {
+        var property = Instance.GetProperty(key);
+        if (!string.IsNullOrEmpty(key))
         {
-            var property = Instance.GetProperty(key);
-            if (!string.IsNullOrEmpty(key))
+            try
             {
-                try
-                {
-                    return parse(property);
-                }
-                catch
-                {
-                    return defaultValue;
-                }
+                return parse(property);
             }
-
-            return defaultValue;
+            catch
+            {
+                return defaultValue;
+            }
         }
+
+        return defaultValue;
     }
 }

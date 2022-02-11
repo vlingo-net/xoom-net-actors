@@ -10,53 +10,52 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class ResumingMailbox : IMailbox
 {
-    public class ResumingMailbox : IMailbox
-    {
-        private readonly IMessage _message;
+    private readonly IMessage _message;
 
-        public ResumingMailbox(IMessage message) => _message = message;
+    public ResumingMailbox(IMessage message) => _message = message;
 
-        public TaskScheduler TaskScheduler { get; } = null!;
+    public TaskScheduler TaskScheduler { get; } = null!;
         
-        public bool IsClosed => false;
+    public bool IsClosed => false;
 
-        public bool IsDelivering => true;
-        public int ConcurrencyCapacity => 0;
+    public bool IsDelivering => true;
+    public int ConcurrencyCapacity => 0;
 
-        public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
+    public bool IsSuspendedFor(string name) => throw new InvalidOperationException("Mailbox implementation does not support this operation.");
 
-        public bool IsSuspended => false;
+    public bool IsSuspended => false;
 
-        public int PendingMessages => 1;
+    public int PendingMessages => 1;
 
-        public bool IsPreallocated => false;
+    public bool IsPreallocated => false;
 
-        public void Close()
-        {
-        }
+    public void Close()
+    {
+    }
 
-        public IMessage? Receive() => null;
+    public IMessage? Receive() => null;
 
-        public void Resume(string name)
-        {
-        }
+    public void Resume(string name)
+    {
+    }
 
-        public void Run() => _message.Deliver();
+    public void Run() => _message.Deliver();
 
-        public void Send(IMessage message)
-        {
-        }
+    public void Send(IMessage message)
+    {
+    }
 
-        public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
-            throw new InvalidOperationException("Not a preallocated mailbox.");
+    public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
+        throw new InvalidOperationException("Not a preallocated mailbox.");
 
-        public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
-            throw new InvalidOperationException("Not a preallocated mailbox.");
+    public void Send(Actor actor, Type protocol, LambdaExpression consumer, ICompletes? completes, string representation) => 
+        throw new InvalidOperationException("Not a preallocated mailbox.");
 
-        public void SuspendExceptFor(string name, params Type[] overrides)
-        {
-        }
+    public void SuspendExceptFor(string name, params Type[] overrides)
+    {
     }
 }

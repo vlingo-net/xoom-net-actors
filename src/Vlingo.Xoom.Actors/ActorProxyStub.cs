@@ -5,12 +5,11 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public class ActorProxyStub : ActorProxyBase
 {
-    public class ActorProxyStub : ActorProxyBase
+    public ActorProxyStub(Actor actor) : base(null, Actors.Definition.SerializationProxy.From(actor.Definition), actor.Address)
     {
-        public ActorProxyStub(Actor actor) : base(null, Actors.Definition.SerializationProxy.From(actor.Definition), actor.Address)
-        {
-        }
     }
 }

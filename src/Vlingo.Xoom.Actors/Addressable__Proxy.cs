@@ -5,19 +5,18 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+internal class Addressable__Proxy : IAddressable
 {
-    internal class Addressable__Proxy : IAddressable
+    private readonly Actor actor;
+
+    public Addressable__Proxy(Actor actor, IMailbox mailbox)
     {
-        private readonly Actor actor;
-
-        public Addressable__Proxy(Actor actor, IMailbox mailbox)
-        {
-            this.actor = actor;
-        }
-
-        public IAddress Address => actor.Address;
-
-        public LifeCycle LifeCycle => actor.LifeCycle;
+        this.actor = actor;
     }
+
+    public IAddress Address => actor.Address;
+
+    public LifeCycle LifeCycle => actor.LifeCycle;
 }

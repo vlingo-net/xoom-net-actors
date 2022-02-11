@@ -5,10 +5,9 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
-namespace Vlingo.Xoom.Actors.PubSub
+namespace Vlingo.Xoom.Actors.PubSub;
+
+public interface ISubscriber
 {
-    public interface ISubscriber
-    {
-        void Receive(IMessage message);
-    }
+    void Receive(IMessage message);
 }

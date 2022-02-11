@@ -8,20 +8,19 @@
 using Vlingo.Xoom.Actors.Plugin.Logging.Console;
 using Vlingo.Xoom.Actors.Plugin.Logging.NoOp;
 
-namespace Vlingo.Xoom.Actors
+namespace Vlingo.Xoom.Actors;
+
+public interface ILoggerProvider
 {
-    public interface ILoggerProvider
-    {
-        void Close();
-        ILogger? Logger { get; }
-    }
+    void Close();
+    ILogger? Logger { get; }
+}
 
-    internal static class LoggerProvider
-    {
-        internal static ILoggerProvider NoOpLoggerProvider() 
-            => new NoOpLoggerProvider();
+internal static class LoggerProvider
+{
+    internal static ILoggerProvider NoOpLoggerProvider() 
+        => new NoOpLoggerProvider();
 
-        internal static ILoggerProvider StandardLoggerProvider(World world, string name)
-            => ConsoleLoggerPlugin.RegisterStandardLogger(name, world);
-    }
+    internal static ILoggerProvider StandardLoggerProvider(World world, string name)
+        => ConsoleLoggerPlugin.RegisterStandardLogger(name, world);
 }
