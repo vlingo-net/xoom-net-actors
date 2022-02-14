@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Vlingo.Xoom.Actors.Plugin;
 using Vlingo.Xoom.Actors.Plugin.Completes;
 using Vlingo.Xoom.Actors.Plugin.Eviction;
@@ -21,6 +22,7 @@ namespace Vlingo.Xoom.Actors;
 public class Configuration
 {
     private readonly List<IPlugin> _plugins;
+    private readonly List<IPlugin> _dynamicPlugins;
     private readonly IDictionary<string, IPluginConfiguration> _configurationOverrides;
     private readonly bool _mergeProperties;
     private readonly Properties? _properties;
@@ -34,7 +36,8 @@ public class Configuration
     public static Configuration DefineWith(Properties properties)
         => new Configuration(properties, false);
 
-    public IReadOnlyList<IPlugin> AllPlugins() => _plugins.AsReadOnly();
+    public IReadOnlyList<IPlugin> AllPlugins() =>
+        _plugins.Concat(_dynamicPlugins).ToList();
         
     public Configuration With(IAddressFactory addressFactory)
     {
@@ -43,6 +46,16 @@ public class Configuration
     }
 
     public IAddressFactory AddressFactoryOr(Func<IAddressFactory> addressFactorySupplier) => _addressFactory ?? addressFactorySupplier();
+
+    public string? GetProperty(string key) =>
+        _properties == null
+            ? null
+            : _properties.GetProperty(key);
+
+    public string? GetProperty(string key, string? defaultValue) =>
+        _properties == null
+            ? defaultValue
+            : _properties.GetProperty(key, defaultValue);
 
     private void AddConfigurationOverride(IPluginConfiguration configuration) => _configurationOverrides[configuration.GetType().Name] = configuration;
 
@@ -151,7 +164,7 @@ public class Configuration
         
     public string? TestProxyGeneratedSourcesPath { get; private set; }
 
-    public void StartPlugins(World world, int pass)
+    public void StartPlugins(IRegistrar registrar, int pass)
     {
         Load(pass);
 
@@ -159,7 +172,7 @@ public class Configuration
         {
             if (plugin.Pass == pass)
             {
-                plugin.Start(world);
+                plugin.Start(registrar);
             }
         }
     }
@@ -187,6 +200,19 @@ public class Configuration
         }
     }
 
+    public void LoadAndStartDynamicPlugins(IRegistrar registrar, IPluginTypeLoader pluginClassLoader, Properties pluginsProperties)
+    {
+        var dynamicPlugins = new PluginLoader()
+            .LoadEnabledPlugins(this, pluginsProperties, pluginClassLoader)
+            .ToList();
+        dynamicPlugins.ForEach(plugin => plugin
+            .Configuration
+            .BuildWith(this, new PluginProperties(plugin.Name, pluginsProperties)));
+
+        dynamicPlugins.ForEach(plugin => plugin.Start(registrar));
+        _dynamicPlugins.AddRange(dynamicPlugins);
+    }
+        
     private IPluginConfiguration? OverrideConfiguration(IPlugin plugin)
     {
         if (_configurationOverrides.TryGetValue(plugin.Configuration.GetType().Name, out var val))
@@ -205,6 +231,7 @@ public class Configuration
     {
         _configurationOverrides = new Dictionary<string, IPluginConfiguration>();
         _plugins = new List<IPlugin>();
+        _dynamicPlugins = new List<IPlugin>();
         _properties = properties;
         _mergeProperties = includeBaseLoad;
 
