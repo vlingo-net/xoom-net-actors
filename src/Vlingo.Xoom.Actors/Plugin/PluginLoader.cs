@@ -18,13 +18,16 @@ public class PluginLoader
 
     public PluginLoader() => _plugins = new Dictionary<string, IPlugin>();
 
-    public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties)
+    public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties) => 
+        LoadEnabledPlugins(configuration, properties, new StaticPluginTypeLoader());
+
+    public IEnumerable<IPlugin> LoadEnabledPlugins(Configuration configuration, Properties properties, IPluginTypeLoader pluginTypeLoader)
     {
         if (!properties.IsEmpty)
         {
             foreach(var enabledPlugin in FindEnabledPlugins(properties))
             {
-                LoadPlugin(configuration, properties, enabledPlugin);
+                LoadPlugin(configuration, properties, enabledPlugin, pluginTypeLoader);
             }
         }
 
@@ -48,7 +51,7 @@ public class PluginLoader
         return enabledPlugins;
     }
 
-    private void LoadPlugin(Configuration configuration, Properties properties, string enabledPlugin)
+    private void LoadPlugin(Configuration configuration, Properties properties, string enabledPlugin, IPluginTypeLoader pluginTypeLoader)
     {
         var pluginName = enabledPlugin.Substring(PluginNamePrefix.Length);
         var classNameKey = $"plugin.{pluginName}.classname";
@@ -61,7 +64,7 @@ public class PluginLoader
             {
                 if (!_plugins.TryGetValue(className, out var plugin))
                 {
-                    var pluginClass = Type.GetType(className, true, true);
+                    var pluginClass = pluginTypeLoader.LoadType(className);
                     plugin = (IPlugin)Activator.CreateInstance(pluginClass!, pluginName)!;
                     _plugins[pluginUniqueName] = plugin;
                 }   
