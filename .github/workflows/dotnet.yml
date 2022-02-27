@@ -16,11 +16,16 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
-      id: setup-dotnet
+    - name: Setup .NET 6.0.x
+      id: setup-dotnet6
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.402
+        dotnet-version: 6.0.x
+    - name: Setup .NET 3.1.x
+      id: setup-dotnet3
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
     - name: Restore dependencies
       id: restore-deps
       run: dotnet restore ./src/Vlingo.Xoom.Actors.sln
