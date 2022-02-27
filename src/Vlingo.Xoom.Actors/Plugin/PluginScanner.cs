@@ -20,7 +20,7 @@ public class PluginScanner
 {
     private static readonly string PropertiesExtension = ".json";
     private static string _dllExtension = ".dll";
-    private static string _xoomSystemPluginsFolder = "/opt/xoom/plugins/";
+    //private static string _xoomSystemPluginsFolder = "/opt/xoom/plugins/";
     private static readonly string XoomUserPluginsFolderKey = "actors.pluginsFolder";
 
     private readonly Configuration _configuration;
@@ -69,7 +69,7 @@ public class PluginScanner
         }
     }
     
-    private void Scan(object state)
+    private void Scan(object? state)
     {
         var systemPluginsPath = XoomUserPluginsFolderKey;
         var userPluginsFolder = _configuration.GetProperty(XoomUserPluginsFolderKey);
