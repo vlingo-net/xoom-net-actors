@@ -1,9 +1,9 @@
 version: 0.0.{build}
 image:
-  - Visual Studio 2019
+  - Visual Studio 2022
   - Ubuntu
-  - macOS
-  - macOS-Mojave
+  #- macOS
+  #- macOS-Mojave
 configuration: Release
 skip_commits:
   message: /.*\[ci\-skip\].*/ 
