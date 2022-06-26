@@ -1,9 +1,10 @@
-version: 1.9.3.{build}
+version: 1.9.4.{build}
 image:
   - Visual Studio 2022
   - Ubuntu
-  #- macOS
-  #- macOS-Mojave
+  - macOS
+  - macOS-Monterey
+  - macOS-Bigsur
 configuration: Release
 skip_commits:
   message: /.*\[ci\-skip\].*/ 
