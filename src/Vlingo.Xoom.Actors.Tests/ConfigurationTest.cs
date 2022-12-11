@@ -88,7 +88,7 @@ namespace Vlingo.Xoom.Actors.Tests
 
             Assert.NotNull(configuration.ConcurrentQueueMailboxPluginConfiguration);
             Assert.True(configuration.ConcurrentQueueMailboxPluginConfiguration.IsDefaultMailbox);
-            Assert.Equal(1.5f, configuration.ConcurrentQueueMailboxPluginConfiguration.NumberOfDispatchersFactor, 0);
+            Assert.Equal(1.5f, configuration.ConcurrentQueueMailboxPluginConfiguration.NumberOfDispatchersFactor, 0F);
             Assert.Equal(10, configuration.ConcurrentQueueMailboxPluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ConsoleLoggerPluginConfiguration);
@@ -114,7 +114,7 @@ namespace Vlingo.Xoom.Actors.Tests
 
             Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration.Name);
             Assert.Equal(10000, configuration.DirectoryEvictionConfiguration.LruThresholdMillis);
-            Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration.FillRatioHigh, 0);
+            Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration.FillRatioHigh, 0F);
             
             Assert.Equal("target/classes/", configuration.MainProxyGeneratedClassesPath);
             Assert.Equal("target/generated-sources/", configuration.MainProxyGeneratedSourcesPath);
@@ -149,7 +149,7 @@ namespace Vlingo.Xoom.Actors.Tests
 
             Assert.NotNull(configuration.ConcurrentQueueMailboxPluginConfiguration);
             Assert.True(configuration.ConcurrentQueueMailboxPluginConfiguration.IsDefaultMailbox);
-            Assert.Equal(1.5f, configuration.ConcurrentQueueMailboxPluginConfiguration.NumberOfDispatchersFactor, 0);
+            Assert.Equal(1.5f, configuration.ConcurrentQueueMailboxPluginConfiguration.NumberOfDispatchersFactor, 0F);
             Assert.Equal(1, configuration.ConcurrentQueueMailboxPluginConfiguration.DispatcherThrottlingCount);
 
             Assert.NotNull(configuration.ConsoleLoggerPluginConfiguration);
