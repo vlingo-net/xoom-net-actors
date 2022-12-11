@@ -9,25 +9,28 @@ namespace Vlingo.Xoom.Actors.Plugin.Eviction;
 
 public class DirectoryEvictionConfiguration : IPluginConfiguration
 {
-    private const long DefaultLruMillis = 10 * 60 * 1_000L;
-    private const float DefaultFillRatioHigh = 0.8F;
+    private const long DefaultLruProbeInterval = 30 * 1_000L;   // 30 seconds
+    private const long DefaultLruThreshold = 2 * 60 * 1_000;    // 2 minutes
+    private const float DefaultFullRatioHighMark = 0.8F;        // 80%
         
     public static DirectoryEvictionConfiguration Define() => new DirectoryEvictionConfiguration();
 
     public string Name { get; private set; }
     public bool IsEnabled { get; private set; }
-    public long LruThresholdMillis { get; private set; }
-    public float FillRatioHigh { get; private set; }
+    public long LruProbeInterval { get; private set; }
+    public long LruThreshold { get; private set; }
+    public float FullRatioHighMark { get; private set; }
 
-    public DirectoryEvictionConfiguration() : this(false, DefaultLruMillis, DefaultFillRatioHigh)
+    public DirectoryEvictionConfiguration() : this(false, DefaultLruProbeInterval, DefaultLruThreshold, DefaultFullRatioHighMark)
     {
     }
         
-    public DirectoryEvictionConfiguration(bool enabled, long lruThresholdMillis, float fillRatioHigh)
+    public DirectoryEvictionConfiguration(bool enabled, long lruProbeInterval, long lruThreshold, float fullRatioHighMark)
     {
         IsEnabled = enabled;
-        LruThresholdMillis = lruThresholdMillis;
-        FillRatioHigh = fillRatioHigh;
+        LruProbeInterval = lruProbeInterval;
+        LruThreshold = lruThreshold;
+        FullRatioHighMark = fullRatioHighMark;
         Name = "directoryEviction";
     }
         
@@ -37,28 +40,37 @@ public class DirectoryEvictionConfiguration : IPluginConfiguration
         return this;
     }
         
-    public DirectoryEvictionConfiguration WithLruThresholdMillis(long millis)
+    public DirectoryEvictionConfiguration WithLruProbInterval(long millis)
     {
-        LruThresholdMillis = millis;
+        LruProbeInterval = millis;
         return this;
     }
         
-    public DirectoryEvictionConfiguration WithFillRatioHigh(float ratio)
+    public DirectoryEvictionConfiguration WithLruThreshold(long millis)
     {
-        FillRatioHigh = ratio;
+        LruThreshold = millis;
+        return this;
+    }
+    
+    public DirectoryEvictionConfiguration WithFullRatioHighMark(float ratio)
+    {
+        FullRatioHighMark = ratio;
         return this;
     }
 
-    public void Build(Configuration configuration) => configuration.With(WithLruThresholdMillis(DefaultLruMillis).WithFillRatioHigh(DefaultFillRatioHigh));
+    public void Build(Configuration configuration) => configuration
+        .With(WithLruThreshold(DefaultLruProbeInterval)
+            .WithFullRatioHighMark(DefaultFullRatioHighMark));
 
     public void BuildWith(Configuration configuration, PluginProperties properties)
     {
         Name = properties.Name;
         IsEnabled = properties.GetBoolean("enabled", true);
-        LruThresholdMillis = properties.GetLong("lruThresholdMillis", DefaultLruMillis);
-        FillRatioHigh = properties.GetFloat("fillRatioHigh", DefaultFillRatioHigh);
+        LruProbeInterval = properties.GetLong("lruProbeInterval", DefaultLruProbeInterval);
+        LruThreshold = properties.GetLong("lruThreshold", DefaultLruThreshold);
+        FullRatioHighMark = properties.GetFloat("fullRatioHighMark", DefaultFullRatioHighMark);
     }
 
     public override string ToString() =>
-        $"DirectoryEvictionConfiguration(name='{Name}', enabled='{IsEnabled}', lruThresholdMillis='{LruThresholdMillis}', fillRatioHigh='{DefaultFillRatioHigh:F2}')";
+        $"DirectoryEvictionConfiguration(name='{Name}', enabled='{IsEnabled}', lruProbeInterval='{LruProbeInterval}', lruThreshold='{LruThreshold}', fullRatioHighMark='{FullRatioHighMark:F2}')";
 }

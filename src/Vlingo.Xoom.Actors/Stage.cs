@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using Vlingo.Xoom.Actors.Plugin.Eviction;
 using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
@@ -514,28 +515,39 @@ public class Stage : IStoppable
     }
 
     /// <summary>
-    /// Start the directory scan process in search for a given Actor instance. (INTERNAL ONLY)
+    /// Starts the <see cref="IDirectoryScanner"/> and possibly the <see cref="DirectoryEvictor"/> depending
+    /// on the possibly registered <see cref="DirectoryEvictionConfiguration"/>. FOR INTERNAL USE ONLY.
     /// </summary>
-    internal void StartDirectoryScanner()
+    internal void StartDirectoryScanner() => StartDirectoryScanner(false);
+
+    /// <summary>
+    /// Starts the <see cref="IDirectoryScanner"/> and possibly the <see cref="DirectoryEvictor"/> depending
+    /// on the possibly registered <see cref="DirectoryEvictionConfiguration"/>
+    /// or the value of <paramref name="forceEvictionEnabled"/>.
+    /// FOR INTERNAL USE ONLY.
+    /// </summary>
+    /// <param name="forceEvictionEnabled">The boolean that if true forces the <see cref="DirectoryEvictor"/> into action</param>
+    internal void StartDirectoryScanner(bool forceEvictionEnabled)
     {
         _directoryScanner = ActorFor<IDirectoryScanner>(
             Definition.Has<DirectoryScannerActor>(
                 Definition.Parameters(_directory)),
             World.AddressFactory.UniqueWith($"DirectoryScanner::{Name}"));
 
-        var evictionConfiguration = World.Configuration.DirectoryEvictionConfiguration;
+        var evictionConfiguration = EvictionConfiguration(World.Configuration.DirectoryEvictionConfiguration, forceEvictionEnabled);
 
         if (evictionConfiguration != null && evictionConfiguration.IsEnabled)
         {
             World.DefaultLogger.Debug($"Scheduling directory eviction for stage: {Name} with: {evictionConfiguration}");
-            var evictorActor = ActorFor<IScheduled<object>>(
+            var directoryEvictor = ActorFor<IScheduled<object>>(
                 Definition.Has(() => new DirectoryEvictor(evictionConfiguration, Directory)),
                 World.AddressFactory.UniqueWith($"EvictorActor::{Name}"));
 
-            var evictorActorInterval = Properties.GetLong(
-                "stage.evictor.interval", Math.Min(15_000L, evictionConfiguration.LruThresholdMillis));
-
-            Scheduler.Schedule(evictorActor, null!, TimeSpan.FromMilliseconds(evictorActorInterval), TimeSpan.FromMilliseconds(evictorActorInterval));
+            Scheduler.Schedule(
+                directoryEvictor!,
+                null,
+                TimeSpan.FromMilliseconds(evictionConfiguration.LruProbeInterval),
+                TimeSpan.FromMilliseconds(evictionConfiguration.LruProbeInterval));
         }
     }
 
@@ -613,8 +625,22 @@ public class Stage : IStoppable
             return ActorLookupOrStartThunk(definition, address);
         }
     }
-        
-    protected void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
+
+    /// <summary>
+    /// Starts the <see cref="IDirectoryScanner"/>, and optionally starts the <see cref="DirectoryEvictor"/>
+    /// depending on a registered <see cref="DirectoryEvictionConfiguration"/> on behalf of this for this
+    /// <see cref="Stage"/> extender.
+    /// FOR INTERNAL EXTENDER USE ONLY.
+    /// </summary>
+    protected internal void ExtenderStartDirectoryScanner() => StartDirectoryScanner();
+    
+    /// <summary>
+    /// Starts the <see cref="IDirectoryScanner"/>, and optionally starts the <see cref="DirectoryEvictor"/>
+    /// depending on either the registered <see cref="DirectoryEvictionConfiguration"/> or
+    /// <paramref name="forceEvictionEnabled"/>, on behalf of this for this <see cref="Stage"/> extender.
+    /// </summary>
+    /// <param name="forceEvictionEnabled">The boolean that if true forces <see cref="DirectoryEvictor"/> into action</param>
+    protected internal void ExtenderStartDirectoryScanner(bool forceEvictionEnabled) => StartDirectoryScanner(forceEvictionEnabled);
         
     protected virtual Func<IAddress?, IMailbox?, IMailbox?> MailboxWrapper() => ActorFactory.IdentityWrapper;
         
@@ -715,7 +741,7 @@ public class Stage : IStoppable
     /// <param name="definition">The Definition of the newly created Actor</param>
     /// <param name="maybeAddress">The possible address</param>
     /// <returns></returns>
-    private IAddress AllocateAddress(Definition definition, IAddress maybeAddress)
+    private IAddress AllocateAddress(Definition definition, IAddress? maybeAddress)
         => maybeAddress ?? AddressFactory.UniqueWith(definition.ActorName);
 
     /// <summary>
@@ -791,6 +817,46 @@ public class Stage : IStoppable
         actor.LifeCycle.BeforeStart(actor);
 
         return actor;
+    }
+    
+    /// <summary>
+    /// Gets a new instance of <see cref="DirectoryEvictionConfiguration"/> or <code>null</code>.
+    /// When <paramref name="evictionConfiguration"/> is <code>null</code> and <paramref name="forceEvictionEnabled"/>
+    /// is <code>false</code>, gets <code>null</code>.
+    /// When <paramref name="evictionConfiguration"/> is <code>null</code> and <paramref name="forceEvictionEnabled"/>
+    /// is <code>true</code>, gets a new, enabled <see cref="DirectoryEvictionConfiguration"/> with default settings.
+    /// <para>
+    /// When <paramref name="evictionConfiguration"/> is <i>not</i> <code>null</code>, its values are used to instantiate
+    /// a new <see cref="DirectoryEvictionConfiguration"/>. The new instance is enabled if either the
+    /// <paramref name="evictionConfiguration"/> is enabled or if <paramref name="forceEvictionEnabled"/> is <code>true</code>.
+    /// </para>
+    /// </summary>
+    /// <param name="evictionConfiguration"></param>
+    /// <param name="forceEvictionEnabled"></param>
+    /// <returns></returns>
+    private DirectoryEvictionConfiguration? EvictionConfiguration(
+        DirectoryEvictionConfiguration? evictionConfiguration,
+        bool forceEvictionEnabled)
+    {
+        DirectoryEvictionConfiguration? maybeEvictionConfiguration;
+
+        if (evictionConfiguration == null) {
+            if (forceEvictionEnabled) {
+                maybeEvictionConfiguration = new DirectoryEvictionConfiguration(); // default
+                maybeEvictionConfiguration.WithEnabled(forceEvictionEnabled);
+            } else {
+                maybeEvictionConfiguration = null;
+            }
+        } else {
+            maybeEvictionConfiguration =
+                new DirectoryEvictionConfiguration(
+                    evictionConfiguration.IsEnabled || forceEvictionEnabled,
+                    evictionConfiguration.LruProbeInterval,
+                    evictionConfiguration.LruThreshold,
+                    evictionConfiguration.FullRatioHighMark);
+        }
+
+        return maybeEvictionConfiguration;
     }
 
     /// <summary>

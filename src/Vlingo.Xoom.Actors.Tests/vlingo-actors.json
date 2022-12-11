@@ -62,8 +62,9 @@
     "directoryEviction": {
       "classname": "Vlingo.Xoom.Actors.Plugin.Eviction.DirectoryEvictionPlugin",
       "enabled": false,
-      "lruThresholdMillis": 600000,
-      "fillRatioHigh": 0.8
+      "lruProbeInterval": 40000,
+      "lruThreshold": 120000,
+      "fullRatioHighMark": 0.8
     }
   },
   "proxy": {

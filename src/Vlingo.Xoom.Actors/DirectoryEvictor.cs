@@ -33,18 +33,18 @@ internal class DirectoryEvictor : Actor, IScheduled<object>
         Logger.Debug("Started eviction routine");
         var currentProcess = Process.GetCurrentProcess();
         var fillRatio = currentProcess.PrivateMemorySize64 / (float) currentProcess.WorkingSet64;
-        if (fillRatio >= _config.FillRatioHigh)
+        if (fillRatio >= _config.FullRatioHighMark)
         {
-            Logger.Debug($"Memory fill ratio {fillRatio} exceeding watermark ({_config.FillRatioHigh})");
-            var evicted = _directory.EvictionCandidates(_config.LruThresholdMillis)
-                .Where(actor => actor.LifeCycle.Evictable.Stop(_config.LruThresholdMillis))
+            Logger.Debug($"Memory fill ratio {fillRatio} exceeding watermark ({_config.FullRatioHighMark})");
+            var evicted = _directory.EvictionCandidates(_config.LruThreshold)
+                .Where(actor => actor.LifeCycle.Evictable.Stop(_config.LruThreshold))
                 .Select(actor => actor.Address)
                 .ToArray();
             Logger.Debug($"Evicted {evicted.Length} actors :: {evicted}");
         }
         else 
         {
-            Logger.Debug($"Memory fill ratio {fillRatio} was below watermark ({_config.FillRatioHigh})");
+            Logger.Debug($"Memory fill ratio {fillRatio} was below watermark ({_config.FullRatioHighMark})");
         }
     }
 }

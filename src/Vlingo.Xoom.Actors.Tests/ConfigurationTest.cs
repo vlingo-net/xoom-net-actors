@@ -60,8 +60,9 @@ namespace Vlingo.Xoom.Actors.Tests
                         .WithSupervisor("default", "overrideSupervisor", typeof(DefaultSupervisorOverride)))
                 .With(DirectoryEvictionConfiguration
                     .Define()
-                    .WithFillRatioHigh(0.75F)
-                    .WithLruThresholdMillis(10000))
+                    .WithFullRatioHighMark(0.75F)
+                    .WithLruProbInterval(3000)
+                    .WithLruThreshold(10000))
                 .UsingMainProxyGeneratedClassesPath("target/classes/")
                 .UsingMainProxyGeneratedSourcesPath("target/generated-sources/")
                 .UsingTestProxyGeneratedClassesPath("target/test-classes/")
@@ -112,9 +113,10 @@ namespace Vlingo.Xoom.Actors.Tests
             Assert.Equal("overrideSupervisor", configuration.DefaultSupervisorOverridePluginConfiguration.Name);
             Assert.Equal(typeof(DefaultSupervisorOverride), configuration.DefaultSupervisorOverridePluginConfiguration.SupervisorClass(0));
 
-            Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration.Name);
-            Assert.Equal(10000, configuration.DirectoryEvictionConfiguration.LruThresholdMillis);
-            Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration.FillRatioHigh, 0F);
+            Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration?.Name);
+            Assert.Equal(10000, configuration.DirectoryEvictionConfiguration?.LruThreshold);
+            Assert.Equal(3000, configuration.DirectoryEvictionConfiguration?.LruProbeInterval);
+            Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration!.FullRatioHighMark, 0F);
             
             Assert.Equal("target/classes/", configuration.MainProxyGeneratedClassesPath);
             Assert.Equal("target/generated-sources/", configuration.MainProxyGeneratedSourcesPath);
