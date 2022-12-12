@@ -356,6 +356,13 @@ public class Stage : IStoppable
 
         return actor?.LifeCycle.Environment.Mailbox.GetType();
     }
+    
+    /// <summary>
+    /// Answers the <code>Mailbox</code> type name of the specified proxy instance.
+    /// </summary>
+    /// <param name="proxy">An actor proxy typically created with one of <code>.ActorFor(...)} methods</code></param>
+    /// <returns>Mailbox type name</returns>
+    public string? MailboxTypeNameOf(object proxy) => MailboxTypeOf(proxy)?.Name;
 
     /// <summary>
     /// A debugging tool used to print information about the <c>Actor</c> instances contained in this <c>Stage</c>.

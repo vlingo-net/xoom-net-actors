@@ -36,6 +36,7 @@ public class MailboxTypeTest : ActorsTest
         var empty = World.ActorFor<IEmpty>(Definition.Has<EmptyActor>(new List<object>(), "testArrayQueueMailbox", "empty"));
 
         Assert.Equal(typeof(ManyToOneConcurrentArrayQueueMailbox), World.Stage.MailboxTypeOf(empty));
+        Assert.Equal("ManyToOneConcurrentArrayQueueMailbox", World.Stage.MailboxTypeNameOf(empty));
     }
 
     [Fact]
@@ -57,7 +58,8 @@ public class MailboxTypeTest : ActorsTest
 
         var empty = World.ActorFor<IEmpty>(Definition.Has<EmptyActor>(new List<object>(), "testConcurrentQueueMailbox", "empty"));
 
-        Assert.Equal(typeof(ConcurrentQueueMailbox), World.Stage.MailboxTypeOf(empty)); 
+        Assert.Equal(typeof(ConcurrentQueueMailbox), World.Stage.MailboxTypeOf(empty));
+        Assert.Equal("ConcurrentQueueMailbox", World.Stage.MailboxTypeNameOf(empty));
     }
     public interface IEmpty {}
 
