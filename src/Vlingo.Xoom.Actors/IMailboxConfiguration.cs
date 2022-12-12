@@ -6,6 +6,10 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System.Globalization;
+using Vlingo.Xoom.Actors.Plugin;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.ConcurrentQueue;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.SharedRingBuffer;
 
 namespace Vlingo.Xoom.Actors;
 
@@ -24,6 +28,20 @@ public interface IMailboxConfiguration<out T>
     static IConcurrentQueueConfiguration ConcurrentQueueConfiguration() => new BasicConcurrentQueueConfiguration();
 
     static ISharedRingBufferConfiguration SharedRingBufferConfiguration() => new BasicSharedRingBufferConfiguration();
+    
+    Configuration Configuration { get; }
+
+    string MailboxName { get; }
+    
+    bool IsDefaultMailbox { get; }
+    
+    IMailboxProvider MailboxProvider { get; }
+    
+    IPlugin Plugin { get; }
+    
+    IPluginConfiguration PluginConfiguration { get; }
+    
+    PluginProperties PluginProperties { get; }
 }
 
 public interface IArrayQueueConfiguration : IMailboxConfiguration<IArrayQueueConfiguration>
@@ -65,15 +83,21 @@ public interface ISharedRingBufferConfiguration : IMailboxConfiguration<ISharedR
 
 public abstract class BaseMailboxConfiguration<T> : IMailboxConfiguration<T>
 {
+    private readonly Configuration _configuration;
     private bool _defaultMailbox;
     private string? _mailboxImplementationClassname;
     private string? _pluginName;
     
-    protected string? MailboxName;
-    
+    protected string? BaseMailboxName;
+    protected IPlugin? BasePlugin;
+    protected IPluginConfiguration? BasePluginConfiguration;
+    protected PluginProperties? BasePluginProperties;
+
+    protected BaseMailboxConfiguration() => _configuration = Configuration.Define();
+
     public T WithMailboxName(string? mailboxName)
     {
-        MailboxName = mailboxName;
+        BaseMailboxName = mailboxName;
 
         return (T)(object) this;
     }
@@ -96,6 +120,8 @@ public abstract class BaseMailboxConfiguration<T> : IMailboxConfiguration<T>
     {
         var properties = new Properties();
 
+        properties.SetProperty(PluginDeclaration(), "true");
+        properties.SetProperty(BaseMailboxName!, _mailboxImplementationClassname);
         properties.SetProperty(PluginName(), "true");
         properties.SetProperty(PluginName() + ".classname", _mailboxImplementationClassname);
         properties.SetProperty(PluginName() + ".defaultMailbox", _defaultMailbox.ToString());
@@ -103,14 +129,40 @@ public abstract class BaseMailboxConfiguration<T> : IMailboxConfiguration<T>
         return properties;
     }
     
+    protected string PluginDeclaration() => "plugin.name." + BaseMailboxName;
+
+    public Configuration Configuration => _configuration;
+    public string MailboxName => BaseMailboxName!;
+    public bool IsDefaultMailbox => _defaultMailbox;
+    public IMailboxProvider MailboxProvider => (IMailboxProvider)Plugin;
+    public abstract IPlugin Plugin { get; }
+    public abstract IPluginConfiguration PluginConfiguration { get; }
+
+    public PluginProperties PluginProperties
+    {
+        get
+        {
+            if (BasePluginProperties == null)
+            {
+                BasePluginProperties = new PluginProperties(BaseMailboxName!, ToProperties());
+            }
+
+            return BasePluginProperties;
+        }
+    }
+
     protected string PluginName()
     {
         if (_pluginName == null)
         {
-            _pluginName = "plugin.name." + MailboxName;
+            _pluginName = "plugin." + MailboxName;
         }
 
         return _pluginName;
+    }
+    
+    protected TPc TypedPluginConfiguration<TPc>() {
+        return (TPc) PluginConfiguration;
     }
 }
 
@@ -169,6 +221,32 @@ public class BasicArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueue
 
         return properties;
     }
+
+    public override IPlugin Plugin
+    {
+        get
+        {
+            if (BasePlugin == null)
+            {
+                BasePlugin = new ManyToOneConcurrentArrayQueuePlugin(TypedPluginConfiguration<IPluginConfiguration>());
+            }
+
+            return BasePlugin;
+        }
+    }
+    
+    public override IPluginConfiguration PluginConfiguration {
+        get
+        {
+            if (BasePluginConfiguration == null)
+            {
+                BasePluginConfiguration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
+                BasePluginConfiguration.BuildWith(Configuration, PluginProperties);
+            }
+
+            return BasePluginConfiguration;   
+        }
+    }
 }
   
 public class BasicConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcurrentQueueConfiguration>, IConcurrentQueueConfiguration
@@ -207,6 +285,32 @@ public class BasicConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcu
         properties.SetProperty(PluginName() + ".dispatcherThrottlingCount", _dispatcherThrottlingCount.ToString());
 
         return properties;
+    }
+    
+    public override IPlugin Plugin
+    {
+        get
+        {
+            if (BasePlugin == null)
+            {
+                BasePlugin = new ConcurrentQueueMailboxPlugin(TypedPluginConfiguration<IPluginConfiguration>());
+            }
+
+            return BasePlugin;
+        }
+    }
+    
+    public override IPluginConfiguration PluginConfiguration {
+        get
+        {
+            if (BasePluginConfiguration == null)
+            {
+                BasePluginConfiguration = ConcurrentQueueMailboxPluginConfiguration.Define();
+                BasePluginConfiguration.BuildWith(Configuration, PluginProperties);
+            }
+
+            return BasePluginConfiguration;   
+        }
     }
 }
 
@@ -255,5 +359,31 @@ public class BasicSharedRingBufferConfiguration : BaseMailboxConfiguration<IShar
         properties.SetProperty(PluginName() + ".dispatcherThrottlingCount", _dispatcherThrottlingCount.ToString());
 
         return properties;
+    }
+    
+    public override IPlugin Plugin
+    {
+        get
+        {
+            if (BasePlugin == null)
+            {
+                BasePlugin = new SharedRingBufferMailboxPlugin(TypedPluginConfiguration<IPluginConfiguration>());
+            }
+
+            return BasePlugin;
+        }
+    }
+    
+    public override IPluginConfiguration PluginConfiguration {
+        get
+        {
+            if (BasePluginConfiguration == null)
+            {
+                BasePluginConfiguration = SharedRingBufferMailboxPluginConfiguration.Define();
+                BasePluginConfiguration.BuildWith(Configuration, PluginProperties);
+            }
+
+            return BasePluginConfiguration;   
+        }
     }
 }

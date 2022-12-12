@@ -16,7 +16,7 @@ public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IMailboxProvi
     public ManyToOneConcurrentArrayQueuePlugin(string? name = null) => 
         _configuration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
 
-    public ManyToOneConcurrentArrayQueuePlugin(IPluginConfiguration configuration) => 
+    internal ManyToOneConcurrentArrayQueuePlugin(IPluginConfiguration configuration) => 
         _configuration = (ManyToOneConcurrentArrayQueuePluginConfiguration)configuration;
 
     public override void Close()

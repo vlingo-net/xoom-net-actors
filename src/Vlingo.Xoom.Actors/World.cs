@@ -406,7 +406,7 @@ public sealed class World : IRegistrar
     /// <param name="mailboxConfiguration">The <see cref="IMailboxConfiguration{T}"/> describing the mailbox type to register</param>
     /// <typeparam name="T">The type of the mailbox</typeparam>
     public void RegisterMailboxType<T>(IMailboxConfiguration<T> mailboxConfiguration) => 
-        mailboxConfiguration.Plugin().Start(this);
+        mailboxConfiguration.Plugin.Start(this);
 
     /// <summary>
     /// Registers the dynamic <paramref name="value"/> with the <paramref name="name"/> key.

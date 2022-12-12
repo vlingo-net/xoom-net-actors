@@ -16,7 +16,7 @@ public class ConcurrentQueueMailboxPlugin : AbstractPlugin, IMailboxProvider
 
     public ConcurrentQueueMailboxPlugin(string name) => _configuration = ConcurrentQueueMailboxPluginConfiguration.Define(name);
 
-    public ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration) => _configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
+    internal ConcurrentQueueMailboxPlugin(IPluginConfiguration configuration) => _configuration = (ConcurrentQueueMailboxPluginConfiguration)configuration;
 
     public override string Name => _configuration.Name;
 
