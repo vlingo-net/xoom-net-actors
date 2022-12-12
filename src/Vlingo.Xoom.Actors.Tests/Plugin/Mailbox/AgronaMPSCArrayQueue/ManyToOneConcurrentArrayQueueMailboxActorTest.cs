@@ -48,8 +48,8 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             var testResults = new TestResults(MaxCount);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
-                    Definition.Parameters(testResults), "testRingMailbox", "countTaker-1"));
-            const int totalCount = MailboxSize * 2;
+                    Definition.Parameters(testResults), "testArrayQueueMailbox", "countTaker-1"));
+            const int totalCount = MailboxSize / 2;
             for (var count = 1; count <= totalCount; ++count)
             {
                 countTaker.Take(count);
