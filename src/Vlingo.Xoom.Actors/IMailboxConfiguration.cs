@@ -20,37 +20,37 @@ public interface IMailboxConfiguration<out T>
     Properties ToProperties();
 }
 
-public interface IArrayQueue : IMailboxConfiguration<IArrayQueue>
+public interface IArrayQueueConfiguration : IMailboxConfiguration<IArrayQueueConfiguration>
 {
-    IArrayQueue Size(int size);
+    IArrayQueueConfiguration Size(int size);
     
-    IArrayQueue FixedBackoff(int fixedBackoff);
+    IArrayQueueConfiguration FixedBackoff(int fixedBackoff);
     
-    IArrayQueue NotifyOnSend(bool notifyOnSend);
+    IArrayQueueConfiguration NotifyOnSend(bool notifyOnSend);
     
-    IArrayQueue DispatcherThrottlingCount(int dispatcherThrottlingCount);
+    IArrayQueueConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount);
     
-    IArrayQueue SendRetires(int sendRetires);
+    IArrayQueueConfiguration SendRetires(int sendRetires);
 }
 
-public interface IConcurrentQueue : IMailboxConfiguration<IConcurrentQueue>
+public interface IConcurrentQueueConfiguration : IMailboxConfiguration<IConcurrentQueueConfiguration>
 {
-    IConcurrentQueue NumberOfDispatchersFactor(double numberOfDispatchersFactor);
+    IConcurrentQueueConfiguration NumberOfDispatchersFactor(double numberOfDispatchersFactor);
     
-    IConcurrentQueue NumberOfDispatchers(int numberOfDispatchers);
+    IConcurrentQueueConfiguration NumberOfDispatchers(int numberOfDispatchers);
   
-    IConcurrentQueue DispatcherThrottlingCount(int dispatcherThrottlingCount);
+    IConcurrentQueueConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount);
 }
 
-public interface ISharedRingBuffer : IMailboxConfiguration<ISharedRingBuffer>
+public interface ISharedRingBufferConfiguration : IMailboxConfiguration<ISharedRingBufferConfiguration>
 {
-    ISharedRingBuffer Size(int size);
+    ISharedRingBufferConfiguration Size(int size);
     
-    ISharedRingBuffer FixedBackoff(int fixedBackoff);
+    ISharedRingBufferConfiguration FixedBackoff(int fixedBackoff);
     
-    ISharedRingBuffer NotifyOnSend(bool notifyOnSend);
+    ISharedRingBufferConfiguration NotifyOnSend(bool notifyOnSend);
     
-    ISharedRingBuffer DispatcherThrottlingCount(int dispatcherThrottlingCount);
+    ISharedRingBufferConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount);
 }
 
   //=========================================
@@ -108,7 +108,7 @@ public abstract class BaseMailboxConfiguration<T> : IMailboxConfiguration<T>
     }
 }
 
-public class ArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueue>, IArrayQueue
+public class BasicArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueueConfiguration>, IArrayQueueConfiguration
 {
     private int _fixedBackoff;
     private bool _notifyOnSend;
@@ -116,35 +116,35 @@ public class ArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueue>, IA
     private int _size;
     private int _dispatcherThrottlingCount;
     
-    public IArrayQueue Size(int size)
+    public IArrayQueueConfiguration Size(int size)
     {
         _size = size;
 
         return this;
     }
 
-    public IArrayQueue FixedBackoff(int fixedBackoff)
+    public IArrayQueueConfiguration FixedBackoff(int fixedBackoff)
     {
         _fixedBackoff = fixedBackoff;
 
         return this;
     }
 
-    public IArrayQueue NotifyOnSend(bool notifyOnSend)
+    public IArrayQueueConfiguration NotifyOnSend(bool notifyOnSend)
     {
         _notifyOnSend = notifyOnSend;
 
         return this;
     }
 
-    public IArrayQueue DispatcherThrottlingCount(int dispatcherThrottlingCount)
+    public IArrayQueueConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount)
     {
         _dispatcherThrottlingCount = dispatcherThrottlingCount;
 
         return this;
     }
 
-    public IArrayQueue SendRetires(int sendRetires)
+    public IArrayQueueConfiguration SendRetires(int sendRetires)
     {
         _sendRetires = sendRetires;
 
@@ -165,27 +165,27 @@ public class ArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueue>, IA
     }
 }
   
-public class ConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcurrentQueue>, IConcurrentQueue
+public class BasicConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcurrentQueueConfiguration>, IConcurrentQueueConfiguration
 {
     private int _dispatcherThrottlingCount;
     private int _numberOfDispatchers;
     private double _numberOfDispatchersFactor;
     
-    public IConcurrentQueue NumberOfDispatchersFactor(double numberOfDispatchersFactor)
+    public IConcurrentQueueConfiguration NumberOfDispatchersFactor(double numberOfDispatchersFactor)
     {
         _numberOfDispatchersFactor = numberOfDispatchersFactor;
 
         return this;
     }
 
-    public IConcurrentQueue NumberOfDispatchers(int numberOfDispatchers)
+    public IConcurrentQueueConfiguration NumberOfDispatchers(int numberOfDispatchers)
     {
         _numberOfDispatchers = numberOfDispatchers;
 
         return this;
     }
 
-    public IConcurrentQueue DispatcherThrottlingCount(int dispatcherThrottlingCount)
+    public IConcurrentQueueConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount)
     {
         _dispatcherThrottlingCount = dispatcherThrottlingCount;
 
@@ -204,35 +204,35 @@ public class ConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcurrent
     }
 }
 
-public class SharedRingBufferConfiguration : BaseMailboxConfiguration<ISharedRingBuffer>, ISharedRingBuffer
+public class BasicSharedRingBufferConfiguration : BaseMailboxConfiguration<ISharedRingBufferConfiguration>, ISharedRingBufferConfiguration
 {
     private int _fixedBackoff;
     private bool _notifyOnSend;
     private int _size;
     private int _dispatcherThrottlingCount;
     
-    public ISharedRingBuffer Size(int size)
+    public ISharedRingBufferConfiguration Size(int size)
     {
         _size = size;
 
         return this;
     }
 
-    public ISharedRingBuffer FixedBackoff(int fixedBackoff)
+    public ISharedRingBufferConfiguration FixedBackoff(int fixedBackoff)
     {
         _fixedBackoff = fixedBackoff;
 
         return this;
     }
 
-    public ISharedRingBuffer NotifyOnSend(bool notifyOnSend)
+    public ISharedRingBufferConfiguration NotifyOnSend(bool notifyOnSend)
     {
         _notifyOnSend = notifyOnSend;
 
         return this;
     }
 
-    public ISharedRingBuffer DispatcherThrottlingCount(int dispatcherThrottlingCount)
+    public ISharedRingBufferConfiguration DispatcherThrottlingCount(int dispatcherThrottlingCount)
     {
         _dispatcherThrottlingCount = dispatcherThrottlingCount;
 
