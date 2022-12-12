@@ -23,6 +23,7 @@ public class Stage : IStoppable
     private readonly Directory _directory;
     private IDirectoryScanner? _directoryScanner;
     private readonly Scheduler _scheduler;
+    private bool _supportsEvictions;
     private readonly AtomicBoolean _stopped;
 
     /// <summary>
@@ -412,6 +413,11 @@ public class Stage : IStoppable
     }
 
     /// <summary>
+    /// Gets whether the <see cref="Stage"/> supports evictions.
+    /// </summary>
+    public bool IsSupportingEvictions => _supportsEvictions;
+
+    /// <summary>
     /// Gets the <c>World</c> instance of this <c>Stage</c>.
     /// </summary>
     public World World { get; }
@@ -536,7 +542,7 @@ public class Stage : IStoppable
 
         var evictionConfiguration = EvictionConfiguration(World.Configuration.DirectoryEvictionConfiguration, forceEvictionEnabled);
 
-        if (evictionConfiguration != null && evictionConfiguration.IsEnabled)
+        if (SupportsEvictions(evictionConfiguration))
         {
             World.DefaultLogger.Debug($"Scheduling directory eviction for stage: {Name} with: {evictionConfiguration}");
             var directoryEvictor = ActorFor<IScheduled<object>>(
@@ -546,9 +552,11 @@ public class Stage : IStoppable
             Scheduler.Schedule(
                 directoryEvictor!,
                 null,
-                TimeSpan.FromMilliseconds(evictionConfiguration.LruProbeInterval),
+                TimeSpan.FromMilliseconds(evictionConfiguration!.LruProbeInterval),
                 TimeSpan.FromMilliseconds(evictionConfiguration.LruProbeInterval));
         }
+        
+        _supportsEvictions = true;
     }
 
     /// <summary>
@@ -851,12 +859,28 @@ public class Stage : IStoppable
             maybeEvictionConfiguration =
                 new DirectoryEvictionConfiguration(
                     evictionConfiguration.IsEnabled || forceEvictionEnabled,
+                    evictionConfiguration.ExcludedStageNames,
                     evictionConfiguration.LruProbeInterval,
                     evictionConfiguration.LruThreshold,
                     evictionConfiguration.FullRatioHighMark);
         }
 
         return maybeEvictionConfiguration;
+    }
+    
+    private bool SupportsEvictions(DirectoryEvictionConfiguration? evictionConfiguration)
+    {
+        if (evictionConfiguration == null)
+        {
+            return false;
+        }
+        
+        if (evictionConfiguration.IsExcluded(this))
+        {
+            return false;
+        }
+        
+        return evictionConfiguration.IsEnabled;
     }
 
     /// <summary>

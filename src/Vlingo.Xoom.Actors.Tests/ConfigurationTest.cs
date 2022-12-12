@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System.Collections.Generic;
 using Vlingo.Xoom.Actors.Plugin.Completes;
 using Vlingo.Xoom.Actors.Plugin.Eviction;
 using Vlingo.Xoom.Actors.Plugin.Logging.Console;
@@ -22,6 +23,8 @@ namespace Vlingo.Xoom.Actors.Tests
         [Fact]
         public void TestThatConfigurationConfirgures()
         {
+            var world = World.StartWithDefaults("testing-config");
+
             var configuration = Configuration
                 .Define()
                 .With(PooledCompletesPluginConfiguration
@@ -60,6 +63,7 @@ namespace Vlingo.Xoom.Actors.Tests
                         .WithSupervisor("default", "overrideSupervisor", typeof(DefaultSupervisorOverride)))
                 .With(DirectoryEvictionConfiguration
                     .Define()
+                    .Exclude(new List<string> { World.DefaultStage })
                     .WithFullRatioHighMark(0.75F)
                     .WithLruProbInterval(3000)
                     .WithLruThreshold(10000))
@@ -113,7 +117,9 @@ namespace Vlingo.Xoom.Actors.Tests
             Assert.Equal("overrideSupervisor", configuration.DefaultSupervisorOverridePluginConfiguration.Name);
             Assert.Equal(typeof(DefaultSupervisorOverride), configuration.DefaultSupervisorOverridePluginConfiguration.SupervisorClass(0));
 
+            Assert.NotNull(configuration.DirectoryEvictionConfiguration);
             Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration?.Name);
+            Assert.True(configuration.DirectoryEvictionConfiguration?.IsExcluded(world.Stage));
             Assert.Equal(10000, configuration.DirectoryEvictionConfiguration?.LruThreshold);
             Assert.Equal(3000, configuration.DirectoryEvictionConfiguration?.LruProbeInterval);
             Assert.Equal(0.75F, configuration.DirectoryEvictionConfiguration!.FullRatioHighMark, 0F);
@@ -127,6 +133,8 @@ namespace Vlingo.Xoom.Actors.Tests
         [Fact]
         public void TestThatConfigurationDefaults()
         {
+            var world = World.StartWithDefaults("testing-config");
+            
             var configuration = Configuration.Define();
             configuration.Load(0);
 
@@ -164,6 +172,14 @@ namespace Vlingo.Xoom.Actors.Tests
             Assert.Equal("overrideSupervisor", configuration.DefaultSupervisorOverridePluginConfiguration.SupervisorName(0));
             Assert.Equal(typeof(DefaultSupervisorOverride), configuration.DefaultSupervisorOverridePluginConfiguration.SupervisorClass(0));
 
+            Assert.NotNull(configuration.DirectoryEvictionConfiguration);
+            Assert.Equal("directoryEviction", configuration.DirectoryEvictionConfiguration.Name);
+            Assert.False(configuration.DirectoryEvictionConfiguration.IsEnabled);
+            Assert.True(configuration.DirectoryEvictionConfiguration.IsExcluded(world.Stage));
+            Assert.Equal(DirectoryEvictionConfiguration.DefaultLruProbeInterval, configuration.DirectoryEvictionConfiguration.LruProbeInterval);
+            Assert.Equal(DirectoryEvictionConfiguration.DefaultLruThreshold, configuration.DirectoryEvictionConfiguration.LruThreshold);
+            Assert.Equal(DirectoryEvictionConfiguration.DefaultFullRatioHighMark, configuration.DirectoryEvictionConfiguration.FullRatioHighMark, 0F);
+            
             Assert.Equal("target/classes/", configuration.MainProxyGeneratedClassesPath);
             Assert.Equal("target/generated-sources/", configuration.MainProxyGeneratedSourcesPath);
             Assert.Equal("target/test-classes/", configuration.TestProxyGeneratedClassesPath);

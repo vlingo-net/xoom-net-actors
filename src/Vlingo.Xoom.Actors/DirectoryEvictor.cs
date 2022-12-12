@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using Vlingo.Xoom.Actors.Plugin.Eviction;
@@ -21,8 +22,13 @@ internal class DirectoryEvictor : Actor, IScheduled<object>
     {
     }
 
-    public DirectoryEvictor(DirectoryEvictionConfiguration config, Directory directory)
+    public DirectoryEvictor(DirectoryEvictionConfiguration? config, Directory directory)
     {
+        if (config == null)
+        {
+            throw new ArgumentNullException(nameof(config), "The passed in configuration is null. Cannot proceed");
+        }
+        
         _config = config;
         _directory = directory;
         Logger.Debug("Created with config: {}", config);

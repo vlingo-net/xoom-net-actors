@@ -24,8 +24,8 @@ namespace Vlingo.Xoom.Actors;
 public sealed class World : IRegistrar
 {
     private const string PrivateRootName = "#private";
-    private const string DefaultStage = "__defaultStage";
-
+    
+    internal const string DefaultStage = "__defaultStage";
     internal const long PrivateRootId = long.MaxValue;
     internal const long PublicRootId = PrivateRootId - 1;
     internal const string PublicRootName = "#public";

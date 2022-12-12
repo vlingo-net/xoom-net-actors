@@ -263,7 +263,8 @@ public class Configuration
             typeof(ConcurrentQueueMailboxPlugin),
             typeof(SharedRingBufferMailboxPlugin),
             typeof(CommonSupervisorsPlugin),
-            typeof(DefaultSupervisorOverridePlugin)
+            typeof(DefaultSupervisorOverridePlugin),
+            typeof(DirectoryEvictionPlugin)
         };
 
         var loadPlugins = new List<IPlugin>();
