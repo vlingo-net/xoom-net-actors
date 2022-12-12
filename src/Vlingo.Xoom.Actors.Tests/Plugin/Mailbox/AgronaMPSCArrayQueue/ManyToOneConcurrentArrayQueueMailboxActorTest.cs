@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using Vlingo.Xoom.Actors.Plugin;
 using Vlingo.Xoom.Actors.Plugin.Completes;
 using Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
@@ -30,12 +31,15 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             properties.SetProperty("plugin.testArrayQueueMailbox.dispatcherThrottlingCount", "1");
             properties.SetProperty("plugin.testArrayQueueMailbox.sendRetires", "10");
 
-            var provider = new ManyToOneConcurrentArrayQueuePlugin();
-            var pluginProperties = new PluginProperties("testRingMailbox", properties);
-            var plugin = new PooledCompletesPlugin();
-            plugin.Configuration.BuildWith(World.Configuration, pluginProperties);
+            var manyToOneConcurrentArrayQueuePlugin = new ManyToOneConcurrentArrayQueuePlugin();
+            var pluginProperties = new PluginProperties("testArrayQueueMailbox", properties);
+            var pooledCompletesPlugin = new PooledCompletesPlugin();
+            
+            pooledCompletesPlugin.Configuration.BuildWith(World.Configuration, pluginProperties);
+            pooledCompletesPlugin.Start(World);
 
-            provider.Start(World);
+            manyToOneConcurrentArrayQueuePlugin.Configuration.BuildWith(World.Configuration, pluginProperties);
+            manyToOneConcurrentArrayQueuePlugin.Start(World);
         }
 
         [Fact]
@@ -45,8 +49,7 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
                     Definition.Parameters(testResults), "testRingMailbox", "countTaker-1"));
-            const int totalCount = MailboxSize / 2;
-
+            const int totalCount = MailboxSize * 2;
             for (var count = 1; count <= totalCount; ++count)
             {
                 countTaker.Take(count);
@@ -58,28 +61,46 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
         [Fact]
         public void TestOverflowDispatch()
         {
+            
             var testResults = new TestResults(MaxCount);
             var countTaker = World.ActorFor<ICountTaker>(
                 Definition.Has<CountTakerActor>(
-                    Definition.Parameters(testResults), "testRingMailbox", "countTaker-2"));
-            const int totalCount = MailboxSize * 2;
-            for (var count = 1; count <= totalCount; ++count)
-            {
-                countTaker.Take(count);
-            }
+                    Definition.Parameters(testResults), "testArrayQueueMailbox", "countTaker-2"));
 
-            Assert.Equal(MaxCount, testResults.GetHighest());
+            Assert.Throws<InvalidOperationException>(() =>
+                {
+                    for (var count = 1; count <= MailboxSize + 1; ++count)
+                    {
+                        countTaker.Take(count);
+                    }
+                }
+            );
+        }
+        
+        [Fact]
+        public void TestMailboxIsConfigured()
+        {
+            var testResults = new TestResults(MaxCount);
+            var countTaker =
+                World.ActorFor<ICountTaker>(
+                    Definition.Has<CountTakerActor>(
+                        Definition.Parameters(testResults),
+                        "testArrayQueueMailbox",
+                        "countTaker"));
+
+            var setMailboxTypeName = World.Stage.MailboxTypeNameOf(countTaker);
+            Assert.Equal("ManyToOneConcurrentArrayQueueMailbox", setMailboxTypeName);
         }
 
         private class CountTakerActor : Actor, ICountTaker
         {
-            private ICountTaker self;
+            private readonly ICountTaker _self;
             public TestResults TestResults { get; }
 
             public CountTakerActor(TestResults testResults)
             {
                 TestResults = testResults;
-                self = SelfAs<ICountTaker>();
+                _self = SelfAs<ICountTaker>();
             }
 
             public void Take(int count)
@@ -91,30 +112,30 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
 
                 if (count < MaxCount)
                 {
-                    self.Take(count + 1);
+                    _self.Take(count + 1);
                 }
             }
         }
 
         private class TestResults
         {
-            private readonly AccessSafely safely;
+            private readonly AccessSafely _safely;
 
             public TestResults(int happenings)
             {
                 var highest = new AtomicInteger(0);
-                safely = AccessSafely
+                _safely = AccessSafely
                     .AfterCompleting(happenings)
                     .WritingWith<int>("highest", x => highest.Set(x))
                     .ReadingWith("highest", highest.Get)
                     .ReadingWith<int, bool>("isHighest", count => count > highest.Get());
             }
 
-            public void SetHighest(int value) => safely.WriteUsing("highest", value);
+            public void SetHighest(int value) => _safely.WriteUsing("highest", value);
 
-            public int GetHighest() => safely.ReadFrom<int>("highest");
+            public int GetHighest() => _safely.ReadFrom<int>("highest");
 
-            public bool IsHighest(int val) => safely.ReadFromNow<int, bool>("isHighest", val);
+            public bool IsHighest(int val) => _safely.ReadFromNow<int, bool>("isHighest", val);
         }
     }
 }

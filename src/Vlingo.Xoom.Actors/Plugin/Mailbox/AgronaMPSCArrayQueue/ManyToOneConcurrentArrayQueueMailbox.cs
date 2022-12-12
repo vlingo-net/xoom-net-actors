@@ -65,7 +65,9 @@ public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
 
     public void Send(IMessage message)
     {
-        for (var tries = 0; tries < _totalSendRetries; ++tries)
+        // This code causes a deadlock when (1) the queue is full and (2) the actor tries to send a message to itself.
+        // To avoid this, any write to full queue needs to raise an exception.
+        for (var tries = 0; tries < _totalSendRetries; tries++)
         {
             if (_queue.TryAdd(message))
             {
@@ -75,7 +77,6 @@ public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
                 }
                 return;
             }
-            while (PendingMessages >= _queue.BoundedCapacity) ;
         }
         throw new InvalidOperationException("Count not enqueue message due to busy mailbox.");
     }
@@ -87,7 +88,7 @@ public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
             return message;
         }
 
-        return null;
+        return null!;
     }
 
     public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
