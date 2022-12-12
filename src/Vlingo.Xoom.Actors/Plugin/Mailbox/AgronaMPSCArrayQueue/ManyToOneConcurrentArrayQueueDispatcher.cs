@@ -51,7 +51,7 @@ public class ManyToOneConcurrentArrayQueueDispatcher : IRunnable, IDispatcher
             _dispatcherTokenSource.Dispose();
             _backoffTokenSource.Dispose();
         }
-        catch (ObjectDisposedException e)
+        catch (ObjectDisposedException)
         {
             // nothing to do
         }

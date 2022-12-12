@@ -6,28 +6,23 @@
 // one at https://mozilla.org/MPL/2.0/.
 
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 
 namespace Vlingo.Xoom.Actors.Plugin.Mailbox.AgronaMPSCArrayQueue;
 
 public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IMailboxProvider
 {
     private readonly ManyToOneConcurrentArrayQueuePluginConfiguration _configuration;
-    private readonly ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher> _dispatchers;
 
-    public ManyToOneConcurrentArrayQueuePlugin(string? name = null)
-    {
+    public ManyToOneConcurrentArrayQueuePlugin(string? name = null) => 
         _configuration = ManyToOneConcurrentArrayQueuePluginConfiguration.Define();
-        _dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);
-    }
-    private ManyToOneConcurrentArrayQueuePlugin(IPluginConfiguration configuration)
-    {
-        _configuration = (ManyToOneConcurrentArrayQueuePluginConfiguration)configuration;
-        _dispatchers = new ConcurrentDictionary<int, ManyToOneConcurrentArrayQueueDispatcher>(16, 1);
-    }
 
-    public override void Close() => _dispatchers.Values.ToList().ForEach(x => x.Close());
+    private ManyToOneConcurrentArrayQueuePlugin(IPluginConfiguration configuration) => 
+        _configuration = (ManyToOneConcurrentArrayQueuePluginConfiguration)configuration;
+
+    public override void Close()
+    {
+        // mailbox closes its dispatcher
+    }
 
     public override string Name => _configuration.Name;
 
@@ -38,42 +33,22 @@ public class ManyToOneConcurrentArrayQueuePlugin : AbstractPlugin, IMailboxProvi
     public override void Start(IRegistrar registrar)
         => registrar.Register(_configuration.Name, _configuration.IsDefaultMailbox, this);
 
-    public IMailbox ProvideMailboxFor(int? hashCode) => ProvideMailboxFor(hashCode, null);
-
-    public IMailbox ProvideMailboxFor(int? hashCode, IDispatcher? dispatcher)
+    public IMailbox ProvideMailboxFor(int? hashCode)
     {
-        ManyToOneConcurrentArrayQueueDispatcher? maybeDispatcher;
-
-        if (!hashCode.HasValue)
-        {
-            throw new ArgumentNullException(nameof(hashCode),"Cannot provide mailbox because the hashCode is null.");
-        }
-            
-        if (dispatcher != null)
-        {
-            maybeDispatcher = (ManyToOneConcurrentArrayQueueDispatcher)dispatcher;
-        }
-        else
-        {
-            _dispatchers.TryGetValue(hashCode.Value, out maybeDispatcher);
-        }
-
-        if (maybeDispatcher == null)
-        {
-            var newDispatcher = new ManyToOneConcurrentArrayQueueDispatcher(
-                _configuration.RingSize,
-                _configuration.FixedBackoff,
-                _configuration.NotifyOnSend,
-                _configuration.DispatcherThrottlingCount,
-                _configuration.SendRetires);
-
-            var otherDispatcher = _dispatchers.GetOrAdd(hashCode.Value, newDispatcher);
-                
-            otherDispatcher.Start();
-            return otherDispatcher.Mailbox;
-        }
-        return maybeDispatcher.Mailbox;
+        var newDispatcher = new ManyToOneConcurrentArrayQueueDispatcher(
+            _configuration.RingSize,
+            _configuration.FixedBackoff,
+            _configuration.NotifyOnSend,
+            _configuration.DispatcherThrottlingCount,
+            _configuration.SendRetires);
+        
+        newDispatcher.Start();
+        
+        return newDispatcher.Mailbox;
     }
+
+    public IMailbox ProvideMailboxFor(int? hashCode, IDispatcher? dispatcher) => 
+        throw new InvalidOperationException("Does not support dispatcher reuse.");
 
     public override IPlugin With(IPluginConfiguration? overrideConfiguration)
         => overrideConfiguration == null ? this : new ManyToOneConcurrentArrayQueuePlugin(overrideConfiguration);
