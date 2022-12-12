@@ -70,6 +70,8 @@ public sealed class World : IRegistrar
 
         configuration.StartPlugins(this, 2);
         defaultStage.StartDirectoryScanner();
+        
+        ActorProxy.SetProxyTypeTo(this);
     }
 
     /// <summary>

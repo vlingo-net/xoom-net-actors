@@ -14,23 +14,30 @@ namespace Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
 /// </summary>
 public class TestRuntimeDiscoverer
 {
-    private static bool _runningFromNUnit = false;
+    private static bool _runningFromXunit;
+    
+    public static bool IsTestDetectionDeactivated { get; set; }
     
     public static bool IsUnderTest()
     {
+        if (IsTestDetectionDeactivated)
+        {
+            return false;
+        }
+        
         foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
         {
-            // Can't do something like this as it will load the nUnit assembly
+            // Can't do something like this as it will load the xunit assembly
             // if (assem == typeof(Xunit.Assert))
 
             if (assem.FullName!.ToLowerInvariant().StartsWith("xunit"))
             {
-                _runningFromNUnit = true;
+                _runningFromXunit = true;
                 break;
             }
         }
 
-        return _runningFromNUnit;
+        return _runningFromXunit;
     }
     
     public static bool IsUnderTestWith(string className, string methodName) => 
