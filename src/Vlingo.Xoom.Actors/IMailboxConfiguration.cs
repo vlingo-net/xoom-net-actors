@@ -18,6 +18,12 @@ public interface IMailboxConfiguration<out T>
     T DefaultMailbox(bool flag);
     
     Properties ToProperties();
+    
+    static IArrayQueueConfiguration ArrayQueueConfiguration() => new BasicArrayQueueConfiguration();
+    
+    static IConcurrentQueueConfiguration ConcurrentQueueConfiguration() => new BasicConcurrentQueueConfiguration();
+
+    static ISharedRingBufferConfiguration SharedRingBufferConfiguration() => new BasicSharedRingBufferConfiguration();
 }
 
 public interface IArrayQueueConfiguration : IMailboxConfiguration<IArrayQueueConfiguration>
