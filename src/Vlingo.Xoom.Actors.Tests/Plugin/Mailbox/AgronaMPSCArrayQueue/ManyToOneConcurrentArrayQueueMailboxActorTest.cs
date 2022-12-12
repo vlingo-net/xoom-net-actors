@@ -41,6 +41,30 @@ namespace Vlingo.Xoom.Actors.Tests.Plugin.Mailbox.AgronaMPSCArrayQueue
             manyToOneConcurrentArrayQueuePlugin.Configuration.BuildWith(World.Configuration, pluginProperties);
             manyToOneConcurrentArrayQueuePlugin.Start(World);
         }
+        
+        [Fact]
+        public void TestThatMailboxesAreDifferent()
+        {
+            var addressable1 =
+                World.ActorFor<IAddressable>(
+                    Definition.Has<TestAddressableActor>(
+                        Definition.NoParameters, "testArrayQueueMailbox", "addressable-1"));
+
+            var address1 = ((Addressable__Proxy) addressable1).Address;
+            var actor1 = World.Stage.Directory.ActorOf(address1);
+            var mailbox1 = actor1?.LifeCycle.Environment.Mailbox;
+    
+            var addressable2 =
+                World.ActorFor<IAddressable>(
+                    Definition.Has<TestAddressableActor>(
+                        Definition.NoParameters, "testArrayQueueMailbox", "addressable-1"));
+
+            var address2 = ((Addressable__Proxy) addressable2).Address;
+            var actor2 = World.Stage.Directory.ActorOf(address2);
+            var mailbox2 = actor2?.LifeCycle.Environment.Mailbox;
+
+            Assert.NotEqual(mailbox1, mailbox2);
+        }
 
         [Fact]
         public void TestBasicDispatch()
