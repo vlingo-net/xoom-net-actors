@@ -51,30 +51,6 @@ namespace Vlingo.Xoom.Actors.Tests.TestKit
             Assert.True(TestRuntimeDiscoverer.IsUnderTest());
         }
 
-        private static readonly AtomicReference<string> UnderTest = new("UNKNOWN");
-        private static readonly CountdownEvent Latch = new(0);
-
-        private readonly Thread _runtimeTestDiscovererThread = new(
-            () =>
-            {
-                UnderTest.Set(TestRuntimeDiscoverer.IsUnderTest() ? "TRUE" : "FALSE");
-                Latch.AddCount();
-            });
-        
-        [Fact]
-        public void TestThatTestRuntimeDiscovererDiscoversNoTest()
-        {
-            // use a separate Thread since it will not be on this stack
-            _runtimeTestDiscovererThread.Start();
-
-            Latch.Wait();
-
-            // set a String value to ensure thread memory is sync'd.
-            // this is distinguishable compared to setting true/false,
-            // which could mistakenly be the expected value
-            Assert.Equal("FALSE", UnderTest.Get());
-        }
-
         private class PingCounterActor : Actor, IPingCounter
         {
             private int _count;

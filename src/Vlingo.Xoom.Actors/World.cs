@@ -12,6 +12,8 @@ using System.Linq.Expressions;
 using Vlingo.Xoom.Actors.Plugin.Completes;
 using Vlingo.Xoom.Actors.Plugin.Logging;
 using Vlingo.Xoom.Actors.Plugin.Mailbox;
+using Vlingo.Xoom.Actors.Plugin.Mailbox.TestKit;
+using Vlingo.Xoom.Actors.TestKit;
 using Vlingo.Xoom.Common;
 using Vlingo.Xoom.Common.Compiler;
 
@@ -109,6 +111,13 @@ public sealed class World : IRegistrar
         if (name == null)
         {
             throw new ArgumentException("The world name must not be null.");
+        }
+        
+        if (!ActorProxy.IsInitializingForTest() && TestRuntimeDiscoverer.IsUnderTest())
+        {
+            ActorProxy.InitializeForTest();
+            var testWorld = TestWorld.Start(name, configuration);
+            return testWorld.World;
         }
 
         return new World(name, configuration);

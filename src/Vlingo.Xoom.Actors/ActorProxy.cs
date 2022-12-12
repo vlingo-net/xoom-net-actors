@@ -57,6 +57,9 @@ internal static class ActorProxy
 
     private static Type GetProtocolGenericDefinition(Type protocol)
         => protocol.IsGenericType ? protocol.GetGenericTypeDefinition() : protocol;
+    
+    private static bool IsGeneratingForMain(World world) => 
+        !world.ResolveDynamic<bool>(InternalActorProxyForTestId);
 
     private static Type? LoadProxyClassFor(string targetClassname, Actor actor)
         => ClassLoaderFor(actor).LoadClass(targetClassname);
@@ -88,7 +91,9 @@ internal static class ActorProxy
     {
         try
         {
-            var generator = ProxyGenerator.ForMain(true, actor.Logger);
+            var generator = IsGeneratingForMain(actor.Stage.World) ?
+                ProxyGenerator.ForTest(true, actor.Logger) :
+                ProxyGenerator.ForMain(true, actor.Logger);
             return TryGenerateCreate(protocol, actor, mailbox, generator, targetClassName, lookupTypeName);
         }
         catch (Exception e)
@@ -162,7 +167,7 @@ internal static class ActorProxy
         return classLoader;
     }
         
-    private static bool IsAsyncStateMachine(MethodInfo methodInfo)
+    private static bool IsAsyncStateMachine(MethodInfo? methodInfo)
     {
         var attType = typeof(AsyncStateMachineAttribute);
 
@@ -175,5 +180,19 @@ internal static class ActorProxy
         }
 
         return false;
+    }
+    
+    internal static readonly string InternalActorProxyForTestId = Guid.NewGuid().ToString();
+
+    private static bool _initializingForTest;
+    
+    internal static void InitializeForTest() => _initializingForTest = true;
+    
+    internal static bool IsInitializingForTest() => _initializingForTest;
+    
+    internal static void SetProxyTypeTo(World world)
+    {
+        world.RegisterDynamic(InternalActorProxyForTestId, _initializingForTest);
+        _initializingForTest = false;
     }
 }
