@@ -357,9 +357,9 @@ public abstract class Actor : IStartable, IStoppable, IRelocatable, ITestStateVi
 
     /// <summary>
     /// Starts the process of stowing messages for this <c>Actor</c>, and registers <paramref name="stowageOverrides"/> as
-    /// the protocol that will trigger dispersal.
+    /// <paramref name="stowageOverrides"/> as the protocols that will trigger dispersal.
     /// </summary>
-    /// <param name="stowageOverrides">The protocol <c>Type</c>(s) that will trigger dispersal</param>
+    /// <param name="stowageOverrides">The array of protocols <c>Type</c>(s) that will trigger dispersal</param>
     protected internal virtual void StowMessages(params Type[] stowageOverrides) =>
         LifeCycle.Environment.Mailbox.SuspendExceptFor(Mailbox.Paused, stowageOverrides);
 
