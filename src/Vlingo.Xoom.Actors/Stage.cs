@@ -358,7 +358,7 @@ public class Stage : IStoppable
     }
     
     /// <summary>
-    /// Answers the <code>Mailbox</code> type name of the specified proxy instance.
+    /// Answers the <code>Mailbox</code> simple type name of the specified proxy instance.
     /// </summary>
     /// <param name="proxy">An actor proxy typically created with one of <code>.ActorFor(...)} methods</code></param>
     /// <returns>Mailbox type name</returns>
