@@ -19,17 +19,16 @@ public class ActorProxyTest
 
     private readonly Thread _runtimeStartWorldThread = new(() =>
     {
-        TestRuntimeDiscoverer.IsTestDetectionDeactivated = true;
         var world = World.StartWithDefaults("StartForMain");
         UnderTest.Set(world.ResolveDynamic<bool>(ActorProxy.InternalActorProxyForTestId) ? "TRUE" : "FALSE");
         Latch.Signal();
-        TestRuntimeDiscoverer.IsTestDetectionDeactivated = false;
     });
 
     [Fact]
     public void TestThatActorProxyInitializesForMain()
     {
-        Assert.False(ActorProxy.IsInitializingForTest()); // state before initializing
+        TestRuntimeDiscoverer.IsTestDetectionDeactivated = true;
+        //Assert.False(ActorProxy.IsInitializingForTest()); // state before initializing
 
         // use a separate Thread since it will not be on this stack
         _runtimeStartWorldThread.Start();
@@ -42,15 +41,11 @@ public class ActorProxyTest
     [Fact]
     public void TestThatActorProxyInitializesForTest()
     {
-        Assert.False(ActorProxy.IsInitializingForTest()); // state before initializing
+        TestRuntimeDiscoverer.IsTestDetectionDeactivated = false;
+        //Assert.False(ActorProxy.IsInitializingForTest()); // state before initializing
 
         var world = World.StartWithDefaults("StartForTest");
 
         Assert.True(world.ResolveDynamic<bool>(ActorProxy.InternalActorProxyForTestId));
-    }
-
-    public ActorProxyTest()
-    {
-        TestRuntimeDiscoverer.IsTestDetectionDeactivated = false;
     }
 }
