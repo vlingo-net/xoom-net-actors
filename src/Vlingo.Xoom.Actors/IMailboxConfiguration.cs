@@ -11,44 +11,46 @@ namespace Vlingo.Xoom.Actors;
 
 public interface IMailboxConfiguration<out T>
 {
-    T WithName(string name);
+    T WithMailboxName(string? name);
     
-    T WithClassname(string classname);
+    T MailboxImplementationClassname(string? classname);
     
-    T WithDefaultMailbox(bool flag);
+    T DefaultMailbox(bool flag);
+    
+    Properties ToProperties();
 }
 
 public interface IArrayQueue : IMailboxConfiguration<IArrayQueue>
 {
     IArrayQueue Size(int size);
     
-    IArrayQueue FixedBackoff(int amount);
+    IArrayQueue FixedBackoff(int fixedBackoff);
     
-    IArrayQueue NotifyOnSend(bool flag);
+    IArrayQueue NotifyOnSend(bool notifyOnSend);
     
-    IArrayQueue DispatcherThrottlingCount(int count);
+    IArrayQueue DispatcherThrottlingCount(int dispatcherThrottlingCount);
     
-    IArrayQueue SendRetires(int retries);
+    IArrayQueue SendRetires(int sendRetires);
 }
 
 public interface IConcurrentQueue : IMailboxConfiguration<IConcurrentQueue>
 {
-    IConcurrentQueue NumberOfDispatchersFactor(double factor);
+    IConcurrentQueue NumberOfDispatchersFactor(double numberOfDispatchersFactor);
     
-    IConcurrentQueue NumberOfDispatchers(int dispatchers);
+    IConcurrentQueue NumberOfDispatchers(int numberOfDispatchers);
   
-    IConcurrentQueue DispatcherThrottlingCount(int count);
+    IConcurrentQueue DispatcherThrottlingCount(int dispatcherThrottlingCount);
 }
 
 public interface ISharedRingBuffer : IMailboxConfiguration<ISharedRingBuffer>
 {
     ISharedRingBuffer Size(int size);
     
-    ISharedRingBuffer FixedBackoff(int amount);
+    ISharedRingBuffer FixedBackoff(int fixedBackoff);
     
-    ISharedRingBuffer NotifyOnSend(bool flag);
+    ISharedRingBuffer NotifyOnSend(bool notifyOnSend);
     
-    ISharedRingBuffer DispatcherThrottlingCount(int count);
+    ISharedRingBuffer DispatcherThrottlingCount(int dispatcherThrottlingCount);
 }
 
   //=========================================
@@ -57,122 +59,195 @@ public interface ISharedRingBuffer : IMailboxConfiguration<ISharedRingBuffer>
 
 public abstract class BaseMailboxConfiguration<T> : IMailboxConfiguration<T>
 {
-    protected string? Name;
-    protected Properties? Properties;
+    private bool _defaultMailbox;
+    private string? _mailboxImplementationClassname;
+    private string? _pluginName;
     
-    public T WithName(string name)
+    protected string? MailboxName;
+    
+    public T WithMailboxName(string? mailboxName)
     {
-        Properties = new Properties();
-        Name = "plugin.name." + name;
-        Properties.SetProperty(Name, "true");
+        MailboxName = mailboxName;
 
         return (T)(object) this;
     }
     
-    public T WithClassname(string classname)
+    public T MailboxImplementationClassname(string? classname)
     {
-        Properties?.SetProperty(Name + ".classname", "");
+        _mailboxImplementationClassname = classname;
 
         return (T)(object) this;
     }
     
-    public T WithDefaultMailbox(bool flag)
+    public T DefaultMailbox(bool defaultMailbox)
     {
-        Properties?.SetProperty(Name + ".defaultMailbox", flag.ToString());
+        _defaultMailbox = defaultMailbox;
 
         return (T)(object) this;
+    }
+
+    public virtual Properties ToProperties()
+    {
+        var properties = new Properties();
+
+        properties.SetProperty(PluginName(), "true");
+        properties.SetProperty(PluginName() + ".classname", _mailboxImplementationClassname);
+        properties.SetProperty(PluginName() + ".defaultMailbox", _defaultMailbox.ToString());
+
+        return properties;
+    }
+    
+    protected string PluginName()
+    {
+        if (_pluginName == null)
+        {
+            _pluginName = "plugin.name." + MailboxName;
+        }
+
+        return _pluginName;
     }
 }
 
 public class ArrayQueueConfiguration : BaseMailboxConfiguration<IArrayQueue>, IArrayQueue
 {
+    private int _fixedBackoff;
+    private bool _notifyOnSend;
+    private int _sendRetires;
+    private int _size;
+    private int _dispatcherThrottlingCount;
+    
     public IArrayQueue Size(int size)
     {
-        Properties?.SetProperty(Name + ".size", size.ToString());
+        _size = size;
 
         return this;
     }
 
-    public IArrayQueue FixedBackoff(int amount)
+    public IArrayQueue FixedBackoff(int fixedBackoff)
     {
-        Properties?.SetProperty(Name + ".fixedBackoff", amount.ToString());
+        _fixedBackoff = fixedBackoff;
 
         return this;
     }
 
-    public IArrayQueue NotifyOnSend(bool flag)
+    public IArrayQueue NotifyOnSend(bool notifyOnSend)
     {
-          Properties?.SetProperty(Name + ".notifyOnSend", flag.ToString());
+        _notifyOnSend = notifyOnSend;
 
-          return this;
+        return this;
     }
 
-    public IArrayQueue DispatcherThrottlingCount(int count)
+    public IArrayQueue DispatcherThrottlingCount(int dispatcherThrottlingCount)
     {
-          Properties?.SetProperty(Name + ".dispatcherThrottlingCount", count.ToString());
+        _dispatcherThrottlingCount = dispatcherThrottlingCount;
 
-          return this;
+        return this;
     }
 
-    public IArrayQueue SendRetires(int retries)
+    public IArrayQueue SendRetires(int sendRetires)
     {
-          Properties?.SetProperty(Name + ".sendRetires", retries.ToString());
+        _sendRetires = sendRetires;
 
-          return this;
+        return this;
+    }
+
+    public override Properties ToProperties()
+    {
+        var properties = base.ToProperties();
+
+        properties.SetProperty(PluginName() + ".size", _size.ToString());
+        properties.SetProperty(PluginName() + ".fixedBackoff", _fixedBackoff.ToString());
+        properties.SetProperty(PluginName() + ".notifyOnSend", _notifyOnSend.ToString());
+        properties.SetProperty(PluginName() + ".dispatcherThrottlingCount", _dispatcherThrottlingCount.ToString());
+        properties.SetProperty(PluginName() + ".sendRetires", _sendRetires.ToString());
+
+        return properties;
     }
 }
   
 public class ConcurrentQueueConfiguration : BaseMailboxConfiguration<IConcurrentQueue>, IConcurrentQueue
 {
-    public IConcurrentQueue NumberOfDispatchersFactor(double factor)
+    private int _dispatcherThrottlingCount;
+    private int _numberOfDispatchers;
+    private double _numberOfDispatchersFactor;
+    
+    public IConcurrentQueue NumberOfDispatchersFactor(double numberOfDispatchersFactor)
     {
-          Properties?.SetProperty(Name + ".numberOfDispatchersFactor", factor.ToString(CultureInfo.InvariantCulture));
+        _numberOfDispatchersFactor = numberOfDispatchersFactor;
 
-          return this;
+        return this;
     }
 
-    public IConcurrentQueue NumberOfDispatchers(int dispatchers)
+    public IConcurrentQueue NumberOfDispatchers(int numberOfDispatchers)
     {
-          Properties?.SetProperty(Name + ".numberOfDispatchers", dispatchers.ToString());
+        _numberOfDispatchers = numberOfDispatchers;
 
-          return this;
+        return this;
     }
 
-    public IConcurrentQueue DispatcherThrottlingCount(int count)
+    public IConcurrentQueue DispatcherThrottlingCount(int dispatcherThrottlingCount)
     {
-          Properties?.SetProperty(Name + ".dispatcherThrottlingCount", count.ToString());
+        _dispatcherThrottlingCount = dispatcherThrottlingCount;
 
-          return this;
+        return this;
+    }
+
+    public override Properties ToProperties()
+    {
+        var properties = base.ToProperties();
+
+        properties.SetProperty(PluginName() + ".numberOfDispatchersFactor", _numberOfDispatchersFactor.ToString(CultureInfo.InvariantCulture));
+        properties.SetProperty(PluginName() + ".numberOfDispatchers", _numberOfDispatchers.ToString());
+        properties.SetProperty(PluginName() + ".dispatcherThrottlingCount", _dispatcherThrottlingCount.ToString());
+
+        return properties;
     }
 }
 
 public class SharedRingBufferConfiguration : BaseMailboxConfiguration<ISharedRingBuffer>, ISharedRingBuffer
 {
+    private int _fixedBackoff;
+    private bool _notifyOnSend;
+    private int _size;
+    private int _dispatcherThrottlingCount;
+    
     public ISharedRingBuffer Size(int size)
     {
-        Properties?.SetProperty(Name + ".size", size.ToString());
+        _size = size;
 
         return this;
     }
 
-    public ISharedRingBuffer FixedBackoff(int amount)
+    public ISharedRingBuffer FixedBackoff(int fixedBackoff)
     {
-        Properties?.SetProperty(Name + ".fixedBackoff", amount.ToString());
+        _fixedBackoff = fixedBackoff;
 
         return this;
     }
 
-    public ISharedRingBuffer NotifyOnSend(bool flag)
+    public ISharedRingBuffer NotifyOnSend(bool notifyOnSend)
     {
-        Properties?.SetProperty(Name + ".notifyOnSend", flag.ToString());
-
-      return this;
-    }
-
-    public ISharedRingBuffer DispatcherThrottlingCount(int count)
-    {
-        Properties?.SetProperty(Name + ".dispatcherThrottlingCount", count.ToString());
+        _notifyOnSend = notifyOnSend;
 
         return this;
+    }
+
+    public ISharedRingBuffer DispatcherThrottlingCount(int dispatcherThrottlingCount)
+    {
+        _dispatcherThrottlingCount = dispatcherThrottlingCount;
+
+        return this;
+    }
+
+    public override Properties ToProperties()
+    {
+        var properties = base.ToProperties();
+
+        properties.SetProperty(PluginName() + ".size", _size.ToString());
+        properties.SetProperty(PluginName() + ".fixedBackoff", _fixedBackoff.ToString());
+        properties.SetProperty(PluginName() + ".notifyOnSend", _notifyOnSend.ToString());
+        properties.SetProperty(PluginName() + ".dispatcherThrottlingCount", _dispatcherThrottlingCount.ToString());
+
+        return properties;
     }
 }
