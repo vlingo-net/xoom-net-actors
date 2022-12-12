@@ -22,7 +22,7 @@ public class SharedRingBufferMailboxPlugin : AbstractPlugin, IMailboxProvider
         _dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
     }
 
-    private SharedRingBufferMailboxPlugin(IPluginConfiguration configuration)
+    public SharedRingBufferMailboxPlugin(IPluginConfiguration configuration)
     {
         _configuration = (SharedRingBufferMailboxPluginConfiguration)configuration;
         _dispatchers = new ConcurrentDictionary<int, RingBufferDispatcher>(16, 1);
