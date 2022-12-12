@@ -5,6 +5,7 @@
 // was not distributed with this file, You can obtain
 // one at https://mozilla.org/MPL/2.0/.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Vlingo.Xoom.Common;
@@ -20,7 +21,7 @@ public class ManyToOneConcurrentArrayQueueDispatcher : IRunnable, IDispatcher
     private CancellationTokenSource _backoffTokenSource;
     private readonly CancellationTokenSource _dispatcherTokenSource;
     private Task? _started;
-    private readonly object _mutex = new object();
+    private readonly object _mutex = new();
 
     internal ManyToOneConcurrentArrayQueueDispatcher(
         int mailboxSize,
@@ -41,9 +42,19 @@ public class ManyToOneConcurrentArrayQueueDispatcher : IRunnable, IDispatcher
     public void Close()
     {
         _closed.Set(true);
-        _dispatcherTokenSource.Cancel();
-        _dispatcherTokenSource.Dispose();
-        _backoffTokenSource.Dispose();
+        try
+        {
+            _dispatcherTokenSource.Cancel();
+            _dispatcherTokenSource.Dispose();
+            _backoffTokenSource.Dispose();
+            _dispatcherTokenSource.Cancel();
+            _dispatcherTokenSource.Dispose();
+            _backoffTokenSource.Dispose();
+        }
+        catch (ObjectDisposedException e)
+        {
+            // nothing to do
+        }
     }
 
     public bool IsClosed => _closed.Get();
@@ -87,7 +98,7 @@ public class ManyToOneConcurrentArrayQueueDispatcher : IRunnable, IDispatcher
 
     private bool Deliver()
     {
-        for (int idx = 0; idx < _throttlingCount; ++idx)
+        for (var idx = 0; idx < _throttlingCount; ++idx)
         {
             var message = Mailbox.Receive();
             if (message == null)

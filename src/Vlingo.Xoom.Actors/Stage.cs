@@ -343,6 +343,19 @@ public class Stage : IStoppable
     /// Gets the count of the number of <c>Actor</c> instances contained in this <c>Stage</c>.
     /// </summary>
     public int Count => _directory.Count;
+    
+    public Type? MailboxTypeOf(object proxy)
+    {
+        if (!(proxy is IProxy))
+        {
+            throw new ArgumentException("Invalid actor proxy instance: " + proxy.GetType());
+        }
+
+        var actorAddress = ((IProxy) proxy).Address;
+        var actor = _directory.ActorOf(actorAddress);
+
+        return actor?.LifeCycle.Environment.Mailbox.GetType();
+    }
 
     /// <summary>
     /// A debugging tool used to print information about the <c>Actor</c> instances contained in this <c>Stage</c>.

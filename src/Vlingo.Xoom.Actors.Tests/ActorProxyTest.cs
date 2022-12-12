@@ -48,4 +48,9 @@ public class ActorProxyTest
 
         Assert.True(world.ResolveDynamic<bool>(ActorProxy.InternalActorProxyForTestId));
     }
+
+    public ActorProxyTest()
+    {
+        TestRuntimeDiscoverer.IsTestDetectionDeactivated = false;
+    }
 }

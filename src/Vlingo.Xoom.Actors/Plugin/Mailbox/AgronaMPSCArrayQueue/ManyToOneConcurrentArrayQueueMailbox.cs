@@ -80,7 +80,15 @@ public class ManyToOneConcurrentArrayQueueMailbox : IMailbox, IDisposable
         throw new InvalidOperationException("Count not enqueue message due to busy mailbox.");
     }
 
-    public IMessage Receive() => _queue.Take();
+    public IMessage Receive()
+    {
+        if (_queue.TryTake(out var message))
+        {
+            return message;
+        }
+
+        return null;
+    }
 
     public void Send<T>(Actor actor, Action<T> consumer, ICompletes? completes, string representation) => 
         throw new NotSupportedException("Not a preallocated mailbox.");
